@@ -23,22 +23,15 @@ class Linear(Approximation):
 
     ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
     def _set_y(self, x):
-        y = np.empty((self.n, self.m + 1))
-        for j in range(0, self.m + 1):
-            y[:, j] = x
-        return y
+        return x*np.ones((self.n, self.m+1), dtype=float)
 
     ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
     def _set_dydx(self, x):
-        dy = np.empty((self.n, self.m + 1))
-        dy[:] = 1
-        return dy
+        return np.ones((self.n, self.m + 1), dtype=float)
 
     ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
     def _set_ddydx(self, x):
-        ddy = np.empty((self.n, self.m + 1))
-        ddy[:] = 0
-        return ddy
+        return np.zeros((self.n, self.m + 1), dtype=float)
 
     ## Define chain rule term: y = T_inv(x) --> dT/dy = dx/dy
     def _set_dTdy(self):
