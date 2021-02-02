@@ -26,8 +26,6 @@ class Approximation:
         self.zo_term = np.zeros((self.m + 1))                   # zero-order term to be computed only once per iteration
         self.dx = xmax - xmin
         self.properties = None                                  # e.g. non-convex, type, etc.
-
-        # New stuff
         self.P = None
         self.y_k = None
         self.num_of_var_sets = 1                                # default number of variable sets

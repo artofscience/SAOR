@@ -30,16 +30,6 @@ class MMA(Approximation):
         self.P = np.empty((self.m + 1, self.n))                  # P = max{dg/dx, 0} * dT/dy
         self.zo_term = np.empty(self.m + 1)                      # r_j^(k) in Svanberg's paper
 
-    # ## Define intermediate vars: x = T(y)
-    # def T_of_y(self, y, j):
-    #     x = np.ones(self.n)
-    #     for i in range(0, self.n):
-    #         if self.dg[j, i] >= 0:
-    #             x[i] = self.upp[i] - 1/y[i]
-    #         else:
-    #             x[i] = 1/y[i] - self.low[i]
-    #     return x
-
     ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
     def _set_y(self, x):
         y = np.empty((self.n, self.m + 1))

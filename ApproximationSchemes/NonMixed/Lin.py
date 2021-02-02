@@ -10,16 +10,9 @@ class Linear(Approximation):
     def __init__(self, n, m, xmin, xmax, **kwargs):
         Approximation.__init__(self, n, m, xmin, xmax)       # Let parent class handle the common arguments
         self.name = 'Linear'
-
-        # New stuff
-        self.y_k = np.empty((self.n, self.m + 1))  # intermediate vars
-        self.P = np.empty((self.m + 1, self.n))  # P = max{dg/dx, 0} * dT/dy
-        self.zo_term = np.empty(self.m + 1)  # r_j^(k) in Svanberg's paper
-
-    # ## Define intermediate vars: x = T(y)
-    # def T_of_y(self, y, j):
-    #     x = y[:]
-    #     return x
+        self.y_k = np.empty((self.n, self.m + 1))   # intermediate vars, different for each response (for mixed schemes)
+        self.P = np.empty((self.m + 1, self.n))     # dg/dx * dT/dy = dg/dx * dx/dy
+        self.zo_term = np.empty(self.m + 1)         # Constant part of Taylor expansion to be computed only once
 
     ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
     def _set_y(self, x):
@@ -35,9 +28,7 @@ class Linear(Approximation):
 
     ## Define chain rule term: y = T_inv(x) --> dT/dy = dx/dy
     def _set_dTdy(self):
-        dTdy = np.empty((self.n, self.m + 1))
-        dTdy[:] = 1
-        return dTdy
+        return np.ones((self.n, self.m + 1), dtype=float)
 
     ## Set approx.P matrices at current iteration: approx.P[:, :, 0] = P, approx.P[:, :, 1] = Q
     def _set_P(self):
