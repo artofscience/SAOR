@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 
-## CLASS: Townsend's func + constraint by https://en.wikipedia.org/wiki/Test_functions_for_optimization
+## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class Townsend:
 
     def __init__(self):

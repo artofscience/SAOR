@@ -2,7 +2,7 @@
 import numpy as np
 
 
-## CLASS: Rosenbrock's fun + cubic & linear constraints by https://en.wikipedia.org/wiki/Test_functions_for_optimization
+## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class RosenCubic:
 
     def __init__(self):

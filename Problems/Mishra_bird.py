@@ -2,7 +2,7 @@
 import numpy as np
 
 
-## CLASS: Mishra's bird + constraint by https://en.wikipedia.org/wiki/Test_functions_for_optimization
+## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class MishraBird:
 
     def __init__(self):

@@ -33,9 +33,9 @@ def main():
     # variable_sets = {0: np.arange(0, 2), 1: np.arange(2, prob.n)}
     # response_sets = {0: np.array([0]), 1: np.array([1]), 2: np.array([2]),
     #                  3: np.array([3]), 4: np.arange(4, 6)}
-    # variable_sets = {0: np.arange(0, prob.n)}
-    # response_sets = {0: np.arange(0, prob.m + 1)}
-    #
+    variable_sets = {0: np.arange(0, prob.n)}
+    response_sets = {0: np.arange(0, prob.m + 1)}
+
     # Initialize approx object
     # approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
     #                        approx_array=np.array([['MMA',    'Linear'],
@@ -44,10 +44,10 @@ def main():
     #                                               ['Linear', 'MMA'   ],
     #                                               ['MMA',    'MMA'   ]]),
     #                        var_set=variable_sets, resp_set=response_sets)
-    # approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
-    #                        approx_array=np.array([['MMA']]),
-    #                        var_set=variable_sets, resp_set=response_sets)
-    approx = MMA(prob.n, prob.m, prob.xmin, prob.xmax)
+    approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
+                           approx_array=np.array([['MMA']]),
+                           var_set=variable_sets, resp_set=response_sets)
+    # approx = MMA(prob.n, prob.m, prob.xmin, prob.xmax)
 
     # Choose solver & initialize its object via Auxiliary_Functions/Choose_Solver.py (no need to do it for each approx)
     solver = SvanbergIP(prob.n, prob.m)
@@ -81,9 +81,9 @@ def main():
         # Increase counters for optimization loop
         itte += 1
         approx.iter += 1
-        # for j in range(0, approx.num_of_resp_sets):                   # (only for a mixed approximation scheme)
-        #     for i in range(0, approx.num_of_var_sets):
-        #         approx.approx_obj[j, i].iter = approx.iter
+        for j in range(0, approx.num_of_resp_sets):                   # (only for a mixed approximation scheme)
+            for i in range(0, approx.num_of_var_sets):
+                approx.approx_obj[j, i].iter = approx.iter
 
         # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
         criterion.get_Convergence(design=x_k, sensitivities=dg, lagrange_multipliers=lam)

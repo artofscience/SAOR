@@ -26,7 +26,7 @@ class Approximation:
         self.dx = xmax - xmin
         self.zo_term = np.zeros(self.m + 1)                           # constant part of Taylor expansion
         self.P = np.zeros((self.m + 1, self.n), dtype=float)          # dg/dx * dT/dy = dg/dx * dx/dy
-        self.y_k = np.zeros((self.n, self.m + 1), dtype=float)
+        self.y_k = np.zeros((self.n, self.m + 1), dtype=float)        # for the zero-order term
         self.properties = None                                        # e.g. non-convex, type, etc.
 
     ## Build current sub-problem
