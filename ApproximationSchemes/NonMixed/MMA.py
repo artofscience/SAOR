@@ -59,7 +59,7 @@ class MMA(Approximation):
             dTdy[self.dg[j, :] < 0, j] = (-1 / self.y_k[:, j] ** 2)[self.dg[j, :] < 0]
         return dTdy
 
-    ## Set asymptotes [low, upp] at current iteration
+    ## Set asymptotes at current iteration: low, upp
     def _set_asymptotes(self):
 
         # Initial values of asymptotes
