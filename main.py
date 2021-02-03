@@ -10,6 +10,7 @@ from Problems.Li2015_Fig4 import Li2015Fig4
 from Solvers.SolverIP_Svanberg import SvanbergIP
 from ConvergenceCriteria.Conv_Criteria import ConvergenceCriteria
 from ApproximationSchemes.NonMixed.Lin import Linear
+from ApproximationSchemes.NonMixed.CONLIN import CONLIN
 from ApproximationSchemes.NonMixed.MMA import MMA
 from ApproximationSchemes.Mixed.MixedTemp import MixedTemplate
 
@@ -45,6 +46,7 @@ def main():
 
     # Examples of instantiating non-mixed approximations schemes
     # approx = Linear(prob.n, prob.m, prob.xmin, prob.xmax)
+    # approx = CONLIN(prob.n, prob.m, prob.xmin, prob.xmax)
     approx = MMA(prob.n, prob.m, prob.xmin, prob.xmax)
 
     # Choose solver & initialize its object via Auxiliary_Functions/Choose_Solver.py (no need to do it for each approx)
