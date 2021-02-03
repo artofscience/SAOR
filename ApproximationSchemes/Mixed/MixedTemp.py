@@ -116,8 +116,8 @@ class MixedTemplate(Approximation):
         # For the constituent approximation members (only for mixed schemes)
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
-                self.approx_obj[j, i].iter = self.iter
-                if self.iter > 0:
+                self.approx_obj[j, i].iter = itte
+                if self.iter > 1:
                     self.approx_obj[j, i].xold1 = self.xold1[self.var_set[i]]
                     self.approx_obj[j, i].xold2 = self.xold2[self.var_set[i]]
                     self.approx_obj[j, i].gold1 = self.gold1[self.resp_set[j]]

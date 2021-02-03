@@ -66,32 +66,24 @@ def main():
         g = prob.response(x_k)
         dg = prob.sensitivity(x_k)
 
+        # Print current iteration and x_k
+        print('\titer = {} | X = {} \n'.format(itte, x_k))
+        
         # Build approximate sub-problem at X^(k)
         approx.build_sub_prob(x_k, g, dg)
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
-
-        # Update old x_k, g and dg values
-        approx.update_old_values(x_k, g, dg, itte)
-
-        # Rerun problem for new point found by solver (i.e. x)
-        x_k = x.copy()
-
-        # Increase counters for optimization loop
+        
+        # Update old values of approx, current point x_k and increase iteration counter
         itte += 1
-        approx.iter += 1
-        for j in range(0, approx.num_of_resp_sets):                   # (only for a mixed approximation scheme)
-            for i in range(0, approx.num_of_var_sets):
-                approx.approx_obj[j, i].iter = approx.iter
+        approx.update_old_values(x_k, g, dg, itte)
+        x_k = x.copy()
 
         # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
         criterion.get_Convergence(design=x_k, sensitivities=dg, lagrange_multipliers=lam)
 
-        # Print current iteration and x_k
-        print('\titer = {} | X = {} \n'.format(itte, x_k))
-
-    ## RESULTS
+    ## RESULTS SECTION
     print('\n\n')
     dash = '-' * 37
     print(dash)
@@ -103,9 +95,7 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()
-
     print('\nEnd of optimization ran by main.py\n')
 
 

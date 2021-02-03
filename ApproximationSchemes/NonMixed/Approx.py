@@ -96,7 +96,7 @@ class Approximation:
     ## Update old values
     def update_old_values(self, x, g, dg, itte, **kwargs):
         self.iter = itte
-        if self.iter > 0:
+        if self.iter > 1:
             self.xold2 = self.xold1.copy()
             self.gold2 = self.gold1.copy()
             self.dgold2 = self.dgold1.copy()
