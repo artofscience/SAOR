@@ -29,7 +29,7 @@ def main():
     # Initialize problem
     prob = Li2015Fig4()
 
-    # # Initialize different variable and response sets for a mixed approximation scheme
+    # # Initialize different variable and response sets (only for a mixed approximation scheme)
     # variable_sets = {0: np.arange(0, 2), 1: np.arange(2, prob.n)}
     # response_sets = {0: np.array([0]), 1: np.array([1]), 2: np.array([2]),
     #                  3: np.array([3]), 4: np.arange(4, 6)}
@@ -81,7 +81,7 @@ def main():
         # Increase counters for optimization loop
         itte += 1
         approx.iter += 1
-        # for j in range(0, approx.num_of_resp_sets):
+        # for j in range(0, approx.num_of_resp_sets):       # (only for a mixed approximation scheme)
         #     for i in range(0, approx.num_of_var_sets):
         #         approx.approx_obj[j, i].iter = approx.iter
 

@@ -9,27 +9,27 @@ class Approximation:
     ## Constructor of class
     def __init__(self, n, m, xmin, xmax, **kwargs):
         self.n = n
-        self.m = m                                              # Number of constraints (g_j contains + objective)
+        self.m = m                                                    # Number of constraints (g_j contains + objective)
         self.x = None
         self.g = None
         self.dg = None
-        self.xold1 = None                                       # design vars of (k-1)
-        self.xold2 = None                                       # design vars of (k-2)
-        self.gold1 = None                                       # responses of (k-1)
-        self.gold2 = None                                       # responses of (k-2)
-        self.dgold1 = None                                      # sensitivities of (k-1)
-        self.dgold2 = None                                      # sensitivities of (k-2)
-        self.move_limit = ct.MOVE_LIMIT                         # Alter from constants.py file
+        self.xold1 = None                                             # design vars of (k-1)
+        self.xold2 = None                                             # design vars of (k-2)
+        self.gold1 = None                                             # responses of (k-1)
+        self.gold2 = None                                             # responses of (k-2)
+        self.dgold1 = None                                            # sensitivities of (k-1)
+        self.dgold2 = None                                            # sensitivities of (k-2)
+        self.move_limit = ct.MOVE_LIMIT                               # Alter from constants.py file
         self.iter = 0
         self.xmin = xmin
         self.xmax = xmax
-        self.zo_term = np.zeros((self.m + 1))                   # zero-order term to be computed only once per iteration
+        self.zo_term = np.zeros(self.m + 1)                           # constant part of Taylor expansion
         self.dx = xmax - xmin
-        self.properties = None                                  # e.g. non-convex, type, etc.
-        self.P = None
-        self.y_k = None
-        self.num_of_var_sets = 1                                # default number of variable sets
-        self.num_of_resp_sets = 1                               # default number of response sets
+        self.properties = None                                        # e.g. non-convex, type, etc.
+        self.P = np.zeros((self.m + 1, self.n), dtype=float)          # dg/dx * dT/dy = dg/dx * dx/dy
+        self.y_k = np.zeros((self.n, self.m + 1), dtype=float)
+        self.num_of_var_sets = 1                                      # default number of variable sets
+        self.num_of_resp_sets = 1                                     # default number of response sets
 
     ## Build current sub-problem
     def build_sub_prob(self, x, g, dg):
@@ -64,7 +64,7 @@ class Approximation:
     def _set_bounds(self):
         pass
 
-    ## Set the zero-order term of all the responses -g- for the current iter
+    ## Set the zero-order terms of responses -g_j- for the current iter: zo_term := g_j(X^(k)) - P_ji^(k) * y_i(^(k))
     def _set_zo_term(self):
         self.zo_term = self.g.copy()
         for j in range(0, self.m + 1):
@@ -79,7 +79,7 @@ class Approximation:
             g_approx_value[j] += np.dot(self.P[j, :], y[:, j])
         return g_approx_value
 
-    ## Set the approximate sensitivities dg_approx for the current iter || omitted zero-order term for solver
+    ## Set the approximate sensitivities dg_approx for the current iter
     def _dg_approx(self, x_curr):
         dy = self._set_dydx(x_curr)
         dg_approx_value = np.zeros((self.m + 1, self.n))
@@ -87,7 +87,7 @@ class Approximation:
             dg_approx_value[j, :] += self.P[j, :] * dy[:, j]
         return dg_approx_value
 
-    ## Set the approximate 2nd-order sensitivities ddg_approx for the current iter || omitted zero-order term for solver
+    ## Set the approximate 2nd-order sensitivities ddg_approx for the current iter
     def _ddg_approx(self, x_curr):
         ddy = self._set_ddydx(x_curr)
         ddg_approx_value = np.zeros((self.m + 1, self.n))

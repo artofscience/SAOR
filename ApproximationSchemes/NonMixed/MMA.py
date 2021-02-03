@@ -8,9 +8,9 @@ class MMA(Approximation):
 
     ## Constructor of class
     def __init__(self, n, m, xmin, xmax, **kwargs):
-        Approximation.__init__(self, n, m, xmin, xmax)      # let parent class handle the common arguments
+        Approximation.__init__(self, n, m, xmin, xmax)          # let parent class handle the common things
 
-        # Initialization of MMA-specific parameters
+        # Initialization of MMA-specific things
         self.pijconst = 1e-3
         self.so = False                                         # False: No 2nd-order info || True: Use 2nd-order info
         self.dxmin = 1e-5
@@ -26,11 +26,8 @@ class MMA(Approximation):
         self.iterinitial = 1.5
         self.asybound = 10.0
         self.name = 'MMA'
-        self.y_k = np.empty((self.n, self.m + 1))                # intermediate vars
-        self.P = np.empty((self.m + 1, self.n))                  # P = max{dg/dx, 0} * dT/dy
-        self.zo_term = np.empty(self.m + 1)                      # r_j^(k) in Svanberg's paper
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define intermediate vars for MMA: y = T_inv(x)
     def _set_y(self, x):
         y = np.empty((self.n, self.m + 1))
         for j in range(0, self.m + 1):
@@ -38,7 +35,7 @@ class MMA(Approximation):
             y[self.dg[j, :] < 0, j] = 1 / (x - self.low)[self.dg[j, :] < 0]
         return y
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define derivatives intermediate vars for linear: dy/dx = dT_inv(x)/dx
     def _set_dydx(self, x):
         dy = np.empty((self.n, self.m + 1))
         for j in range(0, self.m + 1):
@@ -46,7 +43,7 @@ class MMA(Approximation):
             dy[self.dg[j, :] < 0, j] = (-1 / (x - self.low) ** 2)[self.dg[j, :] < 0]
         return dy
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define derivatives intermediate vars for linear: ddy/dx = ddT_inv(x)/dx
     def _set_ddydx(self, x):
         ddy = np.empty((self.n, self.m + 1))
         for j in range(0, self.m + 1):
@@ -62,7 +59,7 @@ class MMA(Approximation):
             dTdy[self.dg[j, :] < 0, j] = (-1 / self.y_k[:, j] ** 2)[self.dg[j, :] < 0]
         return dTdy
 
-    ## Set asymptotes approx.low, approx.upp at current iteration
+    ## Set asymptotes [low, upp] at current iteration
     def _set_asymptotes(self):
 
         # Initial values of asymptotes
@@ -70,7 +67,7 @@ class MMA(Approximation):
             self.low = self.x - self.factor * self.dx  # if L_j = 0 & U_j = inf, then MMA = CONLIN
             self.upp = self.x + self.factor * self.dx
 
-        # Go in here when k >= 3 and when you need to update asymptotes
+        # Update asymptotes
         else:
 
             # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
@@ -99,7 +96,7 @@ class MMA(Approximation):
             self.upp = np.minimum(self.upp, uppmax)
             self.upp = np.maximum(self.upp, uppmin)
 
-    ## Set approx.P, approx.Q matrices at current iteration
+    ## Set P matrix for current iteration (P := P_ji + Q_ji of Svanberg's implementation)
     def _set_P(self):
         self._set_asymptotes()
         dg_j_p = np.maximum(self.dg, 0)

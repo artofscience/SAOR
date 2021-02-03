@@ -8,21 +8,18 @@ class Linear(Approximation):
 
     ## Constructor of class
     def __init__(self, n, m, xmin, xmax, **kwargs):
-        Approximation.__init__(self, n, m, xmin, xmax)       # Let parent class handle the common arguments
+        Approximation.__init__(self, n, m, xmin, xmax)       # Let parent class handle the common things
         self.name = 'Linear'
-        self.y_k = np.empty((self.n, self.m + 1))   # intermediate vars, different for each response (for mixed schemes)
-        self.P = np.empty((self.m + 1, self.n))     # dg/dx * dT/dy = dg/dx * dx/dy
-        self.zo_term = np.empty(self.m + 1)         # Constant part of Taylor expansion to be computed only once
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define intermediate vars for linear: y = T_inv(x) = x
     def _set_y(self, x):
         return x*np.ones((self.n, self.m+1), dtype=float)
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define derivatives intermediate vars for linear: dy/dx = dT_inv(x)/dx = 1
     def _set_dydx(self, x):
         return np.ones((self.n, self.m + 1), dtype=float)
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define derivatives intermediate vars for linear: ddy/dx = ddT_inv(x)/dx = 0
     def _set_ddydx(self, x):
         return np.zeros((self.n, self.m + 1), dtype=float)
 
@@ -30,7 +27,7 @@ class Linear(Approximation):
     def _set_dTdy(self):
         return np.ones((self.n, self.m + 1), dtype=float)
 
-    ## Set approx.P matrices at current iteration: approx.P[:, :, 0] = P, approx.P[:, :, 1] = Q
+    ## Set P matrix: P_ji =  dg/dx * dT/dy
     def _set_P(self):
         self.y_k = self._set_y(self.x)
         dTdy = self._set_dTdy()

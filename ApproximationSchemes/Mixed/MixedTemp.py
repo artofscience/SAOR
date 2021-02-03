@@ -9,15 +9,15 @@ from ApproximationSchemes.NonMixed.MMA import MMA
 class MixedTemplate(Approximation):
 
     def __init__(self, n, m, xmin, xmax, **kwargs):
-        Approximation.__init__(self, n, m, xmin, xmax, **kwargs)        # handle common things
+        Approximation.__init__(self, n, m, xmin, xmax, **kwargs)        # let parent class handle the common things
         self.reduced_array = kwargs.get('approx_array', None)           # array with approx names (resp_sets * var_sets)
-        self.var_set = kwargs.get('var_set', None)                      # different variable sets
-        self.resp_set = kwargs.get('resp_set', None)                    # different response sets
+        self.var_set = kwargs.get('var_set', None)                      # dictionary of different variable sets
+        self.resp_set = kwargs.get('resp_set', None)                    # dictionary of different response sets
         self.num_of_var_sets = len(self.var_set.keys())                 # number of variable sets
         self.num_of_resp_sets = len(self.resp_set.keys())               # number of response sets
         self.name = 'MixedTemplate'
 
-        # Create dictionary: self.obj_dict['Linear'] = object of Linear
+        # Create dictionary: self.obj_dict[j, i] = Linear(n, m, xmin, xmax)
         self.approx_obj = {}
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
@@ -34,7 +34,7 @@ class MixedTemplate(Approximation):
                     self.approx_obj[j, i] = MMA(len(self.var_set[i]), len(self.resp_set[j]) - 1,
                                                 xmin[self.var_set[i]], xmax[self.var_set[i]])
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define intermediate vars:   y_ij := intermediate variable -i- of response function -j-
     def _set_y(self, x):
         y = np.zeros((self.n, self.m + 1))
         for j in range(0, self.num_of_resp_sets):
@@ -42,7 +42,7 @@ class MixedTemplate(Approximation):
                 y[np.ix_(self.var_set[i], self.resp_set[j])] = self.approx_obj[j, i]._set_y(x[self.var_set[i]])
         return y
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define derivatives of intermediate vars:   dy_ij/dx_i
     def _set_dydx(self, x):
         dy = np.zeros((self.n, self.m + 1))
         for j in range(0, self.num_of_resp_sets):
@@ -50,7 +50,7 @@ class MixedTemplate(Approximation):
                 dy[np.ix_(self.var_set[i], self.resp_set[j])] = self.approx_obj[j, i]._set_dydx(x[self.var_set[i]])
         return dy
 
-    ## Define intermediate vars: each row corresponds to a branch of T_inv(x)
+    ## Define 2nd-order derivatives of intermediate vars:   ddy_ij/ddx_i
     def _set_ddydx(self, x):
         ddy = np.zeros((self.n, self.m + 1))
         for j in range(0, self.num_of_resp_sets):
@@ -58,7 +58,7 @@ class MixedTemplate(Approximation):
                 ddy[np.ix_(self.var_set[i], self.resp_set[j])] = self.approx_obj[j, i]._set_ddydx(x[self.var_set[i]])
         return ddy
 
-    ## Define chain rule term: y = T_inv(x) --> dT/dy = dx/dy
+    ## Define chain rule term:   y = T_inv(x)  =>  x = T(y)  =>  dT/dy = dx/dy
     def _set_dTdy(self):
         dTdy = np.zeros((self.n, self.m + 1))
         for j in range(0, self.num_of_resp_sets):
@@ -87,7 +87,6 @@ class MixedTemplate(Approximation):
 
     ## Assemble P matrix for mixed scheme
     def _set_P(self):
-        self.P = np.zeros((self.m + 1, self.n))
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
                 self.P[np.ix_(self.resp_set[j], self.var_set[i])] = self.approx_obj[j, i].P
@@ -97,8 +96,8 @@ class MixedTemplate(Approximation):
 
     ## Use the most conservative bounds for the mixed scheme
     def _set_bounds(self):
-        self.alpha = self.xmin.copy()
-        self.beta = self.xmax.copy()
+        self.alpha = np.maximum.reduce([self.x - self.move_limit * self.dx, self.xmin])
+        self.beta = np.minimum.reduce([self.x + self.move_limit * self.dx, self.xmax])
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
                 self.alpha[self.var_set[i]] = np.maximum(self.alpha[self.var_set[i]], self.approx_obj[j, i].alpha)
@@ -111,9 +110,10 @@ class MixedTemplate(Approximation):
     ## Update old values
     def update_old_values(self, x, g, dg, itte, **kwargs):
 
+        # Update parameters that are common for all approximations (non-mixed and mixed schemes)
         Approximation.update_old_values(self, x, g, dg, itte)
 
-        # For the constituent approximation members
+        # For the constituent approximation members (only for mixed schemes)
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
                 self.approx_obj[j, i].iter = self.iter
