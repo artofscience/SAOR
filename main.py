@@ -81,26 +81,12 @@ def main():
         # Increase counters for optimization loop
         itte += 1
         approx.iter += 1
-        # for j in range(0, approx.num_of_resp_sets):       # (only for a mixed approximation scheme)
+        # for j in range(0, approx.num_of_resp_sets):                   # (only for a mixed approximation scheme)
         #     for i in range(0, approx.num_of_var_sets):
         #         approx.approx_obj[j, i].iter = approx.iter
 
-        # Calculate all convergence criteria & check for convergence
-        KKT_res = criterion.get_KKT_norm(x_k, dg, lam)
-        VarChange_norm = criterion.get_VarChange(x_k, approx.xold1)
-        ObjChange_abs = criterion.get_ObjChange(g[0], approx.gold1[0])
-        if (criterion.name == 'KKT') and (KKT_res < ct.TOLERANCE):
-            criterion.converged = True
-        elif (criterion.name == 'VariableChange') and (VarChange_norm < ct.TOLERANCE) and \
-             (np.all(g[1:] < ct.TOLERANCE)):
-            criterion.converged = True
-        elif (criterion.name == 'ObjectiveChange') and (ObjChange_abs < ct.TOLERANCE) and \
-             (np.all(g[1:] < ct.TOLERANCE)):
-            criterion.converged = True
-        elif (criterion.name == 'AllTogether') and (KKT_res < ct.TOLERANCE) and \
-             (VarChange_norm < ct.TOLERANCE) and (ObjChange_abs < ct.TOLERANCE) and \
-             (np.all(g[1:] < ct.TOLERANCE)):
-            criterion.converged = True
+        # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
+        criterion.get_Convergence(design=x_k, sensitivities=dg, lagrange_multipliers=lam)
 
         # Print current iteration and x_k
         print('\titer = {} | X = {} \n'.format(itte, x_k))

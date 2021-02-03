@@ -1,5 +1,6 @@
 ## Imports
 import numpy as np
+import constants as ct
 
 
 ## Contains all the possible convergence criteria one might use
@@ -33,3 +34,31 @@ class ConvergenceCriteria:
         else:
             ObjChange_abs = abs((g_0 - g_0old1))
         return ObjChange_abs
+
+    ## Function to calculate if the convergence criterion is satisfied at the current iteration
+    def get_Convergence(self, **kwargs):
+        x_k = kwargs.get('design', None)
+        g = kwargs.get('responses', None)
+        gold1 = kwargs.get('old_responses', None)
+        dg = kwargs.get('sensitivities', None)
+        lam = kwargs.get('lagrange_multipliers', None)
+        xold1 = kwargs.get('xold1', None)
+        if self.name == 'KKT':
+            KKT_res = self.get_KKT_norm(x_k, dg, lam)
+            if KKT_res < ct.TOLERANCE:
+                self.converged = True
+        elif self.name == 'VariableChange':
+            VarChange_norm = self.get_VarChange(x_k, xold1)
+            if (VarChange_norm < ct.TOLERANCE) and (np.all(g[1:] < ct.TOLERANCE)):
+                self.converged = True
+        elif self.name == 'ObjectiveChange':
+            ObjChange_abs = self.get_ObjChange(g[0], gold1[0])
+            if (ObjChange_abs < ct.TOLERANCE) and (np.all(g[1:] < ct.TOLERANCE)):
+                self.converged = True
+        elif self.name == 'AllTogether':
+            KKT_res = self.get_KKT_norm(x_k, dg, lam)
+            VarChange_norm = self.get_VarChange(x_k, xold1)
+            ObjChange_abs = self.get_ObjChange(g[0], gold1[0])
+            if (KKT_res < ct.TOLERANCE) and (VarChange_norm < ct.TOLERANCE) and (ObjChange_abs < ct.TOLERANCE) and \
+               (np.all(g[1:] < ct.TOLERANCE)):
+                self.converged = True

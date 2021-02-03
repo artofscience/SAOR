@@ -10,26 +10,24 @@ class Approximation:
     def __init__(self, n, m, xmin, xmax, **kwargs):
         self.n = n
         self.m = m                                                    # Number of constraints (g_j contains + objective)
-        self.x = None
-        self.g = None
-        self.dg = None
+        self.x = None                                                 # current design vars
+        self.g = None                                                 # current responses
+        self.dg = None                                                # current sensitivities
         self.xold1 = None                                             # design vars of (k-1)
         self.xold2 = None                                             # design vars of (k-2)
         self.gold1 = None                                             # responses of (k-1)
         self.gold2 = None                                             # responses of (k-2)
         self.dgold1 = None                                            # sensitivities of (k-1)
         self.dgold2 = None                                            # sensitivities of (k-2)
-        self.move_limit = ct.MOVE_LIMIT                               # Alter from constants.py file
+        self.move_limit = ct.MOVE_LIMIT                               # alter from constants.py file
         self.iter = 0
         self.xmin = xmin
         self.xmax = xmax
-        self.zo_term = np.zeros(self.m + 1)                           # constant part of Taylor expansion
         self.dx = xmax - xmin
-        self.properties = None                                        # e.g. non-convex, type, etc.
+        self.zo_term = np.zeros(self.m + 1)                           # constant part of Taylor expansion
         self.P = np.zeros((self.m + 1, self.n), dtype=float)          # dg/dx * dT/dy = dg/dx * dx/dy
         self.y_k = np.zeros((self.n, self.m + 1), dtype=float)
-        self.num_of_var_sets = 1                                      # default number of variable sets
-        self.num_of_resp_sets = 1                                     # default number of response sets
+        self.properties = None                                        # e.g. non-convex, type, etc.
 
     ## Build current sub-problem
     def build_sub_prob(self, x, g, dg):
