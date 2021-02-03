@@ -26,17 +26,15 @@ def main():
 
     ## INITIALIZATIONS: problem, approximation, solver, convergence criterion
 
-    # Initialize problem
+    # Instantiate problem
     prob = Li2015Fig4()
 
-    # # Initialize different variable and response sets (only for a mixed approximation scheme)
+    # # Different variable and response sets (only for a mixed approximation scheme)
     # variable_sets = {0: np.arange(0, 2), 1: np.arange(2, prob.n)}
     # response_sets = {0: np.array([0]), 1: np.array([1]), 2: np.array([2]),
     #                  3: np.array([3]), 4: np.arange(4, 6)}
-    variable_sets = {0: np.arange(0, prob.n)}
-    response_sets = {0: np.arange(0, prob.m + 1)}
-
-    # Initialize approx object
+    #
+    # # Instantiating a mixed approximation scheme
     # approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
     #                        approx_array=np.array([['MMA',    'Linear'],
     #                                               ['MMA',    'MMA'   ],
@@ -44,10 +42,10 @@ def main():
     #                                               ['Linear', 'MMA'   ],
     #                                               ['MMA',    'MMA'   ]]),
     #                        var_set=variable_sets, resp_set=response_sets)
-    approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
-                           approx_array=np.array([['MMA']]),
-                           var_set=variable_sets, resp_set=response_sets)
-    # approx = MMA(prob.n, prob.m, prob.xmin, prob.xmax)
+
+    # Examples of instantiating non-mixed approximations schemes
+    # approx = Linear(prob.n, prob.m, prob.xmin, prob.xmax)
+    approx = MMA(prob.n, prob.m, prob.xmin, prob.xmax)
 
     # Choose solver & initialize its object via Auxiliary_Functions/Choose_Solver.py (no need to do it for each approx)
     solver = SvanbergIP(prob.n, prob.m)
