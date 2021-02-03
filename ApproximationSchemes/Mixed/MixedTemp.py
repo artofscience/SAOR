@@ -110,10 +110,10 @@ class MixedTemplate(Approximation):
     ## Update old values
     def update_old_values(self, x, g, dg, itte, **kwargs):
 
-        # Update parameters that are common for all approximations (non-mixed and mixed schemes)
+        # Update parameters that are common for all approximations
         Approximation.update_old_values(self, x, g, dg, itte)
 
-        # For the constituent approximation members (only for mixed schemes)
+        # Update parameters for the constituent approximation members of a mixed scheme
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
                 self.approx_obj[j, i].iter = itte
