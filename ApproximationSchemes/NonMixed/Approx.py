@@ -70,7 +70,7 @@ class Approximation:
         self.b = - self.zo_term[1:]
 
     ## Set the approximate response functions g_approx for the current iter || omitted zero-order term for solver
-    def _g_approx(self, x_curr):
+    def g_approx(self, x_curr):
         y = self._set_y(x_curr)
         g_approx_value = np.zeros(self.m + 1)
         for j in range(0, self.m + 1):
@@ -78,7 +78,7 @@ class Approximation:
         return g_approx_value
 
     ## Set the approximate sensitivities dg_approx for the current iter
-    def _dg_approx(self, x_curr):
+    def dg_approx(self, x_curr):
         dy = self._set_dydx(x_curr)
         dg_approx_value = np.zeros((self.m + 1, self.n))
         for j in range(0, self.m + 1):
@@ -86,7 +86,7 @@ class Approximation:
         return dg_approx_value
 
     ## Set the approximate 2nd-order sensitivities ddg_approx for the current iter
-    def _ddg_approx(self, x_curr):
+    def ddg_approx(self, x_curr):
         ddy = self._set_ddydx(x_curr)
         ddg_approx_value = np.zeros((self.m + 1, self.n))
         for j in range(0, self.m + 1):

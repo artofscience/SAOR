@@ -63,9 +63,9 @@ class SvanbergIP:
                 itera = itera + 1
 
                 # Calculating PSIjj
-                g_j_tilde_value = approx._g_approx(x)
-                dg_j_tilde_value = approx._dg_approx(x)
-                dg_j_tilde2_value = approx._ddg_approx(x)
+                g_j_tilde_value = approx.g_approx(x)
+                dg_j_tilde_value = approx.dg_approx(x)
+                dg_j_tilde2_value = approx.ddg_approx(x)
                 dpsi_dx = (dg_j_tilde_value[0, :] + np.dot(lam, dg_j_tilde_value[1:, :]))
                 d2psi_dx2 = (dg_j_tilde2_value[0, :] + np.dot(lam, dg_j_tilde2_value[1:, :]))
 
@@ -171,8 +171,8 @@ class SvanbergIP:
     def residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, approx):
 
         # Calculating g_j_tilde_value, dg_j_tilde_value and dpsi_dx
-        g_j_tilde_value = approx._g_approx(x)
-        dg_j_tilde_value = approx._dg_approx(x)
+        g_j_tilde_value = approx.g_approx(x)
+        dg_j_tilde_value = approx.dg_approx(x)
         dpsi_dx = (dg_j_tilde_value[0, :] + np.dot(lam.T, dg_j_tilde_value[1:, :]))
 
         # Calculation of other residuals
