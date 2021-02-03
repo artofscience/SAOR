@@ -66,7 +66,7 @@ class MixedTemplate(Approximation):
                 dTdy[np.ix_(self.var_set[i], self.resp_set[j])] = self.approx_obj[j, i]._set_dTdy()
         return dTdy
 
-    # Build current sub-problem for Mixed
+    ## Build current sub-problem for a mixed scheme: overrides Approximation.build_sub_prob(...)
     def build_sub_prob(self, x, g, dg):
 
         # Store current point
@@ -74,7 +74,7 @@ class MixedTemplate(Approximation):
         self.g = g.copy()
         self.dg = dg.copy()
 
-        # Build constituent sub-problems
+        # Build sub-problems of the constituent approximations of a mixed scheme
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
                 self.approx_obj[j, i].build_sub_prob(x[self.var_set[i]], g[self.resp_set[j]],
@@ -85,16 +85,14 @@ class MixedTemplate(Approximation):
         self._set_zo_term()
         self._set_bounds()
 
-    ## Assemble P matrix for mixed scheme
+    ## Assemble P matrix for a mixed scheme: overrides Approximation._set_P()
     def _set_P(self):
+        self.y_k = self._set_y(self.x)
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
-                self.P[np.ix_(self.resp_set[j], self.var_set[i])] = self.approx_obj[j, i].P
+                self.P[np.ix_(self.resp_set[j], self.var_set[i])] = self.approx_obj[j, i].P       
 
-        # Intermediate vars at X^(k) for zero-order term
-        self.y_k = self._set_y(self.x)
-
-    ## Use the most conservative bounds for the mixed scheme
+    ## Use the most conservative bounds for a mixed scheme
     def _set_bounds(self):
         self.alpha = np.maximum.reduce([self.x - self.move_limit * self.dx, self.xmin])
         self.beta = np.minimum.reduce([self.x + self.move_limit * self.dx, self.xmax])

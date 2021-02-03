@@ -54,9 +54,12 @@ class Approximation:
     def _set_dTdy(self):
         return None
 
-    ## To be overriden by the approximation's method
+    ## Set P matrix for non-mixed approximation schemes: P_ji =  dg/dx * dT/dy
     def _set_P(self):
-        pass
+        self.y_k = self._set_y(self.x)
+        dTdy = self._set_dTdy()
+        for j in range(0, self.m + 1):
+            self.P[j, :] = self.dg[j, :] * dTdy[:, j]
 
     ## To be overriden by the approximation's method
     def _set_bounds(self):
