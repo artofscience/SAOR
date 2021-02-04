@@ -8,7 +8,7 @@ class Linear(Approximation):
 
     ## Constructor of class
     def __init__(self, n, m, xmin, xmax, **kwargs):
-        Approximation.__init__(self, n, m, xmin, xmax)       # Let parent class handle the common things
+        Approximation.__init__(self, n, m, xmin, xmax, **kwargs)       # Let parent class handle the common things
         self.name = 'Linear'
 
     ## Define intermediate vars for linear: y = T_inv(x) = x

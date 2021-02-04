@@ -8,7 +8,7 @@ class CONLIN(Approximation):
 
     ## Constructor of class
     def __init__(self, n, m, xmin, xmax, **kwargs):
-        Approximation.__init__(self, n, m, xmin, xmax)          # let parent class handle the common things
+        Approximation.__init__(self, n, m, xmin, xmax, **kwargs)          # let parent class handle the common things
         self.name = 'CONLIN'
 
     ## Define intermediate vars for MMA: y = T_inv(x)

@@ -26,13 +26,13 @@ class MixedTemplate(Approximation):
 
                     # Instantiate object linear at self.obj_dict[j, i]
                     self.approx_obj[j, i] = Linear(len(self.var_set[i]), len(self.resp_set[j]) - 1,
-                                                   xmin[self.var_set[i]], xmax[self.var_set[i]])
+                                                   xmin[self.var_set[i]], xmax[self.var_set[i]], second_order=self.so)
 
                 elif self.reduced_array[j, i] == 'MMA':
 
                     # Instantiate object mma at self.obj_dict[j, i]
                     self.approx_obj[j, i] = MMA(len(self.var_set[i]), len(self.resp_set[j]) - 1,
-                                                xmin[self.var_set[i]], xmax[self.var_set[i]])
+                                                xmin[self.var_set[i]], xmax[self.var_set[i]], second_order=self.so)
 
     ## Define intermediate vars:   y_ij := intermediate variable -i- of response function -j-
     def _set_y(self, x):
@@ -75,21 +75,24 @@ class MixedTemplate(Approximation):
         return ddTdy
 
     ## Build current sub-problem for a mixed scheme: overrides Approximation.build_sub_prob(...)
-    def build_sub_prob(self, x, g, dg, *args):
+    def build_sub_prob(self, x, g, dg, **kwargs):
 
-        # Store current point
+        # Build sub-problems of the constituent approximations of a mixed scheme
         self.x = x.copy()
         self.g = g.copy()
         self.dg = dg.copy()
         if self.so:
-            self.ddg = ddg.copy()
-
-        # Build sub-problems of the constituent approximations of a mixed scheme
-        for j in range(0, self.num_of_resp_sets):
-            for i in range(0, self.num_of_var_sets):
-                self.approx_obj[j, i].build_sub_prob(x[self.var_set[i]], g[self.resp_set[j]],
-                                                     dg[np.ix_(self.resp_set[j], self.var_set[i])], *args)
-
+            self.ddg = kwargs.get('ddg', None) 
+            for j in range(0, self.num_of_resp_sets):
+                for i in range(0, self.num_of_var_sets):
+                    self.approx_obj[j, i].build_sub_prob(x[self.var_set[i]], g[self.resp_set[j]],
+                                                         dg[np.ix_(self.resp_set[j], self.var_set[i])], 
+                                                         ddg=self.ddg[np.ix_(self.resp_set[j], self.var_set[i])])
+        else:
+            for j in range(0, self.num_of_resp_sets):
+                for i in range(0, self.num_of_var_sets):
+                    self.approx_obj[j, i].build_sub_prob(x[self.var_set[i]], g[self.resp_set[j]],
+                                                         dg[np.ix_(self.resp_set[j], self.var_set[i])])
         # Assembly for mixed schemes
         self.y_k = self._set_y(self.x)
         self._set_P()

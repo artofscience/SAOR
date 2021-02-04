@@ -26,20 +26,22 @@ class Approximation:
         self.xmax = xmax
         self.dx = xmax - xmin
         self.zo_term = np.zeros(self.m + 1)                           # constant part of Taylor expansion
-        self.so = False                                               # flag to add 2nd-order diagonal terms to Taylor
+        self.so = kwargs.get('second_order', False)                   # flag to add 2nd-order diagonal terms to Taylor
         self.P = np.zeros((self.m + 1, self.n), dtype=float)          # dg/dx * dT/dy = dg/dx * dx/dy
+        if self.so:
+            self.Q = np.zeros((self.m + 1, self.n), dtype=float)      # d^2g/dx^2 * d^2T/dy^2 = d^2g/dx^2 * d^2x/dy^2
         self.y_k = np.zeros((self.n, self.m + 1), dtype=float)        # for the zero-order term
         self.properties = None                                        # e.g. non-convex, type, etc.
 
     ## Build current sub-problem
-    def build_sub_prob(self, x, g, dg, *args):
+    def build_sub_prob(self, x, g, dg, **kwargs):
         self.x = x.copy()
         self.g = g.copy()
         self.dg = dg.copy()
         self.y_k = self._set_y(self.x)
         self._set_P()
         if self.so:
-            self.ddg = ddg.copy()
+            self.ddg = kwargs.get('ddg', None) 
             self._set_Q()
         self._set_zo_term()
         self._set_bounds()

@@ -8,11 +8,10 @@ class MMA(Approximation):
 
     ## Constructor of class
     def __init__(self, n, m, xmin, xmax, **kwargs):
-        Approximation.__init__(self, n, m, xmin, xmax)          # let parent class handle the common things
+        Approximation.__init__(self, n, m, xmin, xmax, **kwargs)          # let parent class handle the common things
 
         # Initialization of MMA-specific things
         self.pijconst = 1e-3
-        self.so = False                                         # False: No 2nd-order info || True: Use 2nd-order info
         self.dxmin = 1e-5
         self.albefa = 0.1                           # albefa is limiting the max change of vars wrt asymptotes. Was 0.1
         self.asyinit = 0.5                          # was 0.5
@@ -28,7 +27,7 @@ class MMA(Approximation):
         self.name = 'MMA'
 
     ## Build current sub-problem for MMA class: overrides Approximation.build_sub_prob(..) because of asymptotes
-    def build_sub_prob(self, x, g, dg, *args):
+    def build_sub_prob(self, x, g, dg, **kwargs):
         self.x = x.copy()
         self.g = g.copy()
         self.dg = dg.copy()
@@ -36,7 +35,7 @@ class MMA(Approximation):
         self.y_k = self._set_y(self.x)
         self._set_P()
         if self.so:
-            self.ddg = ddg.copy()
+            self.ddg = kwargs.get('ddg', None) 
             self._set_Q()
         self._set_zo_term()
         self._set_bounds()

@@ -30,24 +30,21 @@ def main():
     # Instantiate problem
     prob = Li2015Fig4()
 
-    # # Different variable and response sets (only for a mixed approximation scheme)
-    # variable_sets = {0: np.arange(0, 2), 1: np.arange(2, prob.n)}
-    # response_sets = {0: np.array([0]), 1: np.array([1]), 2: np.array([2]),
-    #                  3: np.array([3]), 4: np.arange(4, 6)}
-    #
-    # # Instantiating a mixed approximation scheme
-    # approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
-    #                        approx_array=np.array([['MMA',    'Linear'],
-    #                                               ['MMA',    'MMA'   ],
-    #                                               ['Linear', 'Linear'],
-    #                                               ['Linear', 'MMA'   ],
-    #                                               ['MMA',    'MMA'   ]]),
-    #                        var_set=variable_sets, resp_set=response_sets)
+    # Different variable and response sets (only for a mixed approximation scheme)
+    variable_sets = {0: np.arange(0, 1), 1: np.arange(1, prob.n)}
+    response_sets = {0: np.array([0]), 1: np.array([1]), 2: np.array([2])}
 
-    # Examples of instantiating non-mixed approximations schemes
+    # Instantiating a mixed approximation scheme
+    approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
+                           approx_array=np.array([['Linear', 'Linear'],
+                                                  ['MMA'   , 'MMA'   ],
+                                                  ['MMA'   , 'MMA'   ]]),
+                           var_set=variable_sets, resp_set=response_sets, second_order=True)
+
+    # # Examples of instantiating non-mixed approximations schemes
     # approx = Linear(prob.n, prob.m, prob.xmin, prob.xmax)
     # approx = CONLIN(prob.n, prob.m, prob.xmin, prob.xmax)
-    approx = MMA(prob.n, prob.m, prob.xmin, prob.xmax)
+    # approx = MMA(prob.n, prob.m, prob.xmin, prob.xmax, second_order=True)
 
     # Choose solver & initialize its object via Auxiliary_Functions/Choose_Solver.py (no need to do it for each approx)
     solver = SvanbergIP(prob.n, prob.m)
@@ -65,12 +62,13 @@ def main():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         g = prob.response(x_k)
         dg = prob.sensitivity(x_k)
+        ddg = prob.sensitivity2(x_k)
 
         # Print current iteration and x_k
         print('\titer = {} | X = {} \n'.format(itte, x_k))
         
         # Build approximate sub-problem at X^(k)
-        approx.build_sub_prob(x_k, g, dg)
+        approx.build_sub_prob(x_k, g, dg, ddg=ddg)
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
