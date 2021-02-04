@@ -66,31 +66,49 @@ class MixedTemplate(Approximation):
                 dTdy[np.ix_(self.var_set[i], self.resp_set[j])] = self.approx_obj[j, i]._set_dTdy()
         return dTdy
 
+    ## Define chain rule 2nd-order term:   y = T_inv(x)  =>  x = T(y)  =>  d^2T/dy^2 = d^2x/dy^2
+    def _set_ddTdy(self):
+        ddTdy = np.zeros((self.n, self.m + 1))
+        for j in range(0, self.num_of_resp_sets):
+            for i in range(0, self.num_of_var_sets):
+                ddTdy[np.ix_(self.var_set[i], self.resp_set[j])] = self.approx_obj[j, i]._set_ddTdy()
+        return ddTdy
+
     ## Build current sub-problem for a mixed scheme: overrides Approximation.build_sub_prob(...)
-    def build_sub_prob(self, x, g, dg):
+    def build_sub_prob(self, x, g, dg, *args):
 
         # Store current point
         self.x = x.copy()
         self.g = g.copy()
         self.dg = dg.copy()
+        if self.so:
+            self.ddg = ddg.copy()
 
         # Build sub-problems of the constituent approximations of a mixed scheme
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
                 self.approx_obj[j, i].build_sub_prob(x[self.var_set[i]], g[self.resp_set[j]],
-                                                     dg[np.ix_(self.resp_set[j], self.var_set[i])])
+                                                     dg[np.ix_(self.resp_set[j], self.var_set[i])], *args)
 
         # Assembly for mixed schemes
+        self.y_k = self._set_y(self.x)
         self._set_P()
+        if self.so:
+            self._set_Q()
         self._set_zo_term()
         self._set_bounds()
 
     ## Assemble P matrix for a mixed scheme: overrides Approximation._set_P()
     def _set_P(self):
-        self.y_k = self._set_y(self.x)
         for j in range(0, self.num_of_resp_sets):
             for i in range(0, self.num_of_var_sets):
-                self.P[np.ix_(self.resp_set[j], self.var_set[i])] = self.approx_obj[j, i].P       
+                self.P[np.ix_(self.resp_set[j], self.var_set[i])] = self.approx_obj[j, i].P
+
+    ## Assemble P matrix for a mixed scheme: overrides Approximation._set_P()
+    def _set_Q(self):
+        for j in range(0, self.num_of_resp_sets):
+            for i in range(0, self.num_of_var_sets):
+                self.Q[np.ix_(self.resp_set[j], self.var_set[i])] = self.approx_obj[j, i].Q
 
     ## Use the most conservative bounds for a mixed scheme
     def _set_bounds(self):
