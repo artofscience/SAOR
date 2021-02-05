@@ -5,7 +5,7 @@ import constants as ct
 
 ## Contains all the possible convergence criteria one might use
 class ConvergenceCriteria:
-
+    
     ## Constructor of class
     def __init__(self, criterion_name, xmin, xmax):
         self.xmin = xmin

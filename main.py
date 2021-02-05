@@ -30,11 +30,9 @@ def main():
     # Instantiate problem
     prob = Li2015Fig4()
 
-    # Different variable and response sets (only for a mixed approximation scheme)
+    # Instantiating a mixed approximation scheme
     variable_sets = {0: np.arange(0, 1), 1: np.arange(1, prob.n)}
     response_sets = {0: np.array([0]), 1: np.array([1]), 2: np.array([2])}
-
-    # Instantiating a mixed approximation scheme
     approx = MixedTemplate(prob.n, prob.m, prob.xmin, prob.xmax,
                            approx_array=np.array([['Linear', 'Linear'],
                                                   ['MMA'   , 'MMA'   ],
@@ -68,7 +66,7 @@ def main():
         print('\titer = {} | X = {} \n'.format(itte, x_k))
         
         # Build approximate sub-problem at X^(k)
-        approx.build_sub_prob(x_k, g, dg, ddg=ddg)
+        approx.build_sub_prob(x_k, g, dg, ddg=ddg)                                                                      # TODO: add the option to have analytical functions as inputs
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
