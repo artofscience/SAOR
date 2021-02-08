@@ -1,15 +1,17 @@
-import numpy as np
-
-from .problem import Problem
 from scipy.optimize import rosen, rosen_der
+
+from .response import Response
+from .problem import Problem
+
+
+class Rosen(Response):
+    def f(self, x):
+        return rosen(x)
+
+    def df(self, x):
+        return rosen_der(x)
 
 
 class Rosenbrock(Problem):
-    def __init__(self):
-        super().__init__(1, 1, np.array(0), np.array(3))
-
-    def response(self, x):
-        return rosen(x)
-
-    def sensitivity(self, x):
-        return rosen_der(x)
+    def __init__(self, n=1):
+        super().__init__(Rosen(n))

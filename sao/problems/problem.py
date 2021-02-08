@@ -1,17 +1,24 @@
-from abc import ABC, abstractmethod
+import numpy as np
 
 
-class Problem(ABC):
-    def __init__(self, n, m, xmin, xmax):
-        self.n = n
-        self.m = m
-        self.xmin = xmin
-        self.xmax = xmax
+class Problem(object):
+    """A generic constrained optimisation problem."""
+    def __init__(self, objective, constraints=[], bounds=(-np.inf, np.inf)):
 
-    @abstractmethod
+        assert np.all([
+            objective.n == c.n for c in constraints
+        ]), "Objective and constraints dimensionality are not equal"
+
+        self.objective = objective
+        self.constraints = constraints
+        self.bounds = bounds
+
     def response(self, x):
-        ...
+        """Returns the response of the objective and constraints at `x`."""
+        r = [self.objective.f(x)] + [c.f(x) for c in self.constraints]
+        return np.asarray(r)
 
-    @abstractmethod
     def sensitivity(self, x):
-        ...
+        """Returns the sensitivity of the objective and constraints at `x`."""
+        dr = [self.objective.df(x)] + [c.df(x) for c in self.constraints]
+        return np.asarray(dr)
