@@ -8,7 +8,11 @@ from Problems.Simionescu_func import Simionescu
 from Problems.Townsend_func import Townsend
 from Problems.Li2015_Fig4 import Li2015Fig4
 from Solvers.SolverIP_Svanberg import SvanbergIP
-from ConvergenceCriteria.Conv_Criteria import ConvergenceCriteria
+from ConvergenceCriteria.KKT import KKT
+from ConvergenceCriteria.ObjChange import ObjectivecChange
+from ConvergenceCriteria.VarChange import VariableChange
+from ConvergenceCriteria.Alltogether import Alltogether
+from ConvergenceCriteria.MaxIteration import MaxIteration
 from ApproximationSchemes.NonMixed.Lin import Linear
 from ApproximationSchemes.NonMixed.CONLIN import CONLIN
 from ApproximationSchemes.NonMixed.MMA import MMA
@@ -48,7 +52,11 @@ def main():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Choose convergence criteria to be used and initialize its object
-    criterion = ConvergenceCriteria(ct.CRITERION_NAME, prob.xmin, prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = MaxIteration()
+    # criterion = ObjectivecChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -70,14 +78,14 @@ def main():
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
-        
+
+        # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, dg=dg, lam=lam, g=g, gold1=approx.gold1, xold1=approx.xold1, iter=itte)
+
         # Update old values of approx, current point x_k and increase iteration counter
         itte += 1
         approx.update_old_values(x_k, g, dg, itte)
         x_k = x.copy()
-
-        # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
-        criterion.get_Convergence(design=x_k, sensitivities=dg, lagrange_multipliers=lam)
 
     ## RESULTS SECTION
     print('\n\n')
