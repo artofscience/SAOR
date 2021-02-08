@@ -16,7 +16,7 @@ class VariableChange(ConvergenceCriterion):
     def get_response(self, **kwargs):
         x_k = kwargs.get('x_k', None)
         xold1 = kwargs.get('xold1', None)
-        if xold1 is not None:
+        if xold1 is not None:                                                                                           # TODO: Maybe its better with try-except
             VarChange_norm = np.linalg.norm((x_k - xold1) / (self.xmax - self.xmin))
         else:
             VarChange_norm = 1              # large value in order to continue loop
