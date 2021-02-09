@@ -77,12 +77,11 @@ def main():
         # ddg = prob.sensitivity2(x_k)
 
         # Print current iteration and x_k
-        # print('\titer = {} | X = {} \n'.format(itte, x_k))
+        print('\titer = {} | g0 = {} \n'.format(itte, g[0]))
         
         # Build approximate sub-problem at X^(k)
-        approx.build_sub_prob(x_k, g, dg)
+        approx.build_sub_prob(x_k, g, dg)                   # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
         vis = prob.kout(itte, 0, vis, x_k)
-        # approx.build_sub_prob(x_k, g, dg, ddg=ddg)                                                                      # TODO: add the option to have analytical functions as inputs
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
