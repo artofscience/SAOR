@@ -10,6 +10,8 @@ class VariableChange(ConvergenceCriterion):
     ## Constructor of class
     def __init__(self, **kwargs):
         ConvergenceCriterion.__init__(self, **kwargs)
+        self.xmin = kwargs.get('xmin', None)
+        self.xmax = kwargs.get('xmax', None)
         self.name = 'VariableChange'
 
     ## Function to calculate the Normalized Change in Design Variables

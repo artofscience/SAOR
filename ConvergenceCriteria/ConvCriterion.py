@@ -8,8 +8,6 @@ class ConvergenceCriterion:
     
     ## Constructor of class
     def __init__(self, **kwargs):
-        self.xmin = kwargs.get('xmin', None)
-        self.xmax = kwargs.get('xmax', None)
         self.converged = False
 
     ## Function to calculate the value of the current convergence criterion
@@ -18,6 +16,5 @@ class ConvergenceCriterion:
 
     ## Default function to calculate if the convergence criterion is satisfied at the current iteration
     def assess_convergence(self, **kwargs):
-        g = kwargs.get('g', None)
-        if (self.get_response(**kwargs) < ct.TOLERANCE) and (np.all(g[1:] < ct.TOLERANCE)):
+        if self.get_response(**kwargs) < ct.TOLERANCE:
             self.converged = True

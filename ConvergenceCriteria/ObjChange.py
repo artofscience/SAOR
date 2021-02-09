@@ -16,7 +16,7 @@ class ObjectivecChange(ConvergenceCriterion):
     def get_response(self, **kwargs):
         g = kwargs.get('g', None)
         gold1 = kwargs.get('gold1', None)
-        if gold1 is not None:                                                                                           # TODO: Maybe its better with try-except
+        if gold1 is not None:                                           # TODO: Maybe its better with try-except
             if abs(gold1[0]) > 1e-5:
                 ObjChange_abs = abs((g[0] - gold1[0]) / gold1[0])
             else:

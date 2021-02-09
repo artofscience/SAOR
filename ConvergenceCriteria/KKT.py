@@ -10,6 +10,8 @@ class KKT(ConvergenceCriterion):
     ## Constructor of class
     def __init__(self, **kwargs):
         ConvergenceCriterion.__init__(self, **kwargs)
+        self.xmin = kwargs.get('xmin', None)
+        self.xmax = kwargs.get('xmax', None)
         self.name = 'KKT'
 
     ## Function to calculate |KKT|: Filter out bound constraints so that KKT goes to 0 when convergence is achieved
@@ -22,8 +24,3 @@ class KKT(ConvergenceCriterion):
         KKT_reduced = dg[0, KKT_red_idx] + np.dot(lam.T, dg[1:, KKT_red_idx])
         KKT_res = np.linalg.norm(KKT_reduced)
         return KKT_res
-
-    ## Function to calculate if KKT is satisfied at the current iteration (overrides default method)
-    def assess_convergence(self, **kwargs):
-        if self.get_response(**kwargs) < ct.TOLERANCE:
-            self.converged = True
