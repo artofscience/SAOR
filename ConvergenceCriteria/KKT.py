@@ -21,10 +21,6 @@ class KKT(ConvergenceCriterion):
                        if 1.001 * self.xmin[index] < value < 0.99 * self.xmax[index]]
         KKT_reduced = dg[0, KKT_red_idx] + np.dot(lam.T, dg[1:, KKT_red_idx])
         KKT_res = np.linalg.norm(KKT_reduced)
-        # print(KKT_res)
-        # print('\n', dg[0, :])
-        # print('\n', dg[-1, :])
-        # print('\n', lam)
         return KKT_res
 
     ## Function to calculate if KKT is satisfied at the current iteration (overrides default method)

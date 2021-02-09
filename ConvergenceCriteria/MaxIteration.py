@@ -4,7 +4,7 @@ from ConvergenceCriteria.ConvCriterion import ConvergenceCriterion
 
 
 ## Maximum iteration convergence criterion
-class MaxIteration(ConvergenceCriterion):
+class MaxIteration(ConvergenceCriterion):           # TODO: Needs review on how to combine it with the other criteria
 
     ## Constructor of class
     def __init__(self, **kwargs):
