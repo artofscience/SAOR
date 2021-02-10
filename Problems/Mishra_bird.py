@@ -10,6 +10,7 @@ class MishraBird:
         self.m = 1
         self.xmin = np.array([0., 0.])
         self.xmax = np.array([10., 6.5])
+        self.x_init = np.array([7.3, 2.])
         self.name = 'MishraBird'
 
     def response(self, x_k):
