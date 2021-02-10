@@ -9,7 +9,7 @@ PROBLEM_LIST = ['Li2015Fig4', 'RosenCubic', 'MishraBird', 'Townsend', 'Simionesc
 APPROX_LIST = ['Linear', 'MMA', 'MixedTemplate']
 
 # All the implemented convergence criteria
-CONVERGENCE_CRITERIA_LIST = ['KKT', 'MaxIteration', 'ObjectiveChange', 'VariableChange', 'AllTogether']
+CONVERGENCE_CRITERIA_LIST = ['KKT', 'Feasibility', 'ObjectiveChange', 'VariableChange', 'AllTogether']
 
 
 ## Parameters that are going to be used in the main()

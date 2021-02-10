@@ -1,6 +1,5 @@
 ## Imports
 import numpy as np
-import constants as ct
 from ConvergenceCriteria.ConvCriterion import ConvergenceCriterion
 
 

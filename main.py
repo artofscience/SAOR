@@ -13,10 +13,10 @@ from Problems.VanderplaatsBeam import Vanderplaats
 from Solvers.SolverIP_Svanberg import SvanbergIP
 
 from ConvergenceCriteria.KKT import KKT
+from ConvergenceCriteria.Feasibility import Feasibility
 from ConvergenceCriteria.ObjChange import ObjectivecChange
 from ConvergenceCriteria.VarChange import VariableChange
 from ConvergenceCriteria.Alltogether import Alltogether
-from ConvergenceCriteria.MaxIteration import MaxIteration
 
 from ApproximationSchemes.NonMixed.Lin import Linear
 from ApproximationSchemes.NonMixed.CONLIN import CONLIN
@@ -37,7 +37,7 @@ def main():
     ## INITIALIZATIONS: problem, approximation, solver, convergence criterion
 
     # Instantiate problem
-    prob = Vanderplaats(100)
+    prob = Li2015Fig4()
 
     # # Instantiating a mixed approximation scheme
     # variable_sets = {0: np.arange(0, 1), 1: np.arange(1, prob.n)}
@@ -57,16 +57,15 @@ def main():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Choose convergence criteria to be used and initialize its object
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = MaxIteration()
-    # criterion = ObjectivecChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectivecChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x_init.copy()
-    vis = None
+    vis = None                                  # for Vanderplaats beam
 
     ## OPTIMIZATION LOOP
     while not criterion.converged:
@@ -74,14 +73,14 @@ def main():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         g = prob.response(x_k)
         dg = prob.sensitivity(x_k)
-        # ddg = prob.sensitivity2(x_k)
+        ddg = prob.sensitivity2(x_k)
 
         # Print current iteration and x_k
         print('\titer = {} | g0 = {} \n'.format(itte, g[0]))
         
         # Build approximate sub-problem at X^(k)
-        approx.build_sub_prob(x_k, g, dg)                   # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
-        vis = prob.kout(itte, 0, vis, x_k)
+        approx.build_sub_prob(x_k, g, dg, ddg=ddg)          # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
+        # vis = prob.kout(itte, 0, vis, x_k)                # visualization of Vanderplaats beam
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
