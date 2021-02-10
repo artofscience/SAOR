@@ -56,7 +56,7 @@ def main():
     # Choose solver & initialize its object via Auxiliary_Functions/Choose_Solver.py (no need to do it for each approx)
     solver = SvanbergIP(prob.n, prob.m)
 
-    # Choose convergence criteria to be used and initialize its object
+    # # Choose convergence criteria to be used and initialize its object
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectivecChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
@@ -65,7 +65,7 @@ def main():
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x_init.copy()
-    vis = None                                  # for Vanderplaats beam
+    # vis = None                                  # only for Vanderplaats beam
 
     ## OPTIMIZATION LOOP
     while not criterion.converged:
