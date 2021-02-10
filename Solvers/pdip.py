@@ -4,12 +4,6 @@ from scipy.sparse.linalg import spsolve
 from copy import deepcopy
 
 """
-This file is written by:
-S. Koppen
-s.koppen@tudelft.nl
-
-T
-
 This is a primal-dual interior-point approach (without slack variables)
 to solve a convex and separable nonlinear optimization problem.
 The problem is solved by applying Newton's method to sequence of relaxed KKT conditions.
@@ -73,8 +67,8 @@ one can apply Newton's method to obtain dw = (dx,dlam,dxsi,deta,ds).
 Here dxsi, deta and ds can be eliminated without severe computational effort.
 
 Subsequently we are left with a reduced system in terms of dx and dlam
-
 """
+
 
 # this class should be a child of an abstract solver class
 class pdip:
@@ -100,7 +94,7 @@ class pdip:
 
         # initialization of residual vectors
         self.r = [np.zeros(self.n), np.zeros(self.m), np.zeros(self.n), np.zeros(self.n), np.zeros(self.m)]
-        self.w = [x, np.ones(self.m), np.max(1 / (x - self.a), 1), np.max(1 / (self.a - x), 1), np.ones(self.m)]
+        self.w = [x, np.ones(self.m), np.max(1/(x - self.a), 1), np.max(1/(self.a - x), 1), np.ones(self.m)]
         self.dw = deepcopy(self.r)
         self.wold = deepcopy(self.w)
 
@@ -123,8 +117,8 @@ class pdip:
         # iterate until convergence
         while self.epsi > self.epsimin:
             self.get_residual()
-            rnorm = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r.a]))
-            rmax = np.max(np.array([np.max(i) for i in self.r.a]))
+            rnorm = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
+            rmax = np.max(np.array([np.max(i) for i in self.r]))
 
             self.iterin = 0
             while rmax > self.epsifac and self.iterin < self.iterinmax:
@@ -134,8 +128,8 @@ class pdip:
                 # get the Newton direction
                 self.get_newton_direction()
 
-                for i, j in self.w:
-                    self.wold[i][:] = j
+                for count, value in enumerate(self.wold):
+                    value[:] = self.w[count]
 
                 self.itera = 0
                 rnew = 2*rnorm
@@ -145,16 +139,11 @@ class pdip:
                     self.itera += 1
 
                     # calculate step size
-                    self.step = 1/np.max(self.ab * np.array([self.dw.lam/self.w.lam,
-                                                        self.dw.s/self.w.s,
-                                                        self.dw.xsi/self.w.xsi,
-                                                        self.dw.eta/self.w.eta,
-                                                        self.dw.x/(self.w.x - self.a),
-                                                        self.dw.x/(self.b - self.w.x)]))
+                    self.step = 1/(self.ab * np.max(self.ab * np.array([self.dw[i]/self.w[i] for i in self.w[1:]]), self.dw[0]/(self.w[0] - self.a), self.dw[0]/(self.b - self.w[0])))
 
                     # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
-                    for i,j in self.w:
-                        j[:] = self.wold[i] + self.step * self.dw[i]
+                    for count, value in enumerate(self.w):
+                        value[:] = self.wold[count] + self.step * self.dw[count]
 
                     self.get_residual()
                     rnew = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
@@ -194,7 +183,7 @@ class pdip:
         delta_x = dg[0] + np.dot(dg[1:], self.w[1]) - self.epsi/a + self.epsi/b
 
         diag_lambda = self.w[4]/self.w[1]
-        diag_x  = ddg[0] + np.dot(ddg[1:], self.w[1]) - self.w[2]/a + self.w[3]/b
+        diag_x = ddg[0] + np.dot(ddg[1:], self.w[1]) - self.w[2]/a + self.w[3]/b
 
         # FIXME: implement dense solvers and CG
         if self.problem.m > self.problem.n:
@@ -210,11 +199,10 @@ class pdip:
             A = diags(diag_lambda) + dg[1:] * (diags(1/diag_x) * np.transpose(dg[1:]))
 
             # solve for dlam
-            self.dw[1] = spsolve(A, B) # m x m
+            self.dw[1] = spsolve(A, B)  # m x m
             self.dw[0] = -delta_x/diag_x - (np.transpose(dg[1:]) * self.dw[1])/diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
         self.dw[2] = -self.w[2] + self.epsi/a - np.dot(self.w[2], self.dw[0])/a
         self.dw[3] = -self.w[3] + self.epsi/b - np.dot(self.w[3], self.dw[0])/b
         self.dw[4] = -self.w[4] + self.epsi/self.w[1] - np.dot(self.w[4], self.dw[1])/self.w[1]
-
