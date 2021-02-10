@@ -99,17 +99,9 @@ class pdip:
         self.m = self.problem.m
 
         # initialization of residual vectors
-        self.r = Structure(self.n, self.m)
-        self.dw = Structure(self.n, self.m)
-        self.step = Structure(self.n, self.m)
-
-        self.w = Structure(self.n, self.m)
-        self.w.x = x
-        self.w.lam = np.ones(self.m, dtype=float)
-        self.w.xsi = np.max(1 / (self.x - self.a), 1, dtype=float)
-        self.w.eta = np.max(1 / (self.b - self.x), 1, dtype=float)
-        self.w.s = np.ones(self.m, dtype=float)
-
+        self.r = [np.zeros(self.n), np.zeros(self.m), np.zeros(self.n), np.zeros(self.n), np.zeros(self.m)]
+        self.w = [x, np.ones(self.m), np.max(1 / (x - self.a), 1), np.max(1 / (self.a - x), 1), np.ones(self.m)]
+        self.dw = deepcopy(self.r)
         self.wold = deepcopy(self.w)
 
         self.iterout = 0
@@ -141,7 +133,9 @@ class pdip:
 
                 # get the Newton direction
                 self.get_newton_direction()
-                self.set_w_old()
+
+                for i, j in self.w:
+                    self.wold[i][:] = j
 
                 self.itera = 0
                 rnew = 2*rnorm
@@ -159,13 +153,15 @@ class pdip:
                                                         self.dw.x/(self.b - self.w.x)]))
 
                     # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
-                    self.update_w()
+                    for i,j in self.w:
+                        j[:] = self.wold[i] + self.step * self.dw[i]
+
                     self.get_residual()
-                    rnew = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r.a]))
+                    rnew = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
                     self.step *= 0.5
 
                 rnorm = 1.0 * rnew
-                rmax = np.max(np.array([np.max(i) for i in self.r.a]))
+                rmax = np.max(np.array([np.max(i) for i in self.r]))
                 self.step *= 2
 
             self.epsi *= 0.5
@@ -180,32 +176,25 @@ class pdip:
         r(s)        = lam * si - e
         """
 
-        self.r.x = self.problem.dg[0] + np.dot(self.problem.dg(self.x)[1:], self.w.lam) - self.w.xsi + self.w.eta
-        self.r.xsi = np.dot(self.w.xsi, self.x - self.a) - self.epsi
-        self.r.eta = np.dot(self.w.eta, self.b - self.x) - self.epsi
-        self.r.lam = self.problem.g(self.x)[1:] - self.problem.r[1:] + self.w.s
-        self.r.s = np.dot(self.w.lam, self.w.s) - self.epsi
-
-    def set_w_old(self):
-        self.wold.x[:] = self.w.x
-        self.wold.lam[:] = self.w.lam
-        self.wold.eta[:] = self.w.eta
-        self.wold.xsi[:] = self.w.xsi
-        self.wold.s[:] = self.w.s
+        self.r[0] = self.problem.dg[0] + np.dot(self.problem.dg(self.x)[1:], self.w[1]) - self.w[2] + self.w[3]
+        self.r[1] = self.problem.g(self.x)[1:] - self.problem.r[1:] + self.w[4]
+        self.r[2] = np.dot(self.w[2], self.w[0] - self.a) - self.epsi
+        self.r[3] = np.dot(self.w[3], self.b - self.w[0]) - self.epsi
+        self.r[4] = np.dot(self.w[1], self.w[4]) - self.epsi
 
     def get_newton_direction(self):
-        a = self.w.x - self.a
-        b = self.b - self.w.x
-        g = self.problem.g(self.w.x)
-        dg = self.problem.dg(self.w.x)
-        ddg = self.problem.ddg(self.w.x)
+        a = self.w[0] - self.a
+        b = self.b - self.w[0]
+        g = self.problem.g(self.w[0])
+        dg = self.problem.dg(self.w[0])
+        ddg = self.problem.ddg(self.w[0])
 
         # delta_lambda
-        delta_lambda = g[1:] - self.problem.r[1:] + self.epsi/self.w.lam
-        delta_x = dg[0] + np.dot(dg[1:], self.w.lam) - self.epsi/a + self.epsi/b
+        delta_lambda = g[1:] - self.problem.r[1:] + self.epsi/self.w[1]
+        delta_x = dg[0] + np.dot(dg[1:], self.w[1]) - self.epsi/a + self.epsi/b
 
-        diag_lambda = self.w.s/self.w.lam
-        diag_x  = ddg[0] + np.dot(ddg[1:], self.w.lam) - self.w.xsi/a + self.w.eta/b
+        diag_lambda = self.w[4]/self.w[1]
+        diag_x  = ddg[0] + np.dot(ddg[1:], self.w[1]) - self.w[2]/a + self.w[3]/b
 
         # FIXME: implement dense solvers and CG
         if self.problem.m > self.problem.n:
@@ -213,41 +202,19 @@ class pdip:
             A = diags(diag_x) + np.transpose(g[1:]) * (diags(1/diag_lambda) * dg[1:])
 
             # sovle for dx
-            self.dw.x = spsolve(A, B)
-            self.dw.lam = (dg[1:] * self.dw.x)/diag_lambda - delta_lambda/diag_lambda
+            self.dw[0] = spsolve(A, B)
+            self.dw[1] = (dg[1:] * self.dw[0])/diag_lambda - delta_lambda/diag_lambda
 
         else:
             B = delta_lambda - (dg[1:] * delta_x/diag_x)
             A = diags(diag_lambda) + dg[1:] * (diags(1/diag_x) * np.transpose(dg[1:]))
 
             # solve for dlam
-            self.dw.lam = spsolve(A, B) # m x m
-            self.dw.x = -delta_x/diag_x - (np.transpose(dg[1:]) * self.dw.lam)/diag_x
+            self.dw[1] = spsolve(A, B) # m x m
+            self.dw[0] = -delta_x/diag_x - (np.transpose(dg[1:]) * self.dw[1])/diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
-        self.dw.xsi = -self.w.xsi + self.epsi/a - np.dot(self.w.xsi, self.dw.x)/a
-        self.dw.eta = -self.w.eta + self.epsi/b - np.dot(self.w.eta, self.dw.x)/b
-        self.dw.s = -self.w.s + self.epsi/self.w.lam - np.dot(self.w.s, self.dw.lam)/self.w.lam
-
-    def update_w(self):
-        self.w.x = self.wold.x + self.step*self.dw.x
-        self.w.lam = self.wold.lam + self.step * self.dw.lam
-        self.w.s = self.wold.s + self.step * self.dw.s
-        self.w.eta = self.wold.eta + self.step * self.dw.eta
-        self.w.xsi = self.wold.xsi + self.step * self.dw.xsi
-
-
-
-
-class Structure:
-    def __init__(self, n, m):
-        self.x = np.zeros(n, dtype=float)
-        self.lam = np.zeros(m, dtype=float)
-        self.s = np.zeros(m, dtype=float)
-        self.eta = np.zeros(n, dtype=float)
-        self.xsi = np.zeros(n, dtype=float)
-        self.a = [self.x, self.lam, self.s, self.eta, self.xsi]
-        self.alpha = np.empty(n, dtype=float)
-        self.beta = np.empty(n, dtype=float)
-
+        self.dw[2] = -self.w[2] + self.epsi/a - np.dot(self.w[2], self.dw[0])/a
+        self.dw[3] = -self.w[3] + self.epsi/b - np.dot(self.w[3], self.dw[0])/b
+        self.dw[4] = -self.w[4] + self.epsi/self.w[1] - np.dot(self.w[4], self.dw[1])/self.w[1]
 
