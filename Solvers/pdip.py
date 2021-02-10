@@ -187,20 +187,22 @@ class pdip:
 
         # FIXME: implement dense solvers and CG
         if self.problem.m > self.problem.n:
-            B = -delta_x - np.transpose(dg[1:]) * (delta_lambda/diag_lambda)
+            dldl = delta_lambda/diag_lambda
+            B = -delta_x - np.transpose(dg[1:]) * dldl
             A = diags(diag_x) + np.transpose(g[1:]) * (diags(1/diag_lambda) * dg[1:])
 
-            # sovle for dx
+            # solve for dx
             self.dw[0] = spsolve(A, B)
-            self.dw[1] = (dg[1:] * self.dw[0])/diag_lambda - delta_lambda/diag_lambda
+            self.dw[1] = (dg[1:] * self.dw[0])/diag_lambda - dldl
 
         else:
-            B = delta_lambda - (dg[1:] * delta_x/diag_x)
+            dxdx = delta_x/diag_x
+            B = delta_lambda - (dg[1:] * dxdx)
             A = diags(diag_lambda) + dg[1:] * (diags(1/diag_x) * np.transpose(dg[1:]))
 
             # solve for dlam
             self.dw[1] = spsolve(A, B)  # m x m
-            self.dw[0] = -delta_x/diag_x - (np.transpose(dg[1:]) * self.dw[1])/diag_x
+            self.dw[0] = -dxdx - (np.transpose(dg[1:]) * self.dw[1])/diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
         self.dw[2] = -self.w[2] + self.epsi/a - np.dot(self.w[2], self.dw[0])/a
