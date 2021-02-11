@@ -3,22 +3,19 @@ import numpy as np
 
 class Problem:
     """A generic constrained optimization problem."""
-    def __init__(self, objective, constraints=[], bounds=(-np.inf, np.inf)):
-
-        assert np.all([
-            objective.n == c.n for c in constraints
-        ]), "Objective and constraints dimensionality are not equal"
-
-        self.objective = objective
-        self.constraints = constraints
-        self.bounds = bounds
+    def __init__(self, response_funcs, xmin, xmax, **kwargs):
+        self.response_funcs = response_funcs
+        self.m = len(response_funcs) - 1            # objective + constraints
+        self.xmin = xmin
+        self.xmax = xmax
+        self.x_init = kwargs.get('x_init', 0.5 * (self.xmin + self.xmax))
 
     def response(self, x):
         """Returns the response of the objective and constraints at `x`."""
-        r = [self.objective.f(x)] + [c.f(x) for c in self.constraints]
-        return np.asarray(r)
+        g_j = [c.f(x) for c in self.response_funcs]
+        return np.asarray(g_j)
 
     def sensitivity(self, x):
         """Returns the sensitivity of the objective and constraints at `x`."""
-        dr = [self.objective.df(x)] + [c.df(x) for c in self.constraints]
-        return np.asarray(dr)
+        dg_j = [c.df(x) for c in self.response_funcs]
+        return np.asarray(dg_j)

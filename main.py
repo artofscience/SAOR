@@ -5,6 +5,7 @@ import constants as ct
 
 from Problems.Mishra_bird import MishraBird
 from Problems.Rosenbrock_cubic import RosenCubic
+from Problems.RosenbrockMax import Rosenbrock
 from Problems.Simionescu_func import Simionescu
 from Problems.Townsend_func import Townsend
 from Problems.Li2015_Fig4 import Li2015Fig4
@@ -37,7 +38,7 @@ def main():
     ## INITIALIZATIONS: problem, approximation, solver, convergence criterion
 
     # Instantiate problem
-    prob = Li2015Fig4()
+    prob = RosenCubic()
 
     # # Instantiating a mixed approximation scheme
     # variable_sets = {0: np.arange(0, 1), 1: np.arange(1, prob.n)}
@@ -73,13 +74,13 @@ def main():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         g = prob.response(x_k)
         dg = prob.sensitivity(x_k)
-        ddg = prob.sensitivity2(x_k)
+        # ddg = prob.sensitivity2(x_k)
 
         # Print current iteration and x_k
         print('\titer = {} | g0 = {} \n'.format(itte, g[0]))
         
         # Build approximate sub-problem at X^(k)
-        approx.build_sub_prob(x_k, g, dg, ddg=ddg)          # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
+        approx.build_sub_prob(x_k, g, dg)          # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
         # vis = prob.kout(itte, 0, vis, x_k)                # visualization of Vanderplaats beam
 
         # Call solver (x_k, g and dg are within approx instance)
