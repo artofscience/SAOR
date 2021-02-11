@@ -105,8 +105,28 @@ class pdip:
         dw = [dx, dlambda, dxsi, deta, ds]
         dwold = [dxold, dlambdaold, dxsiold, detaold, dsold]
         """
-        self.w = [x, np.ones(self.m), np.max(1/(x - self.a), 1), np.max(1/(self.a - x), 1), np.ones(self.m)]
-        self.r = [np.zeros(self.n), np.zeros(self.m), np.zeros(self.n), np.zeros(self.n), np.zeros(self.m)]
+
+        """
+        Svanberg's implementation uses w.x = (a + b)/2.
+        I found w.x = x (that is use the old variable field as initial guess) 
+        to converge much faster.
+        Note however that a < x < b must hold. For variables where this does not hold one should use
+        w.x = (a + b)/2
+        """
+
+        #FIXME: implement correct initialization
+        self.w = [x,
+                  np.ones(self.m),
+                  np.max(1/(x - self.a), 1),
+                  np.max(1/(self.a - x), 1),
+                  np.ones(self.m)]
+
+        self.r = [np.zeros(self.n),
+                  np.zeros(self.m),
+                  np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.m)]
+
         self.dw = deepcopy(self.r)
         self.wold = deepcopy(self.w)
 
