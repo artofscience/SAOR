@@ -83,20 +83,33 @@ class pdip:
     In addition it provides the current design point (x) and bounds (a and b)
     """
 
-    def __init__(self, problem, x, a, b):
+    def __init__(self, problem, x, a, b, epsimin=1e-6):
 
-        self.x = x
+        # get bounds
         self.a = a
         self.b = b
-        self.problem = problem
-        self.n = self.problem.n
-        self.m = self.problem.m
 
-        # initialization of residual vectors
-        self.r = [np.zeros(self.n), np.zeros(self.m), np.zeros(self.n), np.zeros(self.n), np.zeros(self.m)]
+        # get problem size
+        self.n = problem.n
+        self.m = problem.m
+
+        # get problem function, derivatives and second order derivatives
+        self.g = problem.g
+        self.dg = problem.dg
+        self.ddg = problem.ddg
+
+        """
+        Initialization of variables, old variables, variable step and residual vectors
+        w = [x, lambda, xsi, eta, s]
+        r = [rx, rlambda, rxsi, reta, rs]
+        dw = [dx, dlambda, dxsi, deta, ds]
+        dwold = [dxold, dlambdaold, dxsiold, detaold, dsold]
+        """
         self.w = [x, np.ones(self.m), np.max(1/(x - self.a), 1), np.max(1/(self.a - x), 1), np.ones(self.m)]
+        self.r = [np.zeros(self.n), np.zeros(self.m), np.zeros(self.n), np.zeros(self.n), np.zeros(self.m)]
         self.dw = deepcopy(self.r)
         self.wold = deepcopy(self.w)
+
 
         self.iterout = 0
         self.iterin = 0
@@ -109,13 +122,16 @@ class pdip:
         # initialization of relaxed epsi parameter
         self.epsi = 1
         self.epsifac = 0.9
-        self.epsimin = 1e-6
+        self.epsimin = epsimin
         self.ab = -1.01
 
     def update(self):
 
         # iterate until convergence
         while self.epsi > self.epsimin:
+
+            # Calculate the initial residual, its norm and maximum value
+            # This indicates how far we are from the global optimum for THIS epsi
             self.get_residual()
             rnorm = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
             rmax = np.max(np.array([np.max(i) for i in self.r]))
@@ -125,12 +141,18 @@ class pdip:
                 self.iterin += 1
                 self.iterout += 1
 
-                # get the Newton direction
+
+                """
+                Get the Newton direction
+                This basically builds dw and includes a solve
+                """
                 self.get_newton_direction()
 
+                # Set w_old = w
                 for count, value in enumerate(self.wold):
                     value[:] = self.w[count]
 
+                # Initialize the counter for the line search
                 self.itera = 0
                 rnew = 2*rnorm
 
@@ -139,7 +161,8 @@ class pdip:
                     self.itera += 1
 
                     # calculate step size
-                    self.step = 1/(self.ab * np.max(self.ab * np.array([self.dw[i]/self.w[i] for i in self.w[1:]]), self.dw[0]/(self.w[0] - self.a), self.dw[0]/(self.b - self.w[0])))
+                    temp = np.array([self.dw[i]/self.w[i] for i in self.w[1:]])
+                    self.step = 1/(self.ab * np.max(temp, self.dw[0]/(self.w[0] - self.a), self.dw[0]/(self.b - self.w[0])))
 
                     # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
                     for count, value in enumerate(self.w):
@@ -165,40 +188,41 @@ class pdip:
         r(s)        = lam * si - e
         """
 
-        self.r[0] = self.problem.dg[0] + np.dot(self.problem.dg(self.x)[1:], self.w[1]) - self.w[2] + self.w[3]
-        self.r[1] = self.problem.g(self.x)[1:] - self.problem.r[1:] + self.w[4]
+        self.r[0] = self.dg[0] + np.dot(self.dg(self.w[0])[1:], self.w[1]) - self.w[2] + self.w[3]
+        self.r[1] = self.g(self.w[0])[1:] - self.r[1:] + self.w[4]
         self.r[2] = np.dot(self.w[2], self.w[0] - self.a) - self.epsi
         self.r[3] = np.dot(self.w[3], self.b - self.w[0]) - self.epsi
         self.r[4] = np.dot(self.w[1], self.w[4]) - self.epsi
 
     def get_newton_direction(self):
+        # Some calculations to omit repetitive calculations later on
         a = self.w[0] - self.a
         b = self.b - self.w[0]
-        g = self.problem.g(self.w[0])
-        dg = self.problem.dg(self.w[0])
-        ddg = self.problem.ddg(self.w[0])
+        g = self.g(self.w[0])
+        dg = self.dg(self.w[0])
+        ddg = self.ddg(self.w[0])
 
         # delta_lambda
-        delta_lambda = g[1:] - self.problem.r[1:] + self.epsi/self.w[1]
+        delta_lambda = g[1:] - self.r[1:] + self.epsi/self.w[1]
         delta_x = dg[0] + np.dot(dg[1:], self.w[1]) - self.epsi/a + self.epsi/b
 
         diag_lambda = self.w[4]/self.w[1]
         diag_x = ddg[0] + np.dot(ddg[1:], self.w[1]) - self.w[2]/a + self.w[3]/b
 
         # FIXME: implement dense solvers and CG
-        if self.problem.m > self.problem.n:
+        if self.m > self.n:
             dldl = delta_lambda/diag_lambda
             B = -delta_x - np.transpose(dg[1:]) * dldl
             A = diags(diag_x) + np.transpose(g[1:]) * (diags(1/diag_lambda) * dg[1:])
 
             # solve for dx
-            self.dw[0] = spsolve(A, B)
-            self.dw[1] = (dg[1:] * self.dw[0])/diag_lambda - dldl
+            self.dw[0] = spsolve(A, B)  # n x n
+            self.dw[1] = (dg[1:] * self.dw[0])/diag_lambda - dldl  # calculate dlam[dx]
 
         else:
             dxdx = delta_x/diag_x
             B = delta_lambda - (dg[1:] * dxdx)
-            A = diags(diag_lambda) + dg[1:] * (diags(1/diag_x) * np.transpose(dg[1:]))
+            A = diags(diag_lambda) + dg[1:] * (diags(1/diag_x) * np.transpose(dg[1:]))  # calculate dx[lam]
 
             # solve for dlam
             self.dw[1] = spsolve(A, B)  # m x m
