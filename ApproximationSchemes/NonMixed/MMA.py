@@ -8,11 +8,10 @@ class MMA(Approximation):
 
     ## Constructor of class
     def __init__(self, n, m, xmin, xmax, **kwargs):
-        Approximation.__init__(self, n, m, xmin, xmax)          # let parent class handle the common things
+        Approximation.__init__(self, n, m, xmin, xmax, **kwargs)          # let parent class handle the common things
 
         # Initialization of MMA-specific things
         self.pijconst = 1e-3
-        self.so = False                                         # False: No 2nd-order info || True: Use 2nd-order info
         self.dxmin = 1e-5
         self.albefa = 0.1                           # albefa is limiting the max change of vars wrt asymptotes. Was 0.1
         self.asyinit = 0.5                          # was 0.5
@@ -28,12 +27,16 @@ class MMA(Approximation):
         self.name = 'MMA'
 
     ## Build current sub-problem for MMA class: overrides Approximation.build_sub_prob(..) because of asymptotes
-    def build_sub_prob(self, x, g, dg):
+    def build_sub_prob(self, x, g, dg, **kwargs):
         self.x = x.copy()
         self.g = g.copy()
         self.dg = dg.copy()
         self._set_asymptotes()
+        self.y_k = self._set_y(self.x)
         self._set_P()
+        if self.so:
+            self.ddg = kwargs.get('ddg', None) 
+            self._set_Q()
         self._set_zo_term()
         self._set_bounds()
 
@@ -68,6 +71,14 @@ class MMA(Approximation):
             dTdy[self.dg[j, :] >= 0, j] = (1 / self.y_k[:, j] ** 2)[self.dg[j, :] >= 0]
             dTdy[self.dg[j, :] < 0, j] = (-1 / self.y_k[:, j] ** 2)[self.dg[j, :] < 0]
         return dTdy
+
+    ## Define chain rule 2nd-order term: y = T_inv(x) --> d^2T/dy^2 = d^2x/dy^2
+    def _set_ddTdy(self):
+        ddTdy = np.empty((self.n, self.m + 1))
+        for j in range(0, self.m + 1):
+            ddTdy[self.dg[j, :] >= 0, j] = (-2 / self.y_k[:, j] ** 3)[self.dg[j, :] >= 0]
+            ddTdy[self.dg[j, :] < 0, j] = (2 / self.y_k[:, j] ** 3)[self.dg[j, :] < 0]
+        return ddTdy
 
     ## Set asymptotes at current iteration low, upp :           if low = 0 and upp = inf --> MMA = CONLIN
     def _set_asymptotes(self):

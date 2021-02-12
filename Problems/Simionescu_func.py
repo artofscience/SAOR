@@ -10,6 +10,7 @@ class Simionescu:
         self.m = 1
         self.xmin = np.array([0., 0.])
         self.xmax = np.array([2.5, 2.5])
+        self.x_init = np.array([0.6, 0.5])
         self.name = 'Simionescu'
 
     def response(self, x_k):

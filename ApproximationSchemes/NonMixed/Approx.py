@@ -13,6 +13,7 @@ class Approximation:
         self.x = None                                                 # current design vars
         self.g = None                                                 # current responses
         self.dg = None                                                # current sensitivities
+        self.ddg = None                                               # 2nd-order diagonal Hessian
         self.xold1 = None                                             # design vars of (k-1)
         self.xold2 = None                                             # design vars of (k-2)
         self.gold1 = None                                             # responses of (k-1)
@@ -25,16 +26,23 @@ class Approximation:
         self.xmax = xmax
         self.dx = xmax - xmin
         self.zo_term = np.zeros(self.m + 1)                           # constant part of Taylor expansion
+        self.so = kwargs.get('second_order', False)                   # flag to add 2nd-order diagonal terms to Taylor
         self.P = np.zeros((self.m + 1, self.n), dtype=float)          # dg/dx * dT/dy = dg/dx * dx/dy
+        if self.so:
+            self.Q = np.zeros((self.m + 1, self.n), dtype=float)      # d^2g/dx^2 * d^2T/dy^2 = d^2g/dx^2 * d^2x/dy^2
         self.y_k = np.zeros((self.n, self.m + 1), dtype=float)        # for the zero-order term
         self.properties = None                                        # e.g. non-convex, type, etc.
 
     ## Build current sub-problem
-    def build_sub_prob(self, x, g, dg):
+    def build_sub_prob(self, x, g, dg, **kwargs):
         self.x = x.copy()
         self.g = g.copy()
         self.dg = dg.copy()
+        self.y_k = self._set_y(self.x)
         self._set_P()
+        if self.so:
+            self.ddg = kwargs.get('ddg', None) 
+            self._set_Q()
         self._set_zo_term()
         self._set_bounds()
 
@@ -54,12 +62,21 @@ class Approximation:
     def _set_dTdy(self):
         return None
 
+    ## To be overriden by the approximation's method
+    def _set_ddTdy(self):
+        return None
+
     ## Set P matrix for non-mixed approximation schemes: P_ji =  dg/dx * dT/dy
     def _set_P(self):
-        self.y_k = self._set_y(self.x)
         dTdy = self._set_dTdy()
         for j in range(0, self.m + 1):
             self.P[j, :] = self.dg[j, :] * dTdy[:, j]
+
+    ## Set Q matrix for non-mixed approximation schemes: Q_ji =  d^2g/dx^2 * d^2T/dy^2
+    def _set_Q(self):
+        ddTdy = self._set_ddTdy()
+        for j in range(0, self.m + 1):
+            self.Q[j, :] = self.ddg[j, :] * ddTdy[:, j]
 
     ## To be overriden by the approximation's method
     def _set_bounds(self):
@@ -70,6 +87,8 @@ class Approximation:
         self.zo_term = self.g.copy()
         for j in range(0, self.m + 1):
             self.zo_term[j] -= np.dot(self.P[j, :], self.y_k[:, j])
+            if self.so:
+                self.zo_term[j] += 0.5 * np.dot(self.Q[j, :], (self.y_k[:, j]) ** 2)
         self.b = - self.zo_term[1:]
 
     ## Set the approximate response functions g_approx for the current iter || omitted zero-order term for solver
@@ -78,6 +97,9 @@ class Approximation:
         g_approx_value = np.zeros(self.m + 1)
         for j in range(0, self.m + 1):
             g_approx_value[j] += np.dot(self.P[j, :], y[:, j])
+            if self.so:
+                g_approx_value[j] += - np.dot(self.Q[j, :], (self.y_k[:, j] * y[:, j])) + \
+                                     0.5 * np.dot(self.Q[j, :], (y[:, j] ** 2))
         return g_approx_value
 
     ## Set the approximate sensitivities dg_approx for the current iter
@@ -86,6 +108,9 @@ class Approximation:
         dg_approx_value = np.zeros((self.m + 1, self.n))
         for j in range(0, self.m + 1):
             dg_approx_value[j, :] += self.P[j, :] * dy[:, j]
+            if self.so:
+                y = self._set_y(x_curr)
+                dg_approx_value[j, :] += - self.Q[j, :] * self.y_k[:, j] * dy[:, j] + self.Q[j, :] * y[:, j] * dy[:, j]
         return dg_approx_value
 
     ## Set the approximate 2nd-order sensitivities ddg_approx for the current iter
@@ -94,6 +119,11 @@ class Approximation:
         ddg_approx_value = np.zeros((self.m + 1, self.n))
         for j in range(0, self.m + 1):
             ddg_approx_value[j, :] += self.P[j, :] * ddy[:, j]
+            if self.so:
+                y = self._set_y(x_curr)
+                dy = self._set_dydx(x_curr)
+                ddg_approx_value[j, :] += - self.Q[j, :] * self.y_k[:, j] * ddy[:, j] + \
+                                          self.Q[j, :] * (dy[:, j] ** 2 + y[:, j] * ddy[:, j])
         return ddg_approx_value
 
     ## Update old values
