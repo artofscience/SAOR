@@ -2,6 +2,8 @@
 import numpy as np
 import matplotlib as plt
 import constants as ct
+import cProfile                                               # to profile the time spent in funcs
+import time                                                   # to have better time resolution in profiler
 
 from Problems.Mishra_bird import MishraBird
 from Problems.Rosenbrock_cubic import RosenCubic
@@ -70,7 +72,7 @@ def main():
     vis = None                                  # only for Vanderplaats beam
 
     ## OPTIMIZATION LOOP
-    while not criterion.converged:
+    while itte < 5 and not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         g = prob.response(x_k)
@@ -80,13 +82,16 @@ def main():
         # Print current iteration and x_k
         vis = prob.visualize(vis, x_k, itte)                # visualization of half MBB-beam (99-line code)
         # vis = prob.visualize(itte, 0, vis, x_k)           # visualization of Vanderplaats beam
-        print('iter: {:<4d}  |  obj: {:>9.3f}  |  vol: {:>6.3f}'.format(itte, g[0], (g[1] + prob.volfrac*prob.n)/prob.n))
+        print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}  |  vol: {:>6.3f}'.format(
+            itte, g[0], g[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
 
         # Build approximate sub-problem at X^(k)
         approx.build_sub_prob(x_k, g, dg)                   # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
 
         # Call solver (x_k, g and dg are within approx instance)
+        pr.enable()
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
+        pr.disable()
 
         # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
         criterion.assess_convergence(x_k=x_k, dg=dg, lam=lam, g=g, gold1=approx.gold1, xold1=approx.xold1, iter=itte)
@@ -108,7 +113,16 @@ def main():
 
 
 if __name__ == "__main__":
+
+    # Disable profiler cuz you want to measure one thing at a time
+    pr = cProfile.Profile(timer=time.perf_counter_ns, timeunit=1e-9, subcalls=True, builtins=True)
+    pr.disable()
+
     main()
+
+    # Print time measurements in the Console
+    pr.print_stats(sort=2)
+
     print('\nEnd of optimization ran by main.py\n')
 
 

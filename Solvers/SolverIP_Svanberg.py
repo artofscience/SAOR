@@ -30,7 +30,6 @@ class SvanbergIP:
         Input:  approx
         Output: x, y, z, lam, xsi, eta, mu, zet, s
         """
-
         # Initialization of parameters (once per design iteration)
         a0 = 1.0
         a = np.zeros(self.m)
