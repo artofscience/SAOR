@@ -10,6 +10,7 @@ from Problems.Simionescu_func import Simionescu
 from Problems.Townsend_func import Townsend
 from Problems.Li2015_Fig4 import Li2015Fig4
 from Problems.VanderplaatsBeam import Vanderplaats
+from Problems.Top88_prob import Top88
 
 from Solvers.SolverIP_Svanberg import SvanbergIP
 
@@ -38,7 +39,7 @@ def main():
     ## INITIALIZATIONS: problem, approximation, solver, convergence criterion
 
     # Instantiate problem
-    prob = RosenCubic()
+    prob = Top88(180, 60, 0.4, 3, 5.4, 1)
 
     # # Instantiating a mixed approximation scheme
     # variable_sets = {0: np.arange(0, 1), 1: np.arange(1, prob.n)}
@@ -59,14 +60,14 @@ def main():
 
     # # Choose convergence criteria to be used and initialize its object
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectivecChange()
+    # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
-    x_k = prob.x_init.copy()
-    # vis = None                                  # only for Vanderplaats beam
+    x_k = prob.x0.copy()
+    vis = None                                  # only for Vanderplaats beam
 
     ## OPTIMIZATION LOOP
     while not criterion.converged:
@@ -77,11 +78,12 @@ def main():
         # ddg = prob.sensitivity2(x_k)
 
         # Print current iteration and x_k
-        print('\titer = {} | g0 = {} \n'.format(itte, g[0]))
-        
+        vis = prob.visualize(vis, x_k, itte)                # visualization of half MBB-beam (99-line code)
+        # vis = prob.visualize(itte, 0, vis, x_k)           # visualization of Vanderplaats beam
+        print('it.: {0} , obj.: {1:.3f} Vol.: {2:.3f}'.format(itte, g[0], (g[1] + prob.volfrac*prob.n)/prob.n))
+
         # Build approximate sub-problem at X^(k)
-        approx.build_sub_prob(x_k, g, dg)          # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
-        # vis = prob.kout(itte, 0, vis, x_k)                # visualization of Vanderplaats beam
+        approx.build_sub_prob(x_k, g, dg)                   # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)

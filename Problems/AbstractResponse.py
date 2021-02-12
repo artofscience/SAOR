@@ -11,15 +11,15 @@ class Response(ABC):
         pass
 
     @abstractmethod
-    def f(self, x):
+    def g(self, x):
         """Returns the function's value at `x`."""
         return NotImplemented
 
     @abstractmethod
-    def df(self, x):
+    def dg(self, x):
         """Returns the 1st-order derivatives at `x`."""
         return NotImplemented
 
-    def ddf(self, x):
+    def ddg(self, x):
         """Optional implementation for diagonal 2nd-order derivatives at `x`."""
         return NotImplemented

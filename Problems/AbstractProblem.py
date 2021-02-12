@@ -2,20 +2,21 @@ import numpy as np
 
 
 class Problem:
-    """A generic constrained optimization problem."""
-    def __init__(self, response_funcs, xmin, xmax, **kwargs):
-        self.response_funcs = response_funcs
-        self.m = len(response_funcs) - 1            # objective + constraints
+    """A generic constrained optimization problem.
+       responses = [objective, constraint_1, constraint_2, ..., constraint_m
+       xmin = [x1_min, x2_min, ..., xn_min]
+       xmax = [x1_max, x2_max, ..., xn_max]"""
+    def __init__(self, responses, xmin, xmax, x0=None, **kwargs):
+        self.responses = responses
+        self.m = len(responses) - 1            # objective + constraints
         self.xmin = xmin
         self.xmax = xmax
-        self.x_init = kwargs.get('x_init', 0.5 * (self.xmin + self.xmax))
+        self.x0 = x0 if x0 is not None else 0.5 * (self.xmin + self.xmax)
 
     def response(self, x):
         """Returns the response of the objective and constraints at `x`."""
-        g_j = [c.f(x) for c in self.response_funcs]
-        return np.asarray(g_j)
+        return np.asarray([r.g(x) for r in self.responses])
 
     def sensitivity(self, x):
         """Returns the sensitivity of the objective and constraints at `x`."""
-        dg_j = [c.df(x) for c in self.response_funcs]
-        return np.asarray(dg_j)
+        return np.asarray([r.dg(x) for r in self.responses])
