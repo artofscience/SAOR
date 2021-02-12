@@ -10,7 +10,7 @@ from Problems.Simionescu_func import Simionescu
 from Problems.Townsend_func import Townsend
 from Problems.Li2015_Fig4 import Li2015Fig4
 from Problems.VanderplaatsBeam import Vanderplaats
-from Problems.Top88_prob import Top88
+from Problems.Top88 import Top88
 
 from Solvers.SolverIP_Svanberg import SvanbergIP
 
@@ -80,7 +80,7 @@ def main():
         # Print current iteration and x_k
         vis = prob.visualize(vis, x_k, itte)                # visualization of half MBB-beam (99-line code)
         # vis = prob.visualize(itte, 0, vis, x_k)           # visualization of Vanderplaats beam
-        print('it.: {0} , obj.: {1:.3f} Vol.: {2:.3f}'.format(itte, g[0], (g[1] + prob.volfrac*prob.n)/prob.n))
+        print('iter: {:<4d}  |  obj: {:>9.3f}  |  vol: {:>6.3f}'.format(itte, g[0], (g[1] + prob.volfrac*prob.n)/prob.n))
 
         # Build approximate sub-problem at X^(k)
         approx.build_sub_prob(x_k, g, dg)                   # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
