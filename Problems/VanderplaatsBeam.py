@@ -19,9 +19,9 @@ class Vanderplaats:
         self.m = 2 * self.N + 1
 
         # Initial point
-        self.x_init = np.zeros(self.n, dtype=float)
-        self.x_init[:self.N] = 5.                                       # initial -b-
-        self.x_init[self.N:] = 40.                                      # initial -h-
+        self.x0 = np.zeros(self.n, dtype=float)
+        self.x0[:self.N] = 5.                                       # initial -b-
+        self.x0[self.N:] = 40.                                      # initial -h-
 
         # Variable bounds
         self.xmin = np.ones(self.n, dtype=float) * 1e-1            # self.xmin
@@ -119,8 +119,8 @@ class Vanderplaats:
 
         return dg_j
 
-    # Plot function
-    def kout(self, k, t, vis, x_k):
+    def visualize(self, k, t, vis, x_k):
+        """Function to visualize current design"""
         s = int(self.L / self.N)
         x = np.arange(0, s * self.N, s)
         y = np.zeros(self.N)
