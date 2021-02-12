@@ -7,7 +7,6 @@ import time                                                   # to have better t
 
 from Problems.Mishra_bird import MishraBird
 from Problems.Rosenbrock_cubic import RosenCubic
-from Problems.RosenbrockMax import Rosenbrock
 from Problems.Simionescu_func import Simionescu
 from Problems.Townsend_func import Townsend
 from Problems.Li2015_Fig4 import Li2015Fig4
@@ -72,7 +71,7 @@ def main():
     vis = None                                  # only for Vanderplaats beam
 
     ## OPTIMIZATION LOOP
-    while itte < 5 and not criterion.converged:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         g = prob.response(x_k)
