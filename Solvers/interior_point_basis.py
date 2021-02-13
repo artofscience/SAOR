@@ -111,7 +111,7 @@ class InteriorPointBasis(InteriorPoint):
         self.wold = deepcopy(self.w)
 
     def get_step_size(self):
-        temp = np.array([self.dw[i] / self.w[i] for i in self.w[1:]])
+        temp = np.array([self.dw[i] / w for i, w in enumerate(self.w[1:])])
         self.step = 1 / (self.alphab * np.max(temp, self.dw[0] / (self.w[0] - self.alpha), self.dw[0] / (self.beta - self.w[0])))
 
     def get_residual(self):

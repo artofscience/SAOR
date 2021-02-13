@@ -39,26 +39,11 @@ class InteriorPoint(PrimalDual, ABC):
         self.step = 0
         self.epsi = 1
 
-    @property
-    @abstractmethod
-    def r(self):
-        pass
-
-    @property
-    @abstractmethod
-    def w(self):
-        pass
-
-    @property
-    @abstractmethod
-    def dw(self):
-        pass
-
-    @property
-    @abstractmethod
-    def wold(self):
-        pass
-
+    r: list = NotImplemented
+    w: list = NotImplemented
+    dw: list = NotImplemented
+    wold: list = NotImplemented
+    
     @abstractmethod
     def get_residual(self):
         ...

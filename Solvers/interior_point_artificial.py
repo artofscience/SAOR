@@ -126,11 +126,11 @@ Subsequently we are left with a reduced system in terms of dx and dlam
 
 class InteriorPointArtificial(InteriorPoint):
 
-    def __init__(self, problem, x, a, b, **kwargs):
-        super().__init__(self, problem, x, a, b, **kwargs)
+    def __init__(self, problem, x, **kwargs):
+        super().__init__(problem, **kwargs)
 
         self.c = kwargs.get('c', 1e3)
-        #FIXME: implement correct initialization
+
         self.w = [x,
                   np.ones(self.m),
                   np.max(1/(x - self.alpha), 1),
@@ -145,6 +145,15 @@ class InteriorPointArtificial(InteriorPoint):
 
         self.dw = deepcopy(self.r)
         self.wold = deepcopy(self.w)
+
+    def get_step_size(self):
+        pass
+
+    def get_residual(self):
+        pass
+
+    def get_newton_direction(self):
+        pass
 
 
 
