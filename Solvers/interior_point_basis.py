@@ -2,9 +2,10 @@ import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 from copy import deepcopy
+from interior_point import InteriorPoint
 
 """
-This is a primal-dual interior-point approach (without slack variables)
+This is a primal-dual interior-point approach (without artificial variables)
 to solve a convex and separable nonlinear optimization problem.
 The problem is solved by applying Newton's method to sequence of relaxed KKT conditions.
 
@@ -71,7 +72,7 @@ Subsequently we are left with a reduced system in terms of dx and dlam
 
 
 # this class should be a child of an abstract solver class
-class pdip:
+class InteriorPointBasis(InteriorPoint):
     """
     Primal-dual interior point method.
     Construction provides the problem object which (at least) contains:
@@ -83,28 +84,8 @@ class pdip:
     In addition it provides the current design point (x) and bounds (a and b)
     """
 
-    def __init__(self, problem, x, a, b, epsimin=1e-6):
-
-        # get bounds
-        self.a = a
-        self.b = b
-
-        # get problem size
-        self.n = problem.n
-        self.m = problem.m
-
-        # get problem function, derivatives and second order derivatives
-        self.g = problem.g
-        self.dg = problem.dg
-        self.ddg = problem.ddg
-
-        """
-        Initialization of variables, old variables, variable step and residual vectors
-        w = [x, lambda, xsi, eta, s]
-        r = [rx, rlambda, rxsi, reta, rs]
-        dw = [dx, dlambda, dxsi, deta, ds]
-        dwold = [dxold, dlambdaold, dxsiold, detaold, dsold]
-        """
+    def __init__(self, problem, **kwargs):
+        super().__init__(problem, **kwargs)
 
         """
         Svanberg's implementation uses w.x = (a + b)/2.
@@ -113,92 +94,26 @@ class pdip:
         Note however that a < x < b must hold. For variables where this does not hold one should use
         w.x = (a + b)/2
         """
-
         #FIXME: implement correct initialization
-        self.w = [x,
+        self.w = [self.x,
+                  np.max(1/(self.x - self.alpha), 1),
+                  np.max(1/(self.alpha - self.x), 1),
                   np.ones(self.m),
-                  np.max(1/(x - self.a), 1),
-                  np.max(1/(self.a - x), 1),
                   np.ones(self.m)]
 
         self.r = [np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.n),
                   np.zeros(self.m),
-                  np.zeros(self.n),
-                  np.zeros(self.n),
                   np.zeros(self.m)]
 
         self.dw = deepcopy(self.r)
         self.wold = deepcopy(self.w)
 
+    def get_step_size(self):
+        temp = np.array([self.dw[i] / self.w[i] for i in self.w[1:]])
+        self.step = 1 / (self.alphab * np.max(temp, self.dw[0] / (self.w[0] - self.alpha), self.dw[0] / (self.beta - self.w[0])))
 
-        self.iterout = 0
-        self.iterin = 0
-        self.itera = 0
-        self.iteramax = 50
-        self.iterinmax = 100
-
-        self.step = 0
-
-        # initialization of relaxed epsi parameter
-        self.epsi = 1
-        self.epsifac = 0.9
-        self.epsimin = epsimin
-        self.ab = -1.01
-
-    def update(self):
-
-        # iterate until convergence
-        while self.epsi > self.epsimin:
-
-            # Calculate the initial residual, its norm and maximum value
-            # This indicates how far we are from the global optimum for THIS epsi
-            self.get_residual()
-            rnorm = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
-            rmax = np.max(np.array([np.max(i) for i in self.r]))
-
-            self.iterin = 0
-            while rmax > self.epsifac and self.iterin < self.iterinmax:
-                self.iterin += 1
-                self.iterout += 1
-
-
-                """
-                Get the Newton direction
-                This basically builds dw and includes a solve
-                """
-                self.get_newton_direction()
-
-                # Set w_old = w
-                for count, value in enumerate(self.wold):
-                    value[:] = self.w[count]
-
-                # Initialize the counter for the line search
-                self.itera = 0
-                rnew = 2*rnorm
-
-                # Line search in the Newton direction dw
-                while rnew > rnorm and self.itera < self.iteramax:
-                    self.itera += 1
-
-                    # calculate step size
-                    temp = np.array([self.dw[i]/self.w[i] for i in self.w[1:]])
-                    self.step = 1/(self.ab * np.max(temp, self.dw[0]/(self.w[0] - self.a), self.dw[0]/(self.b - self.w[0])))
-
-                    # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
-                    for count, value in enumerate(self.w):
-                        value[:] = self.wold[count] + self.step * self.dw[count]
-
-                    self.get_residual()
-                    rnew = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
-                    self.step *= 0.5
-
-                rnorm = 1.0 * rnew
-                rmax = np.max(np.array([np.max(i) for i in self.r]))
-                self.step *= 2
-
-            self.epsi *= 0.5
-
-        # end
     def get_residual(self):
         """
         r(x)        = psi / dx - xsi + eta
@@ -210,14 +125,14 @@ class pdip:
 
         self.r[0] = self.dg[0] + np.dot(self.dg(self.w[0])[1:], self.w[1]) - self.w[2] + self.w[3]
         self.r[1] = self.g(self.w[0])[1:] - self.r[1:] + self.w[4]
-        self.r[2] = np.dot(self.w[2], self.w[0] - self.a) - self.epsi
-        self.r[3] = np.dot(self.w[3], self.b - self.w[0]) - self.epsi
+        self.r[2] = np.dot(self.w[2], self.w[0] - self.alpha) - self.epsi
+        self.r[3] = np.dot(self.w[3], self.beta - self.w[0]) - self.epsi
         self.r[4] = np.dot(self.w[1], self.w[4]) - self.epsi
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
-        a = self.w[0] - self.a
-        b = self.b - self.w[0]
+        a = self.w[0] - self.alpha
+        b = self.beta - self.w[0]
         g = self.g(self.w[0])
         dg = self.dg(self.w[0])
         ddg = self.ddg(self.w[0])
