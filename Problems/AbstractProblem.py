@@ -11,15 +11,15 @@ class Problem(ABC):
         pass
 
     @abstractmethod
-    def g(self, x):
-        """Returns the function's value at `x`."""
-        return NotImplemented
+    def get_g(self, x):
+        """Calculates the function's value at `x`."""
+        pass
 
     @abstractmethod
-    def dg(self, x):
-        """Returns the 1st-order derivatives at `x`."""
-        return NotImplemented
+    def get_dg(self, x):
+        """Calculates the 1st-order derivatives at `x`."""
+        pass
 
-    def ddg(self, x):
+    def get_ddg(self, x):
         """Optional implementation for diagonal 2nd-order derivatives at `x`."""
-        return NotImplemented
+        pass

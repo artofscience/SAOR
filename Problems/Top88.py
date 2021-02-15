@@ -33,6 +33,9 @@ class Top88(Problem):
         self.xold = self.xmin.copy()
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
+        self.g = np.empty(self.m + 1, dtype=float)
+        self.dg = np.empty((self.m + 1, self.n), dtype=float)
+        self.ddg = np.empty((self.m + 1, self.n), dtype=float)
         self.name = 'Top88'
 
         # FE: Build the index vectors for the for coo matrix format
@@ -88,8 +91,7 @@ class Top88(Problem):
         # Set load
         self.f[1, 0] = -1
 
-    def g(self, x_k):
-        g_j = np.empty(self.m + 1)
+    def get_g(self, x_k):
 
         # Filter design variables
         if self.ft == 0:
@@ -113,12 +115,10 @@ class Top88(Problem):
         # Objective and volume constraint
         self.ce[:] = (np.dot(self.u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
                       self.u[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
-        g_j[0] = ((self.Emin + xPhys ** self.penal * (self.Emax - self.Emin)) * self.ce).sum()
-        g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
-        return g_j
+        self.g[0] = ((self.Emin + xPhys ** self.penal * (self.Emax - self.Emin)) * self.ce).sum()
+        self.g[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
 
-    def dg(self, x_k):
-        dg_j = np.empty((self.m + 1, self.n))
+    def get_dg(self, x_k):
 
         # Filter design variables
         if self.ft == 0:
@@ -126,17 +126,15 @@ class Top88(Problem):
         elif self.ft == 1:
             xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
 
-        dg_j[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (self.Emax - self.Emin)) * self.ce
-        dg_j[1, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
+        self.dg[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (self.Emax - self.Emin)) * self.ce
+        self.dg[1, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
 
         # Sensitivity filtering
         if self.ft == 0:
-            dg_j[0, :] = np.asarray((self.H * (x_k * dg_j[0, :]))[np.newaxis].T / self.Hs)[:, 0] / np.maximum(0.001, x_k)
+            self.dg[0, :] = np.asarray((self.H * (x_k * self.dg[0, :]))[np.newaxis].T / self.Hs)[:, 0] / np.maximum(0.001, x_k)
         elif self.ft == 1:
-            dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
-            dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
-
-        return dg_j
+            self.dg[0, :] = np.asarray(self.H * (self.dg[0, :][np.newaxis].T / self.Hs))[:, 0]
+            self.dg[1, :] = np.asarray(self.H * (self.dg[1, :][np.newaxis].T / self.Hs))[:, 0]
 
     @staticmethod
     def lk():

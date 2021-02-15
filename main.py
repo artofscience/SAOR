@@ -73,18 +73,18 @@ def main():
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
-        g = prob.g(x_k)
-        dg = prob.dg(x_k)
-        # ddg = prob.ddg(x_k)
+        prob.get_g(x_k)
+        prob.get_dg(x_k)
+        # prob.get_ddg(x_k)
 
         # Print current iteration and x_k
         vis = prob.visualize(vis, x_k, itte)                # visualization of half MBB-beam (99-line code)
         # vis = prob.visualize(itte, 0, vis, x_k)           # visualization of Vanderplaats beam
         print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}  |  vol: {:>6.3f}'.format(
-            itte, g[0], g[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+            itte, prob.g[0], prob.g[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
 
         # Build approximate sub-problem at X^(k)
-        approx.build_sub_prob(x_k, g, dg)                   # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
+        approx.build_sub_prob(x_k, prob.g, prob.dg)         # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
 
         # Call solver (x_k, g and dg are within approx instance)
         pr.enable()
@@ -92,11 +92,11 @@ def main():
         pr.disable()
 
         # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, dg=dg, lam=lam, g=g, gold1=approx.gold1, xold1=approx.xold1, iter=itte)
+        criterion.assess_convergence(x_k=x_k, dg=prob.dg, lam=lam, g=prob.g, gold1=approx.gold1, xold1=approx.xold1, iter=itte)
 
         # Update old values of approx, current point x_k and increase iteration counter
         itte += 1
-        approx.update_old_values(x_k, g, dg, itte)
+        approx.update_old_values(x_k, prob.g, prob.dg, itte)
         x_k = x.copy()
 
     ## RESULTS SECTION

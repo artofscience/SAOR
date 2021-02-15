@@ -9,6 +9,9 @@ class Vanderplaats(Problem):
 
     def __init__(self, N):
         Problem.__init__(self)
+        self.g = np.empty(self.m + 1, dtype=float)
+        self.dg = np.empty((self.m + 1, self.n), dtype=float)
+        self.ddg = np.empty((self.m + 1, self.n), dtype=float)
         self.name = 'Vanderplaats'
 
         # Number of segments
@@ -37,8 +40,7 @@ class Vanderplaats(Problem):
         self.L = 5e2                    # Total length
         self.S = self.L / self.N        # Segment length
 
-    def g(self, x_k):
-        g_j = np.zeros(self.m + 1, dtype=float)
+    def get_g(self, x_k):
         y = 0.
         ya = 0.
         for i in range(self.N):
@@ -46,7 +48,7 @@ class Vanderplaats(Problem):
             h = x_k[self.N + i]          # get height
 
             # Weight objective
-            g_j[0] = g_j[0] + self.S * b * h * 1e-3
+            self.g[0] = self.g[0] + self.S * b * h * 1e-3
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
@@ -56,10 +58,10 @@ class Vanderplaats(Problem):
 
             # Stress constraint
             sts = (M * h) / (2 * I)
-            g_j[1 + i] = sts / self.sig_max - 1.
+            self.g[1 + i] = sts / self.sig_max - 1.
 
             # Geometric constraint
-            g_j[1 + self.N + i] = h - 20 * b
+            self.g[1 + self.N + i] = h - 20 * b
 
             # Left displacement
             y = (self.P * self.S ** 2) / (2 * self.E * I) * (self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
@@ -68,12 +70,9 @@ class Vanderplaats(Problem):
             ya = (self.P * self.S) / (self.E * I) * (self.L - (i + 1) * self.S + self.S / 2) + ya
 
         # Displacement constraint value
-        g_j[1 + 2 * self.N] = y / self.y_max - 1
+        self.g[1 + 2 * self.N] = y / self.y_max - 1
 
-        return g_j
-
-    def dg(self, x_k):
-        dg_j = np.zeros((self.m + 1, self.n), dtype=np.float_)
+    def get_dg(self, x_k):
         y = 0.
         ya = 0.
         for i in range(self.N):
@@ -81,8 +80,8 @@ class Vanderplaats(Problem):
             h = x_k[self.N + i]             # get height
 
             # Derivatives of objective
-            dg_j[0, i] = self.S * h * 1e-3
-            dg_j[0, self.N + i] = self.S * b * 1e-3
+            self.dg[0, i] = self.S * h * 1e-3
+            self.dg[0, self.N + i] = self.S * b * 1e-3
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
@@ -92,14 +91,14 @@ class Vanderplaats(Problem):
             dIdb = h ** 3 / 12
             dIdh = 3 * b * h ** 2 / 12
 
-            # Stress constraint sensitivities
+            # Stress constraint sensitivitiesself.
             sts = (M * h) / (2 * I)
-            dg_j[1 + i, i] = - (6 * M) / (self.sig_max * h ** 2 * b ** 2)
-            dg_j[1 + i, self.N + i] = - (12 * M) / (self.sig_max * b * h ** 3)
+            self.dg[1 + i, i] = - (6 * M) / (self.sig_max * h ** 2 * b ** 2)
+            self.dg[1 + i, self.N + i] = - (12 * M) / (self.sig_max * b * h ** 3)
 
             # Geometric constraint sensitivities
-            dg_j[1 + self.N + i, i] = -20
-            dg_j[1 + self.N + i, self.N + i] = 1
+            self.dg[1 + self.N + i, i] = -20
+            self.dg[1 + self.N + i, self.N + i] = 1
 
             # Left displacement
             y = (self.P * self.S ** 2) / (2 * self.E * I) * (self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
@@ -116,10 +115,8 @@ class Vanderplaats(Problem):
             dAa_dh = -self.P * self.S / self.E / I / I * (self.L - (i + 1) * self.S + self.S / 2) * dIdh
 
             # Displacement constraint sensitivities
-            dg_j[1 + 2 * self.N, i] = ((self.N - i - 1) * dAa_db * self.S + dA_db) / self.y_max
-            dg_j[1 + 2 * self.N, self.N + i] = ((self.N - i - 1) * dAa_dh * self.S + dA_dh) / self.y_max
-
-        return dg_j
+            self.dg[1 + 2 * self.N, i] = ((self.N - i - 1) * dAa_db * self.S + dA_db) / self.y_max
+            self.dg[1 + 2 * self.N, self.N + i] = ((self.N - i - 1) * dAa_dh * self.S + dA_dh) / self.y_max
 
     def visualize(self, k, t, vis, x_k):
         """Function to visualize current design"""
