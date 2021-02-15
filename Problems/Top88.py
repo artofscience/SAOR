@@ -163,7 +163,7 @@ class Top88(Problem):
         A = A[:, keep]
         return A
 
-    def visualize(self, vis, x_k, iteration):
+    def visualize(self, x_k, iteration, vis, **kwargs):
         """Function to visualize current design"""
         xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
         if iteration == 0:

@@ -40,6 +40,7 @@ def main():
 
     # Instantiate problem
     prob = Top88(180, 60, 0.4, 3, 5.4, 1)
+    # prob = Vanderplaats(100)
 
     # # Instantiating a mixed approximation scheme
     # variable_sets = {0: np.arange(0, 1), 1: np.arange(1, prob.n)}
@@ -78,10 +79,9 @@ def main():
         # prob.get_ddg(x_k)
 
         # Print current iteration and x_k
-        vis = prob.visualize(vis, x_k, itte)                # visualization of half MBB-beam (99-line code)
-        # vis = prob.visualize(itte, 0, vis, x_k)           # visualization of Vanderplaats beam
-        print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}  |  vol: {:>6.3f}'.format(
-            itte, prob.g[0], prob.g[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        vis = prob.visualize(x_k, itte, vis)                # visualization for Top88.py and Vanderplaats.py
+        # print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}  |  vol: {:>6.3f}'.format(
+        #     itte, prob.g[0], prob.g[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
 
         # Build approximate sub-problem at X^(k)
         approx.build_sub_prob(x_k, prob.g, prob.dg)         # 2nd-order info: approx.build_sub_prob(x_k, g, dg, ddg=ddg)
@@ -92,7 +92,8 @@ def main():
         pr.disable()
 
         # Check if convergence criterion is satisfied (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, dg=prob.dg, lam=lam, g=prob.g, gold1=approx.gold1, xold1=approx.xold1, iter=itte)
+        criterion.assess_convergence(x_k=x_k, dg=prob.dg, lam=lam, g=prob.g, gold1=approx.gold1,
+                                     xold1=approx.xold1, iter=itte)
 
         # Update old values of approx, current point x_k and increase iteration counter
         itte += 1

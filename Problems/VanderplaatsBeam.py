@@ -9,9 +9,6 @@ class Vanderplaats(Problem):
 
     def __init__(self, N):
         Problem.__init__(self)
-        self.g = np.empty(self.m + 1, dtype=float)
-        self.dg = np.empty((self.m + 1, self.n), dtype=float)
-        self.ddg = np.empty((self.m + 1, self.n), dtype=float)
         self.name = 'Vanderplaats'
 
         # Number of segments
@@ -22,6 +19,10 @@ class Vanderplaats(Problem):
 
         # Number of responses: stress, aspect ratio and tip displacement constraints
         self.m = 2 * self.N + 1
+
+        # Initialize responses and sensitivities
+        self.g = np.empty(self.m + 1, dtype=float)
+        self.dg = np.empty((self.m + 1, self.n), dtype=float)
 
         # Initial point
         self.x0 = np.zeros(self.n, dtype=float)
@@ -118,14 +119,15 @@ class Vanderplaats(Problem):
             self.dg[1 + 2 * self.N, i] = ((self.N - i - 1) * dAa_db * self.S + dA_db) / self.y_max
             self.dg[1 + 2 * self.N, self.N + i] = ((self.N - i - 1) * dAa_dh * self.S + dA_dh) / self.y_max
 
-    def visualize(self, k, t, vis, x_k):
+    def visualize(self, x_k, iteration, vis, **kwargs):
         """Function to visualize current design"""
         s = int(self.L / self.N)
         x = np.arange(0, s * self.N, s)
         y = np.zeros(self.N)
+        t = kwargs.get('t', 0)
 
         if t != 1:
-            if k == 0:
+            if iteration == 0:
                 plt.ion()
                 fig, (ax1, ax2) = plt.subplots(2, 1)
                 fig.suptitle('Vanderplaats beam of {} elements'.format(self.N), fontsize=20)
