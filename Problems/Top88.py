@@ -3,6 +3,7 @@
 # A 165 LINE TOPOLOGY OPTIMIZATION CODE BY NIELS AAGE AND VILLADS EGEDE JOHANSEN, JANUARY 2013
 from __future__ import division
 import numpy as np
+from Problems.AbstractProblem import Problem
 from scipy.sparse import coo_matrix
 from matplotlib import colors
 import matplotlib.pyplot as plt
@@ -11,9 +12,10 @@ import cvxopt.cholmod
 
 
 ## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
-class Top88:
+class Top88(Problem):
 
     def __init__(self, nelx, nely, volfrac, penal, rmin, ft):
+        Problem.__init__(self)
         self.Emin = 1e-9
         self.Emax = 1.0
         self.nelx = nelx
@@ -29,7 +31,6 @@ class Top88:
         self.xmax = np.ones(self.n, dtype=float)
         self.x0 = self.volfrac * np.ones(self.n, dtype=float)
         self.xold = self.xmin.copy()
-        self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
         self.name = 'Top88'
@@ -87,7 +88,7 @@ class Top88:
         # Set load
         self.f[1, 0] = -1
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.empty(self.m + 1)
 
         # Filter design variables
@@ -116,7 +117,7 @@ class Top88:
         g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
         # Filter design variables

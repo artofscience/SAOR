@@ -74,9 +74,9 @@ def main():
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
-        g = prob.response(x_k)
-        dg = prob.sensitivity(x_k)
-        # ddg = prob.sensitivity2(x_k)
+        g = prob.g(x_k)
+        dg = prob.dg(x_k)
+        # ddg = prob.ddg(x_k)
 
         # Print current iteration and x_k
         vis = prob.visualize(vis, x_k, itte)                # visualization of half MBB-beam (99-line code)

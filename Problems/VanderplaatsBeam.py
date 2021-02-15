@@ -1,12 +1,14 @@
 ## IMPORTS
 import numpy as np
 import matplotlib.pyplot as plt
+from Problems.AbstractProblem import Problem
 
 
 ## CLASS: This is the Vanderplaats cantilever beam by Dirk (scaled objective as: g_0' = 1e-3 * g_0)
-class Vanderplaats:
+class Vanderplaats(Problem):
 
     def __init__(self, N):
+        Problem.__init__(self)
         self.name = 'Vanderplaats'
 
         # Number of segments
@@ -35,7 +37,7 @@ class Vanderplaats:
         self.L = 5e2                    # Total length
         self.S = self.L / self.N        # Segment length
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.zeros(self.m + 1, dtype=float)
         y = 0.
         ya = 0.
@@ -70,7 +72,7 @@ class Vanderplaats:
 
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.zeros((self.m + 1, self.n), dtype=np.float_)
         y = 0.
         ya = 0.

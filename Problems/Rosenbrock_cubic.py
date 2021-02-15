@@ -1,11 +1,13 @@
 ## IMPORTS
 import numpy as np
+from Problems.AbstractProblem import Problem
 
 
 ## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
-class RosenCubic:
+class RosenCubic(Problem):
 
     def __init__(self):
+        Problem.__init__(self)
         self.n = 2
         self.m = 2
         self.xmin = np.array([0., 0.])
@@ -13,7 +15,7 @@ class RosenCubic:
         self.x_init = np.array([0.5, 0.3])
         self.name = 'RosenCubic'
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.empty(self.m + 1)
 
         g_j[0] = (2.5 - x_k[0]) ** 2 + 100. * ((x_k[1] - 0.5) - (x_k[0] - 1.5) ** 2) ** 2
@@ -24,7 +26,7 @@ class RosenCubic:
 
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
         dg_j[0, 0] = 2.0 * x_k[0] + 506.25 * (2.66666666666667 - 1.77777777777778 * x_k[0]) * \

@@ -1,11 +1,13 @@
 ## IMPORTS
 import numpy as np
+from Problems.AbstractProblem import Problem
 
 
 ## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
-class MishraBird:
+class MishraBird(Problem):
 
     def __init__(self):
+        Problem.__init__(self)
         self.n = 2
         self.m = 1
         self.xmin = np.array([0., 0.])
@@ -13,7 +15,7 @@ class MishraBird:
         self.x_init = np.array([7.3, 2.])
         self.name = 'MishraBird'
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.empty(self.m + 1)
 
         g_j[0] = np.sin(x_k[1] - 6.5) * np.exp((1 - np.cos(x_k[0] - 10.)) ** 2) + \
@@ -23,7 +25,7 @@ class MishraBird:
 
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
         dg_j[0, 0] = 2.0 * x_k[0] - 2.0 * x_k[1] + 2 * (1 - np.cos(x_k[0] - 10.0)) * \
