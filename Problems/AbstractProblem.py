@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 
 
 class Problem(ABC):
-    """ Abstract implementation of a response function.
-        The class should provide the `self.g` and `self.dg` methods to return the
-        response function's value and its derivatives at a given design point `x`.
+    """ Abstract implementation of problem.
+        The class should provide the response functions `g`, sensitivities `dg` and (possibly) 2nd-order
+        sensitivities `ddg` at a given design point `x`.
     """
 
     def __init__(self):
