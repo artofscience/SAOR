@@ -7,7 +7,6 @@ class ConvergenceCriterion:
         self.converged = False
         self.tolerance = 1e-4                       # The tolerance for the convergence criterion
         self.max_ite_opt = 100                      # Maximum number of optimization iterations
-        self.name = None
 
     ## Method to calculate the value of the current convergence criterion (to be overriden)
     def get_response(self, **kwargs):
