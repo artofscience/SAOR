@@ -1,7 +1,6 @@
 ## Imports
 import numpy as np
 import matplotlib as plt
-import constants as ct
 import cProfile                                               # to profile the time spent in funcs
 import time                                                   # to have better time resolution in profiler
 

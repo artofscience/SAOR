@@ -1,6 +1,5 @@
 ## Imports
 import numpy as np
-import constants as ct
 from ConvergenceCriteria.ConvCriterion import ConvergenceCriterion
 from ConvergenceCriteria.KKT import KKT
 from ConvergenceCriteria.ObjChange import ObjectivecChange
@@ -27,10 +26,10 @@ class Alltogether(ConvergenceCriterion):
         for index, criterion in enumerate(self.criteria_list):
             criterion.assess_convergence(multi_criteria_flag=True, **kwargs)
             criteria_satisfaction[index] = criterion.converged
-        max_iter_flag = ConvergenceCriterion.max_iter(**kwargs)
+        max_iter_flag = ConvergenceCriterion.max_iter(self, **kwargs)
         if np.all(criteria_satisfaction) or max_iter_flag:
             self.converged = True
             if max_iter_flag:
                 print('Maximum number of {} iterations was reached'.format(kwargs.get('iter', '')))
             else:
-                print('Criterion {} was satisfied within a tolerance of {}'.format(self.name, ct.TOLERANCE))
+                print('Criterion {} was satisfied within a tolerance of {}'.format(self.name, self.tolerance))

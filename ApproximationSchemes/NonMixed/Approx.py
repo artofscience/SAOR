@@ -1,5 +1,4 @@
 ## Imports
-import constants as ct
 import numpy as np
 
 
@@ -20,7 +19,7 @@ class Approximation:
         self.gold2 = None                                             # responses of (k-2)
         self.dgold1 = None                                            # sensitivities of (k-1)
         self.dgold2 = None                                            # sensitivities of (k-2)
-        self.move_limit = ct.MOVE_LIMIT                               # alter from constants.py file
+        self.move_limit = 0.1
         self.iter = 0
         self.xmin = xmin
         self.xmax = xmax
