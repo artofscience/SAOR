@@ -1,5 +1,3 @@
-import functools
-
 
 def extract_val(x):
     if isinstance(x, Iteration):
