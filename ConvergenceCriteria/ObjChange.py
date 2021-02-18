@@ -7,7 +7,7 @@ class ObjectivecChange(ConvergenceCriterion):
 
     ## Constructor of class
     def __init__(self, **kwargs):
-        ConvergenceCriterion.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.name = 'ObjectiveChange'
 
     ## Function to calculate the Normalized Change in Objective Function Values

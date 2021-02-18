@@ -1,13 +1,13 @@
 ## IMPORTS
 import numpy as np
-from Problems.AbstractProblem import Problem
+from Problems.Problem import Problem
 
 
 ## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class RosenCubic(Problem):
 
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.n = 2
         self.m = 2
         self.xmin = np.array([0., 0.])

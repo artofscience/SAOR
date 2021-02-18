@@ -1,14 +1,14 @@
 ## IMPORTS
 import numpy as np
 import matplotlib.pyplot as plt
-from Problems.AbstractProblem import Problem
+from Problems.Problem import Problem
 
 
 ## CLASS: This is the Vanderplaats cantilever beam by Dirk (scaled objective as: g_0' = 1e-3 * g_0)
 class Vanderplaats(Problem):
 
     def __init__(self, N):
-        super().__init__(self)
+        super().__init__()
         self.name = 'Vanderplaats'
 
         # Number of segments

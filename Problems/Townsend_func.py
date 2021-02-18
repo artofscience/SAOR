@@ -1,14 +1,14 @@
 ## IMPORTS
 import numpy as np
 import math
-from Problems.AbstractProblem import Problem
+from Problems.Problem import Problem
 
 
 ## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class Townsend(Problem):
 
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.n = 2
         self.m = 1
         self.xmin = np.array([0., 0.])

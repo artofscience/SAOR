@@ -8,7 +8,7 @@ class VariableChange(ConvergenceCriterion):
 
     ## Constructor of class
     def __init__(self, **kwargs):
-        ConvergenceCriterion.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.xmin = kwargs.get('xmin', None)
         self.xmax = kwargs.get('xmax', None)
         self.name = 'VariableChange'

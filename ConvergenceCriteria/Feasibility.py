@@ -8,7 +8,7 @@ class Feasibility(ConvergenceCriterion):
 
     ## Constructor of class
     def __init__(self, **kwargs):
-        ConvergenceCriterion.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.name = 'Feasibility'
 
     ## Function to calculate if maximum iteration has been reached (overrides default method)

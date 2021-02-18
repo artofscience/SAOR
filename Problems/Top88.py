@@ -3,7 +3,7 @@
 # A 165 LINE TOPOLOGY OPTIMIZATION CODE BY NIELS AAGE AND VILLADS EGEDE JOHANSEN, JANUARY 2013
 from __future__ import division
 import numpy as np
-from Problems.AbstractProblem import Problem
+from Problems.Problem import Problem
 from scipy.sparse import coo_matrix
 from matplotlib import colors
 import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ import cvxopt.cholmod
 class Top88(Problem):
 
     def __init__(self, nelx, nely, volfrac, penal, rmin, ft):
-        super().__init__(self)
+        super().__init__()
         self.Emin = 1e-9
         self.Emax = 1.0
         self.nelx = nelx

@@ -1,13 +1,13 @@
 ## IMPORTS
 import numpy as np
-from Problems.AbstractProblem import Problem
+from Problems.Problem import Problem
 
 
 ## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
 class Li2015Fig4(Problem):
 
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.n = 2
         self.m = 2
         self.c1 = 1.0

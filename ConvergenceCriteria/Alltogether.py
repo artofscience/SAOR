@@ -12,7 +12,7 @@ class Alltogether(ConvergenceCriterion):
 
     ## Constructor of class
     def __init__(self, **kwargs):
-        ConvergenceCriterion.__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.name = 'Alltogether'
         self.kkt = KKT(**kwargs)
         self.obj_change = ObjectivecChange(**kwargs)
@@ -26,7 +26,7 @@ class Alltogether(ConvergenceCriterion):
         for index, criterion in enumerate(self.criteria_list):
             criterion.assess_convergence(multi_criteria_flag=True, **kwargs)
             criteria_satisfaction[index] = criterion.converged
-        max_iter_flag = self.max_iter(self, **kwargs)
+        max_iter_flag = self.max_iter(**kwargs)
         if np.all(criteria_satisfaction) or max_iter_flag:
             self.converged = True
             if max_iter_flag:
