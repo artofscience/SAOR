@@ -7,7 +7,7 @@ from Problems.AbstractProblem import Problem
 class Li2015Fig4(Problem):
 
     def __init__(self):
-        Problem.__init__(self)
+        super().__init__(self)
         self.n = 2
         self.m = 2
         self.c1 = 1.0
