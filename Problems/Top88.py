@@ -15,7 +15,7 @@ import cvxopt.cholmod
 class Top88(Problem):
 
     def __init__(self, nelx, nely, volfrac, penal, rmin, ft):
-        Problem.__init__(self)
+        super().__init__(self)
         self.Emin = 1e-9
         self.Emax = 1.0
         self.nelx = nelx
