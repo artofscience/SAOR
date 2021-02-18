@@ -7,7 +7,7 @@ from Problems.AbstractProblem import Problem
 class RosenCubic(Problem):
 
     def __init__(self):
-        Problem.__init__(self)
+        super().__init__(self)
         self.n = 2
         self.m = 2
         self.xmin = np.array([0., 0.])
