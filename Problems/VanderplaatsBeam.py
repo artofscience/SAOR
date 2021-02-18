@@ -8,7 +8,7 @@ from Problems.AbstractProblem import Problem
 class Vanderplaats(Problem):
 
     def __init__(self, N):
-        Problem.__init__(self)
+        super().__init__(self)
         self.name = 'Vanderplaats'
 
         # Number of segments
