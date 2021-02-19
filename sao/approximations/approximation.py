@@ -27,9 +27,15 @@ class Approximation(ABC):
 
         self.m = len(self.f) - 1
         self.n = len(self.x)
-        assert self.df.shape == (self.m + 1, self.n), "Sensitivities should be of size (m+1 x n)"
+
+        msg = (f'Expect sensitivity of size {self.m+1}x{self.n}: '
+               f'Received {self.df.shape}.')
+        assert self.df.shape == (self.m + 1, self.n), msg
+
         if self.ddf is not None:
-            assert self.ddf.shape == (self.m + 1, self.n), "Second order derivatives should be of size (m+1 x n) (diagonal entries)"
+            msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
+                   f"Received: {self.ddf.shape}.")
+            assert self.ddf.shape == (self.m + 1, self.n), msg
 
         self.build_approximation()
         return self
