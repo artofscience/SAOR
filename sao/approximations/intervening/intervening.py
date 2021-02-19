@@ -73,7 +73,7 @@ class ConLin(Intervening):
 
 class MMA(Intervening):
 
-    def __init__(self, asyinit=0.5):
+    def __init__(self, asyinit=0.5, globbound = (0, 1)):
         self.L = None
         self.U = None
 
@@ -83,6 +83,7 @@ class MMA(Intervening):
         self.asydecr = 0.7
         self.x = None
         self.xold1, self.xold2 = None, None
+        self.dx = globbound[1] - globbound[0]
 
 
     def update_intervening(self, x, f, df, xmin, xmax, **kwargs):
@@ -90,7 +91,7 @@ class MMA(Intervening):
         self.xold1 = self.x
         self.x = x
 
-        self.dx = xmax - xmin
+        # self.dx = xmax - xmin
 
         # Initial values of asymptotes
         if self.xold1 is not None and self.xold2 is not None:
@@ -124,3 +125,15 @@ class MMA(Intervening):
             self.low = np.minimum(self.low, lowmax)
             self.upp = np.minimum(self.upp, uppmax)
             self.upp = np.maximum(self.upp, uppmin)
+
+            # minimum variable bounds
+            zzl1 = self.low + self.albefa * (self.x - self.low)  # limit change in x_i wrt asymptotes U_i, L_i
+            zzl2 = self.x - self.move_limit * self.dx
+            xmin[:] = np.maximum.reduce([zzl1, zzl2, xmin])  # finds the max for each row of (zzl1, zzl2, xmin)
+
+            # maximum variable bounds
+            zzu1 = self.upp - self.albefa * (self.upp - self.x)  # limit change in x_i wrt asymptotes U_i, L_i
+            zzu2 = self.x + self.move_limit * self.dx
+            self.beta = np.minimum.reduce([zzu1, zzu2, self.xmax])  # finds the min for each row of (zzu1, zzu2, xmax)
+
+            xmin[:] = 1.1 * xmin
