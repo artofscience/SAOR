@@ -19,7 +19,7 @@ class Intervening(ABC):
         ...
 
 
-class Linear(Intervening):          # TODO: Make the shape of y consistent with ConLin and MMA
+class Linear(Intervening):          # TODO: Make the shape of -y- consistent with ConLin and MMA
     def y(self, x):
         return x
 
@@ -81,7 +81,9 @@ class MMA(Intervening):
         self.positive = None
         self.negative = None
 
-        self.factor = asyinit * np.ones(self.n)         # TODO: You need -n- here. We can extract it from the bounds?
+        # TODO: You need -n- here. We can extract it from the bounds if we pass them as vectors
+        self.factor = asyinit * np.ones(self.n)
+
         self.asyinit = asyinit
         self.asyincr = 1.1
         self.asydecr = 0.7
@@ -133,7 +135,9 @@ class MMA(Intervening):
 
             # TODO: How should we handle the local sub-problem bounds alpha, beta?
             #  Imo they should be computed by a separate method. Not sure within which class though, as they depend on
-            #  the move_limit and the intervening variables (e.g. asymptotes). I would place it in the approx object.
+            #  the move_limit and the intervening variables (e.g. asymptotes). I would place it in the
+            #  InterveningApproximation class because all approximations generate local sub-problem bounds and
+            #  this class has access to the intervening vars (i.e. self.iter).
 
             # minimum variable bounds
             zzl1 = self.low + self.albefa * (self.x - self.low)  # limit change in x_i wrt asymptotes U_i, L_i
@@ -147,9 +151,9 @@ class MMA(Intervening):
 
             xmin[:] = 1.1 * xmin
 
-    # TODO: Below is how I implemented it. Not sure how it can be implemented more efficiently, just keep in mind that
-    #  these methods are called within the solver everytime you want to evaluate g_approx, dg_approx and ddg_approx
-    #  at a different point -x- (so multiple times per design iteration).
+    # TODO: Below is how I implemented the intervening vars for MMA. Not sure how it can be implemented
+    #  more efficiently, just keep in mind that these methods are called within the solver everytime you want to
+    #  evaluate g_approx, dg_approx and ddg_approx at a different point -x-, so multiple times per design iteration.
     def y(self, x):
         y = np.empty((self.n, self.m + 1))
         for j in range(0, self.m + 1):

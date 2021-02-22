@@ -5,7 +5,8 @@ class Approximation(ABC):
     def __init__(self):
         self.x = None
 
-        # TODO: I would rename them to alpha, beta just to be stress the difference with the problem's bound constraints
+        # TODO: If these bounds refer to the local sub-problem bounds, I would rename them to alpha, beta just to
+        #  stress the difference with the problem's bound constraints xmin, xmax and be aligned with the literature.
         self.xmin, self.xmax = None, None     # Bounds of the sub-problem
         self.f, self.df, self.ddf = None, None, None
 
