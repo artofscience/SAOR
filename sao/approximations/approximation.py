@@ -4,12 +4,16 @@ from abc import ABC, abstractmethod
 class Approximation(ABC):
     def __init__(self):
         self.x = None
-        self.xmin, self.xmax = None, None  # Bounds of the subproblem
+
+        # TODO: I would rename them to alpha, beta just to be stress the difference with the problem's bound constraints
+        self.xmin, self.xmax = None, None     # Bounds of the sub-problem
         self.f, self.df, self.ddf = None, None, None
 
         self.m = -1  # Number of constraints
         self.n = -1  # Number of variables
 
+    # TODO: I would pass the bounds separately, even though they are always passed in pairs of {xmin, xmax}.
+    #  Imo it is more user-friendly if you don't have to use xmin as bounds[0].
     def update_approximation(self, x, bounds, f, df, ddf=None):
         """ Puts in data from the original problem. Once per design iteration.
 
@@ -44,15 +48,15 @@ class Approximation(ABC):
         pass
 
     @abstractmethod
-    def g(self, x):
+    def g_approx(self, x):
         ...
 
     @abstractmethod
-    def dg(self, x):
+    def dg_approx(self, x):
         ...
 
     @abstractmethod
-    def ddg(self, x):
+    def ddg_approx(self, x):
         ...
 
 

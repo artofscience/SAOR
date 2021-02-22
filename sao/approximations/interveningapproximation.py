@@ -3,6 +3,9 @@ from sao.approximations.intervening.intervening import Linear
 from .taylor import Taylor1
 
 
+# TODO: This name confused me a bit. What is an InterveningApproximation? Is it a 2nd (less abstract) layer of the
+#  abstract Approximation? I think there is no other use of intervening variables apart from a Taylor expansion.
+#  Not sure if it's worth merging this class with Taylor1 of taylor.py, but it could simplify things somewhat.
 class InterveningApproximation(Approximation):
     def __init__(self, intervening=Linear(), approximation=Taylor1()):
         super().__init__()
@@ -17,14 +20,14 @@ class InterveningApproximation(Approximation):
         # y = [n]
         # x = [n]
 
-    def g(self, x):
-        return self.approx.g(self.inter.y(x))
+    def g_approx(self, x):
+        return self.approx.g_approx(self.inter.y(x))
 
-    def dg(self, x):
-        return self.approx.dg(self.inter.y(x))
+    def dg_approx(self, x):
+        return self.approx.dg_approx(self.inter.y(x))
 
-    def ddg(self, x):
-        return self.approx.ddg(self.inter.y(x))
+    def ddg_approx(self, x):
+        return self.approx.ddg_approx(self.inter.y(x))
 
 
     '''
