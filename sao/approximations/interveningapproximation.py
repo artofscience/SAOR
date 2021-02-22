@@ -4,8 +4,8 @@ from .taylor import Taylor1
 
 
 # TODO: This name confused me a bit. What is an InterveningApproximation? Is it a 2nd (less abstract) layer of the
-#  abstract Approximation? I think there is no other use of intervening variables apart from a Taylor expansion.
-#  Not sure if it's worth merging this class with Taylor1 of taylor.py, but it could simplify things somewhat.
+#  abstract Approximation? If there is no other use of intervening variables apart from a Taylor expansion, we might
+#  consider merging this class with Taylor1 of taylor.py. Might simplify things somewhat.
 class InterveningApproximation(Approximation):
     def __init__(self, intervening=Linear(), approximation=Taylor1()):
         super().__init__()

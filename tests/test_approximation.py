@@ -17,6 +17,6 @@ def test_taylor_1():
     taylor = Taylor1()
     taylor.update_approximation(x, bounds, f(x), df(x))
 
-    assert taylor.g(x) == f(x)
-    assert taylor.dg(x) == df(x)
-    assert taylor.ddg(x) == 1.0
+    assert taylor.g_approx(x) == f(x)
+    assert taylor.dg_approx(x) == df(x)
+    assert taylor.ddg_approx(x) == 1.0

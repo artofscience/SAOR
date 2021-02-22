@@ -29,6 +29,7 @@ class Approximation(ABC):
         self.alpha, self.beta = bounds
         self.f, self.df, self.ddf = f, df, ddf
 
+        # TODO: Do we need to calculate -n- and -m- every design iteration? (e.g. for adding/removing constraints)
         self.m = len(self.f) - 1
         self.n = len(self.x)
 
