@@ -1,4 +1,4 @@
-from primal_dual import PrimalDual
+from Solvers.primal_dual import PrimalDual
 import numpy as np
 from abc import ABC, abstractmethod
 

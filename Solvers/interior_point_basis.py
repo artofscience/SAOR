@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 from copy import deepcopy
-from interior_point import InteriorPoint
+from Solvers.interior_point import InteriorPoint
 
 """
 This is a primal-dual interior-point approach (without artificial variables)
@@ -95,11 +95,11 @@ class InteriorPointBasis(InteriorPoint):
         w.x = (a + b)/2
         """
         #FIXME: implement correct initialization
-        self.w = [self.x,
-                  np.max(1/(self.x - self.alpha), 1),
-                  np.max(1/(self.alpha - self.x), 1),
-                  np.ones(self.m),
-                  np.ones(self.m)]
+        self.w = [self.x,  # x
+                  np.maximum(1/(self.x - self.alpha), 1),  # xsi
+                  np.maximum(1/(self.beta - self.x), 1),  # eta
+                  np.ones(self.m),  # lam
+                  np.ones(self.m)]  # s
 
         self.r = [np.zeros(self.n),
                   np.zeros(self.n),
@@ -111,23 +111,26 @@ class InteriorPointBasis(InteriorPoint):
         self.wold = deepcopy(self.w)
 
     def get_step_size(self):
-        temp = np.array([self.dw[i] / w for i, w in enumerate(self.w[1:])])
-        self.step = 1 / (self.alphab * np.max(temp, self.dw[0] / (self.w[0] - self.alpha), self.dw[0] / (self.beta - self.w[0])))
+        temp = [self.alphab * self.dw[i+1] / w for i, w in enumerate(self.w[1:])]
+        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
+        temp.append(self.alphab * self.dw[0] / (self.beta - self.w[0]))
+        temp.append(np.array([1]))
+        self.step = 1 / max([max(i) for i in temp])
 
     def get_residual(self):
         """
-        r(x)        = psi / dx - xsi + eta
+        r(x)        = psi / dx - xsi + eta = dg/dx[x] obj + lam' * dg/dx[x] constraints - xsi + eta
         r(xsi)      = xsi * (x - a) - e
         r(eta)      = eta * (b - x) - e
         r(lam)      = gi[x] - ri + si
         r(s)        = lam * si - e
         """
 
-        self.r[0] = self.dg[0] + np.dot(self.dg(self.w[0])[1:], self.w[1]) - self.w[2] + self.w[3]
-        self.r[1] = self.g(self.w[0])[1:] - self.r[1:] + self.w[4]
-        self.r[2] = np.dot(self.w[2], self.w[0] - self.alpha) - self.epsi
-        self.r[3] = np.dot(self.w[3], self.beta - self.w[0]) - self.epsi
-        self.r[4] = np.dot(self.w[1], self.w[4]) - self.epsi
+        self.r[0][:] = self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]) - self.w[1] + self.w[2]
+        self.r[1][:] = self.w[1] * (self.w[0] - self.alpha) - self.epsi
+        self.r[2][:] = self.w[2] * (self.beta - self.w[0]) - self.epsi
+        self.r[3][:] = self.g(self.w[0])[1:] - self.zo[1:] + self.w[4]
+        self.r[4][:] = self.w[3] * self.w[4] - self.epsi
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -138,11 +141,11 @@ class InteriorPointBasis(InteriorPoint):
         ddg = self.ddg(self.w[0])
 
         # delta_lambda
-        delta_lambda = g[1:] - self.r[1:] + self.epsi/self.w[1]
-        delta_x = dg[0] + np.dot(dg[1:], self.w[1]) - self.epsi/a + self.epsi/b
+        delta_lambda = g[1:] - self.zo[1:] + self.epsi/self.w[3]
+        delta_x = dg[0] + self.w[3].dot(dg[1:]) - self.epsi/a + self.epsi/b
 
-        diag_lambda = self.w[4]/self.w[1]
-        diag_x = ddg[0] + np.dot(ddg[1:], self.w[1]) - self.w[2]/a + self.w[3]/b
+        diag_lambda = self.w[4]/self.w[3]  # s./lam
+        diag_x = ddg[0] + self.w[3].dot(ddg[1:]) + self.w[1]/a + self.w[2]/b
 
         # FIXME: implement dense solvers and CG
         if self.m > self.n:
@@ -156,14 +159,14 @@ class InteriorPointBasis(InteriorPoint):
 
         else:
             dxdx = delta_x/diag_x
-            B = delta_lambda - (dg[1:] * dxdx)
-            A = diags(diag_lambda) + dg[1:] * (diags(1/diag_x) * np.transpose(dg[1:]))  # calculate dx[lam]
+            B = delta_lambda - dxdx.dot(dg[1:].transpose())
+            A = diags(diag_lambda) + dg[1:].dot(diags(1/diag_x) * dg[1:].transpose())  # calculate dx[lam]
 
             # solve for dlam
-            self.dw[1] = spsolve(A, B)  # m x m
-            self.dw[0] = -dxdx - (np.transpose(dg[1:]) * self.dw[1])/diag_x
+            self.dw[3][:] = np.linalg.solve(A, B)  # m x m
+            self.dw[0][:] = -dxdx - (self.dw[3].dot(dg[1:]))/diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
-        self.dw[2] = -self.w[2] + self.epsi/a - np.dot(self.w[2], self.dw[0])/a
-        self.dw[3] = -self.w[3] + self.epsi/b - np.dot(self.w[3], self.dw[0])/b
-        self.dw[4] = -self.w[4] + self.epsi/self.w[1] - np.dot(self.w[4], self.dw[1])/self.w[1]
+        self.dw[1][:] = -self.w[1] + self.epsi/a - (self.w[1] * self.dw[0])/a
+        self.dw[2][:] = -self.w[2] + self.epsi/b + (self.w[2] * self.dw[0])/b
+        self.dw[4][:] = -self.w[4] + self.epsi/self.w[3] - (self.w[4] * self.dw[3])/self.w[3]
