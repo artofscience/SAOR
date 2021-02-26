@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-_sao_packages = find_packages('sao/')
+_sao_packages = find_packages(include=['sao/'])
 
 # additional requirements besides `install_requires` for development
 _dev = ['yapf', 'flake8', 'tox', 'pytest', 'pytest-cov']
