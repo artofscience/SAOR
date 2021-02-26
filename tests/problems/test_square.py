@@ -7,7 +7,7 @@ def test_square(n):
     problem = Square(n)
     mysolver = ipb(problem)
     mysolver.update()
-    assert pytest.approx(np.sum(mysolver.w[0]), 0.1)
+    assert pytest.approx(np.sum(mysolver.w), 2)
 
 
 class Square:
@@ -26,7 +26,7 @@ class Square:
         self.m = 1
         self.zo = np.empty(self.m+1)
         self.zo[0] = 0
-        self.zo[1] = 0.1
+        self.zo[1] = -1
 
     def g(self, x):
         return np.array([np.dot(x, x), -np.sum(x)])
@@ -39,4 +39,4 @@ class Square:
 
 
 if __name__ == "__main__":
-    test_square(10)
+    test_square(100000)

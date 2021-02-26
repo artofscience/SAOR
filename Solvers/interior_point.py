@@ -64,11 +64,11 @@ class InteriorPoint(PrimalDual, ABC):
             # Calculate the initial residual, its norm and maximum value
             # This indicates how far we are from the global optimum for THIS epsi
             self.get_residual()
-            rnorm = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
-            rmax = np.max(np.array([np.max(i) for i in self.r]))
+            rnorm = np.linalg.norm([np.linalg.norm(i) for i in self.r])
+            rmax = np.max([np.max(i) for i in self.r])
 
             self.iterin = 0
-            while rmax > self.epsifac and self.iterin < self.iterinmax:
+            while rmax > self.epsifac*self.epsi and self.iterin < self.iterinmax:
                 self.iterin += 1
                 self.iterout += 1
 
@@ -99,13 +99,14 @@ class InteriorPoint(PrimalDual, ABC):
                         value[:] = self.wold[count] + self.step * self.dw[count]
 
                     self.get_residual()
-                    rnew = np.linalg.norm(np.array([np.linalg.norm(i) for i in self.r]))
+                    rnew = np.linalg.norm([np.linalg.norm(i) for i in self.r])
                     self.step *= 0.5
 
                 rnorm = 1.0 * rnew
-                rmax = np.max(np.array([np.max(i) for i in self.r]))
+                rmax = np.max([np.max(i) for i in self.r])
                 self.step *= 2
 
             self.epsi *= self.epsired
+
 
         # end
