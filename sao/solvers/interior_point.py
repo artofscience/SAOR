@@ -1,4 +1,4 @@
-from Solvers.primal_dual import PrimalDual
+from .primal_dual import PrimalDual
 import numpy as np
 from abc import ABC, abstractmethod
 
@@ -43,7 +43,7 @@ class InteriorPoint(PrimalDual, ABC):
     w: list = NotImplemented
     dw: list = NotImplemented
     wold: list = NotImplemented
-    
+
     @abstractmethod
     def get_residual(self):
         ...

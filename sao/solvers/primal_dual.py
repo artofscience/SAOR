@@ -1,5 +1,5 @@
 from abc import ABC
-from Solvers.gradient_based_optimizer import GBOpt
+from .gradient_based_optimizer import GBOpt
 
 
 class PrimalDual(GBOpt, ABC):

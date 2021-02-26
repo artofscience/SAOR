@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 from copy import deepcopy
-from Solvers.interior_point import InteriorPoint
+from .interior_point import InteriorPoint
 
 """
 This is a primal-dual interior-point approach (without artificial variables)
@@ -89,7 +89,7 @@ class InteriorPointBasis(InteriorPoint):
 
         """
         Svanberg's implementation uses w.x = (a + b)/2.
-        I found w.x = x (that is use the old variable field as initial guess) 
+        I found w.x = x (that is use the old variable field as initial guess)
         to converge much faster.
         Note however that a < x < b must hold. For variables where this does not hold one should use
         w.x = (a + b)/2

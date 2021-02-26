@@ -1,13 +1,14 @@
 import pytest
 import numpy as np
-from Solvers.interior_point_basis import InteriorPointBasis as ipb
+from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 
 
+@pytest.mark.parametrize('n', [10, 1000, 100000])
 def test_square(n):
     problem = Square(n)
-    mysolver = ipb(problem)
+    mysolver = ipb(problem, epsimin=1e-9)
     mysolver.update()
-    assert pytest.approx(np.sum(mysolver.w), 2)
+    assert np.sum(mysolver.w[0]) == pytest.approx(1, rel=1e-4)
 
 
 class Square:
