@@ -129,7 +129,8 @@ class InteriorPointBasis(InteriorPoint):
         self.r[0][:] = self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]) - self.w[1] + self.w[2]
         self.r[1][:] = self.w[1] * (self.w[0] - self.alpha) - self.epsi
         self.r[2][:] = self.w[2] * (self.beta - self.w[0]) - self.epsi
-        self.r[3][:] = self.g(self.w[0])[1:] - self.zo[1:] + self.w[4]
+        # self.r[3][:] = self.g(self.w[0])[1:] - self.zo[1:] + self.w[4]
+        self.r[3][:] = self.g(self.w[0])[1:] + self.w[4]
         self.r[4][:] = self.w[3] * self.w[4] - self.epsi
 
     def get_newton_direction(self):
@@ -141,7 +142,8 @@ class InteriorPointBasis(InteriorPoint):
         ddg = self.ddg(self.w[0])
 
         # delta_lambda
-        delta_lambda = g[1:] - self.zo[1:] + self.epsi/self.w[3]
+        # delta_lambda = g[1:] - self.zo[1:] + self.epsi/self.w[3]
+        delta_lambda = g[1:] + self.epsi / self.w[3]
         delta_x = dg[0] + self.w[3].dot(dg[1:]) - self.epsi/a + self.epsi/b
 
         diag_lambda = self.w[4]/self.w[3]  # s./lam

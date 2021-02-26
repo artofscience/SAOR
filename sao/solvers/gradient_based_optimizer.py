@@ -8,7 +8,7 @@ class GBOpt(ABC):
 
     def __init__(self, problem):
         self.x = problem.x
-        self.zo = problem.zo
+        # self.zo = problem.zo
         self.g = problem.g
         self.dg = problem.dg
         self.ddg = problem.ddg

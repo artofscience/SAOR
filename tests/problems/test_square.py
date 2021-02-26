@@ -8,7 +8,8 @@ def test_square(n):
     problem = Square(n)
     mysolver = ipb(problem, epsimin=1e-9)
     mysolver.update()
-    assert np.sum(mysolver.w[0]) == pytest.approx(1, rel=1e-4)
+    print(np.sum(mysolver.x))
+    assert np.sum(mysolver.x) == pytest.approx(1, rel=1e-4)
 
 
 class Square:
@@ -25,12 +26,9 @@ class Square:
         self.x = np.random.uniform(self.alpha, self.beta)
         self.n = n
         self.m = 1
-        self.zo = np.empty(self.m+1)
-        self.zo[0] = 0
-        self.zo[1] = -1
 
     def g(self, x):
-        return np.array([np.dot(x, x), -np.sum(x)])
+        return np.array([np.dot(x, x), 1-np.sum(x)])
 
     def dg(self, x):
         return np.array([2*x, -np.ones_like(x)])
