@@ -110,13 +110,6 @@ class InteriorPointBasis(InteriorPoint):
         self.dw = deepcopy(self.r)
         self.wold = deepcopy(self.w)
 
-    def get_step_size(self):
-        temp = [self.alphab * self.dw[i+1] / w for i, w in enumerate(self.w[1:])]
-        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
-        temp.append(self.alphab * self.dw[0] / (self.beta - self.w[0]))
-        temp.append(np.array([1]))
-        self.step = 1 / np.amax([np.amax(i) for i in temp])
-
     def get_residual(self):
         """
         r(x)        = psi / dx - xsi + eta = dg/dx[x] obj + lam' * dg/dx[x] constraints - xsi + eta

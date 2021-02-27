@@ -18,12 +18,12 @@ class InteriorPoint(PrimalDual, ABC):
     def __init__(self, problem, **kwargs):
         super().__init__(problem)
 
-        self.epsimin = kwargs.get('epsimin', 1e-6)
+        self.epsimin = kwargs.get('epsimin', 1e-7)
         self.iteramax = kwargs.get('iteramax', 50)
         self.iterinmax = kwargs.get('iterinmax', 100)
         self.alphab = kwargs.get('alphab', -1.01)
         self.epsifac = kwargs.get('epsifac', 0.9)
-        self.epsired = kwargs.get('epsired', 0.5)  # 0.0 < (float) epsired < 1.0
+        self.epsired = kwargs.get('epsired', 0.1)  # 0.0 < (float) epsired < 1.0
 
         """
         Initialization of variables, old variables, variable step and residual vectors
@@ -32,7 +32,7 @@ class InteriorPoint(PrimalDual, ABC):
         dw = [dx, dlambda, dxsi, deta, ds]
         dwold = [dxold, dlambdaold, dxsiold, detaold, dsold]
         """
-
+        self.iter = 0
         self.iterout = 0
         self.iterin = 0
         self.itera = 0
@@ -52,14 +52,23 @@ class InteriorPoint(PrimalDual, ABC):
     def get_newton_direction(self):
         ...
 
-    @abstractmethod
     def get_step_size(self):
-        ...
+        temp = [self.alphab * self.dw[i+1] / w for i, w in enumerate(self.w[1:])]
+        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
+        temp.append(-self.alphab * self.dw[0] / (self.beta - self.w[0]))
+        temp.append(np.array([1]))
+        self.step = 1 / np.amax([np.amax(i) for i in temp])
 
     def update(self):
 
         # iterate until convergence
         while self.epsi > self.epsimin:
+            self.iter += 1
+            print("iter: %2d" % (self.iter), ", ",
+                  "solves: %2d" % (self.iterin), ", ",
+                  "x:", ["{:+.2f}".format(i) for i in self.x[1:3]], ", ",
+                  "lam:",["{:+.2f}".format(i) for i in self.w[3]], ", ",
+                  "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
 
             # Calculate the initial residual, its norm and maximum value
             # This indicates how far we are from the global optimum for THIS epsi
@@ -107,6 +116,7 @@ class InteriorPoint(PrimalDual, ABC):
                 self.step *= 2
 
             self.epsi *= self.epsired
+
 
 
         # end

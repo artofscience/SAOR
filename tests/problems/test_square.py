@@ -1,16 +1,21 @@
 import pytest
 import numpy as np
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
-
+from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_square(n):
-    problem1 = Square(n)
+    problem = Square(n)
+    #
+    # mysolverb = ipb(problem, epsimin=1e-7)
+    # mysolverb.update()
+    # print(np.sum(mysolverb.x))
+    # assert np.sum(mysolverb.x) == pytest.approx(1, rel=1e-4)
 
-    mysolver = ipb(problem1, epsimin=1e-9)
-    mysolver.update()
-    print(np.sum(mysolver.x))
-    assert np.sum(mysolver.x) == pytest.approx(1, rel=1e-4)
+    mysolvera = ipa(problem, epsimin=1e-5)
+    mysolvera.update()
+    print(np.sum(mysolvera.x))
+    assert np.sum(mysolvera.x) == pytest.approx(1, rel=1e-4)
 
 
 class Square:
@@ -37,7 +42,5 @@ class Square:
     def ddg(self, x):
         return np.array([2*np.ones_like(x), np.zeros_like(x)])
 
-
-
 if __name__ == "__main__":
-    test_square(2)
+    test_square(4)
