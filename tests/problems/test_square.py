@@ -3,10 +3,11 @@ import numpy as np
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 
 
-@pytest.mark.parametrize('n', [10, 1000, 100000])
+@pytest.mark.parametrize('n', [10, 100, 1000])
 def test_square(n):
-    problem = Square(n)
-    mysolver = ipb(problem, epsimin=1e-9)
+    problem1 = Square(n)
+
+    mysolver = ipb(problem1, epsimin=1e-9)
     mysolver.update()
     print(np.sum(mysolver.x))
     assert np.sum(mysolver.x) == pytest.approx(1, rel=1e-4)
@@ -37,5 +38,6 @@ class Square:
         return np.array([2*np.ones_like(x), np.zeros_like(x)])
 
 
+
 if __name__ == "__main__":
-    test_square(100000)
+    test_square(2)

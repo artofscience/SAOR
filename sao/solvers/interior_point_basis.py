@@ -115,7 +115,7 @@ class InteriorPointBasis(InteriorPoint):
         temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
         temp.append(self.alphab * self.dw[0] / (self.beta - self.w[0]))
         temp.append(np.array([1]))
-        self.step = 1 / max([max(i) for i in temp])
+        self.step = 1 / np.amax([np.amax(i) for i in temp])
 
     def get_residual(self):
         """
@@ -129,7 +129,6 @@ class InteriorPointBasis(InteriorPoint):
         self.r[0][:] = self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]) - self.w[1] + self.w[2]
         self.r[1][:] = self.w[1] * (self.w[0] - self.alpha) - self.epsi
         self.r[2][:] = self.w[2] * (self.beta - self.w[0]) - self.epsi
-        # self.r[3][:] = self.g(self.w[0])[1:] - self.zo[1:] + self.w[4]
         self.r[3][:] = self.g(self.w[0])[1:] + self.w[4]
         self.r[4][:] = self.w[3] * self.w[4] - self.epsi
 
@@ -142,7 +141,6 @@ class InteriorPointBasis(InteriorPoint):
         ddg = self.ddg(self.w[0])
 
         # delta_lambda
-        # delta_lambda = g[1:] - self.zo[1:] + self.epsi/self.w[3]
         delta_lambda = g[1:] + self.epsi / self.w[3]
         delta_x = dg[0] + self.w[3].dot(dg[1:]) - self.epsi/a + self.epsi/b
 
@@ -152,12 +150,12 @@ class InteriorPointBasis(InteriorPoint):
         # FIXME: implement dense solvers and CG
         if self.m > self.n:
             dldl = delta_lambda/diag_lambda
-            B = -delta_x - np.transpose(dg[1:]) * dldl
-            A = diags(diag_x) + np.transpose(g[1:]) * (diags(1/diag_lambda) * dg[1:])
+            B = -delta_x - dldl.dot(dg[1:])
+            A = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambda) * dg[1:])
 
             # solve for dx
-            self.dw[0] = spsolve(A, B)  # n x n
-            self.dw[1] = (dg[1:] * self.dw[0])/diag_lambda - dldl  # calculate dlam[dx]
+            self.dw[0][:] = np.linalg.solve(A, B)  # n x n
+            self.dw[3][:] = dg[1:].dot(self.dw[0])/diag_lambda + dldl  # calculate dlam[dx]
 
         else:
             dxdx = delta_x/diag_x
