@@ -129,7 +129,7 @@ class InteriorPointArtificial(InteriorPoint):
     def __init__(self, problem, **kwargs):
         super().__init__(problem, **kwargs)
 
-        self.c = kwargs.get('c', 1*np.ones(self.m))
+        self.c = kwargs.get('c', 100*np.ones(self.m))
         self.a0 = kwargs.get('a0', 1)
         self.d = kwargs.get('d', np.ones(self.m))
         self.a = kwargs.get('a', np.zeros(self.m))
@@ -210,14 +210,20 @@ class InteriorPointArtificial(InteriorPoint):
         diag_lambday = diag_lambda + 1/diag_y
         delta_lambday = delta_lambda + delta_y/diag_y
 
+        #FIXME: the m > n needs to be checked
         if self.m > self.n:
-            dldl = delta_lambda/diag_lambda
-            B = -delta_x - dldl.dot(dg[1:])
-            A = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambda) * dg[1:])
+            # dldl = delta_lambda/diag_lambda
+            Bx = -delta_x - (delta_lambday/diag_lambday).dot(dg[1:])
+            Ax = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambday) * dg[1:])
+            ax = - (self.a/diag_lambday).dot(dg[1:])
+            az = self.w[8]/self.w[7] + - (self.a/diag_lambday).dot(self.a)
 
             # solve for dx
-            self.dw[0][:] = np.linalg.solve(A, B)  # n x n
-            self.dw[3][:] = dg[1:].dot(self.dw[0])/diag_lambda + dldl  # calculate dlam[dx]
+            X = np.linalg.solve(np.block([[Ax, ax], [ax.transpose(), az]]),
+                                            np.block([[Bx], [-delta_z + - (delta_lambday/diag_lambday).dot(self.a)]]))  # n x n
+            self.dw[0][:] = X[:-1]
+            self.dw[7][:] = X[-1]
+            self.dw[3][:] = (delta_lambday + self.dw[0].dot(dg[1:]) + self.dw[7]*self.a)/diag_lambday
 
         else:
             dxdx = delta_x/diag_x

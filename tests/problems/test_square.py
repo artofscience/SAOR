@@ -5,16 +5,17 @@ from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_square(n):
-    problem = Square(n)
-    #
-    # mysolverb = ipb(problem, epsimin=1e-7)
-    # mysolverb.update()
-    # print(np.sum(mysolverb.x))
-    # assert np.sum(mysolverb.x) == pytest.approx(1, rel=1e-4)
 
-    mysolvera = ipa(problem, epsimin=1e-5)
+    print("Solve x**2 using ipopt basis")
+    problemb = Square(n)
+    mysolverb = ipb(problemb, epsimin=1e-5)
+    mysolverb.update()
+    assert np.sum(mysolverb.x) == pytest.approx(1, rel=1e-4)
+
+    print("Solve x**2 using ipopt with artificial variables")
+    problema = Square(n)
+    mysolvera = ipa(problema, epsimin=1e-5)
     mysolvera.update()
-    print(np.sum(mysolvera.x))
     assert np.sum(mysolvera.x) == pytest.approx(1, rel=1e-4)
 
 
