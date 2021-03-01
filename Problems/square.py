@@ -4,15 +4,15 @@ import numpy as np
 class Square:
     """
     min(x)  x.x
-    s.t.    sum(x) < 0.1
+    s.t.    sum(x) > 1
             -1 < x_i < 1,   i=1,...,n
 
-    Solution: all x = 0.1/n
+    Solution: all x = 1/n
     """
     def __init__(self, n):
-        self.alpha = -np.ones(n)
-        self.beta = np.ones(n)
-        self.x = np.random.uniform(self.alpha, self.beta)
+        self.xmin = -np.ones(n)
+        self.xmax = np.ones(n)
+        self.x = np.random.uniform(self.xmin, self.xmax)
         self.n = n
         self.m = 1
 

@@ -1,22 +1,36 @@
+import pytest
 import numpy as np
-
+from Problems.square import Square
 from sao.approximations.taylor import Taylor1
+from sao.approximations.taylor import Taylor2
 
 
-def test_taylor_1():
-    n = 1
-    x = np.ones(n)
-    bounds = (0, 1)
+@pytest.mark.parametrize('n', [10, 100, 1000])
+def test_taylor1(n):
 
-    def f(x):
-        return x
+    print("Test 1st-order Taylor expansion")
+    prob = Square(n)
+    taylor1 = Taylor1()
+    taylor1.update_approximation(prob.x, prob.xmin, prob.xmax, prob.g(prob.x), prob.dg(prob.x))
 
-    def df(x):
-        return np.ones((1, n))
+    assert taylor1.g_approx(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
+    assert taylor1.dg_approx(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
+    assert taylor1.ddg_approx(prob.x) == pytest.approx(0, abs=1e-4)
 
-    taylor = Taylor1()
-    taylor.update_approximation(x, bounds, f(x), df(x))
 
-    assert taylor.g(x) == f(x)
-    assert taylor.dg(x) == df(x)
-    assert taylor.ddg(x) == 1.0
+@pytest.mark.parametrize('n', [10, 100, 1000])
+def test_taylor2(n):
+    print("Test 1st-order Taylor expansion")
+    prob = Square(n)
+    taylor2 = Taylor2()
+    taylor2.update_approximation(prob.x, prob.xmin, prob.xmax, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
+
+    assert taylor2.g_approx(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
+    assert taylor2.dg_approx(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
+    assert taylor2.ddg_approx(prob.x) == pytest.approx(prob.ddg(prob.x), rel=1e-4)
+
+
+if __name__ == "__main__":
+    test_taylor1(4)
+    test_taylor2(4)
+

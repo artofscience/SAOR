@@ -10,21 +10,21 @@ class InterveningApproximation(Approximation):
         self.approx = approximation
 
     def build_approximation(self):
-        self.inter.update_intervening(x=self.x, f=self.f, df=self.df, ddf=self.ddf, xmin=self.xmin, xmax=self.xmax)
-        self.approx.update_approximation(self.inter.y(self.x), self.f, self.df*self.inter.dy(self.x), '''TODO ddy''', )
+        self.inter.update_intervening(x=self.x, g=self.g, df=self.dg, ddf=self.ddg, xmin=self.xmin, xmax=self.xmax)
+        self.approx.update_approximation(self.inter.y(self.x), self.g, self.dg*self.inter.dy(self.x), '''TODO ddy''', )
 
         # P = df/dy_i = df/dx_i * dx_i/dy_i [m x n]
         # y = [n]
         # x = [n]
 
-    def g(self, x):
-        return self.approx.g(self.inter.y(x))
+    def g_approx(self, x):
+        return self.approx.g_approx(self.inter.y(x))
 
-    def dg(self, x):
-        return self.approx.dg(self.inter.y(x))
+    def dg_approx(self, x):
+        return self.approx.dg_approx(self.inter.y(x))
 
-    def ddg(self, x):
-        return self.approx.ddg(self.inter.y(x))
+    def ddg_approx(self, x):
+        return self.approx.ddg_approx(self.inter.y(x))
 
 
     '''

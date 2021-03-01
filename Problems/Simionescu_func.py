@@ -13,7 +13,7 @@ class Simionescu:
         self.x_init = np.array([0.6, 0.5])
         self.name = 'Simionescu'
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.empty(self.m + 1)
 
         g_j[0] = 0.1 * (x_k[0] - 1.25) * (x_k[1] - 1.25)
@@ -23,7 +23,7 @@ class Simionescu:
 
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
         dg_j[0, 0] = 0.1*x_k[1] - 0.125

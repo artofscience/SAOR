@@ -67,7 +67,7 @@ class InteriorPoint(PrimalDual, ABC):
             print("iter: %2d" % (self.iter), ", ",
                   "solves: %2d" % (self.iterin), ", ",
                   "x:", ["{:+.2f}".format(i) for i in self.x[1:3]], ", ",
-                  "lam:",["{:+.2f}".format(i) for i in self.w[3]], ", ",
+                  "lam:", ["{:+.2f}".format(i) for i in self.w[3]], ", ",
                   "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
 
             # Calculate the initial residual, its norm and maximum value

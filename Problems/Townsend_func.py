@@ -14,7 +14,7 @@ class Townsend:
         self.x_init = np.array([1.2, 1.])
         self.name = 'Townsend'
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.empty(self.m + 1)
         t = math.atan2(x_k[0] - 2.25, x_k[1] - 2.5)
 
@@ -27,7 +27,7 @@ class Townsend:
 
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
         dg_j[0, 0] = 3 * (2.25 - x_k[0]) * np.cos(3 * x_k[0] + x_k[1] - 9.25) + 2 * (x_k[1] - 2.5) * \

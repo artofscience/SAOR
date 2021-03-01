@@ -87,7 +87,7 @@ class Top88:
         # Set load
         self.f[1, 0] = -1
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.empty(self.m + 1)
 
         # Filter design variables
@@ -116,7 +116,7 @@ class Top88:
         g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
         # Filter design variables

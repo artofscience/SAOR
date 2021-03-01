@@ -15,14 +15,14 @@ class Li2015Fig4:
         self.x0 = np.array([2.5, 1.])
         self.name = 'Li2015Fig4'
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.empty(self.m + 1)
         g_j[0] = self.c1 * x_k[0] * np.sqrt(1 + x_k[1]**2)
         g_j[1] = self.c2 * np.sqrt(1 + x_k[1]**2) * (8/x_k[0] + 1/(x_k[0] * x_k[1])) - 1
         g_j[2] = self.c2 * np.sqrt(1 + x_k[1]**2) * (8/x_k[0] - 1/(x_k[0] * x_k[1])) - 1
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
         dg_j[0, 0] = self.c1 * np.sqrt(1 + x_k[1]**2)
         dg_j[0, 1] = self.c1 * x_k[0] * 1/(2*np.sqrt(1 + x_k[1]**2)) * 2 * x_k[1]
@@ -34,7 +34,7 @@ class Li2015Fig4:
                      self.c2/x_k[0] * (-1/x_k[1]**2 * np.sqrt(1 + x_k[1]**2) + 1/(np.sqrt(1 + x_k[1]**2)))
         return dg_j
 
-    def sensitivity2(self, x_k):
+    def ddg(self, x_k):
         ddg_j = np.empty((self.m + 1, self.n))
         ddg_j[0, 0] = 0
         ddg_j[0, 1] = -self.c1 * x_k[0] * x_k[1]**2 / (x_k[1] ** 2 + 1.0)**(3/2) + self.c1 * x_k[0] / \

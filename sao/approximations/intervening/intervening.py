@@ -24,10 +24,10 @@ class Linear(Intervening):
         return x
 
     def dy(self, x):
-        return 1.0
+        return np.ones_like(x)
 
     def ddy(self, x):
-        return 0.0
+        return np.zeros_like(x)
 
 
 class Reciprocal(Intervening):
@@ -48,24 +48,24 @@ class ConLin(Intervening):
         self.lin = Linear()
         self.rec = Reciprocal()
 
-    def update_intervening(self, df, **kwargs):
-        self.positive = df > 0
-        self.negative = df < 0
+    def update_intervening(self, dg, **kwargs):
+        self.positive = dg > 0
+        self.negative = dg < 0
 
     def y(self, x):
-        y = np.zeros_like(x)
+        y = np.zeros_like(self.positive)
         y[self.positive] = self.lin.y(x[self.positive])
         y[self.negative] = self.rec.y(x[self.negative])
         return y
 
     def dy(self, x):
-        dy = np.zeros_like(x)
+        dy = np.zeros_like(self.positive)
         dy[self.positive] = self.lin.dy(x[self.positive])
         dy[self.negative] = self.rec.dy(x[self.negative])
         return dy
 
     def ddy(self, x):
-        ddy = np.zeros_like(x)
+        ddy = np.zeros_like(self.positive)
         ddy[self.positive] = self.lin.ddy(x[self.positive])
         ddy[self.negative] = self.rec.ddy(x[self.negative])
         return ddy

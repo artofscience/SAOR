@@ -35,7 +35,7 @@ class Vanderplaats:
         self.L = 5e2                    # Total length
         self.S = self.L / self.N        # Segment length
 
-    def response(self, x_k):
+    def g(self, x_k):
         g_j = np.zeros(self.m + 1, dtype=float)
         y = 0.
         ya = 0.
@@ -70,7 +70,7 @@ class Vanderplaats:
 
         return g_j
 
-    def sensitivity(self, x_k):
+    def dg(self, x_k):
         dg_j = np.zeros((self.m + 1, self.n), dtype=np.float_)
         y = 0.
         ya = 0.
