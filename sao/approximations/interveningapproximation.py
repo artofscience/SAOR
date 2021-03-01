@@ -4,7 +4,7 @@ from .taylor import Taylor1
 
 
 class InterveningApproximation(Approximation):
-    def __init__(self, intervening=Linear(), approximation=Taylor1()):
+    def __init__(self, intervening=Linear(), approximation=Taylor1(), bounds=Bounds(xmin, xmax)):
         super().__init__()
         self.inter = intervening
         self.approx = approximation

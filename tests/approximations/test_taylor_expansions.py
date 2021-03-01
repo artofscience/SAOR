@@ -1,8 +1,7 @@
 import pytest
 import numpy as np
 from Problems.square import Square
-from sao.approximations.taylor import Taylor1
-from sao.approximations.taylor import Taylor2
+from sao.approximations.taylor import Taylor1, Taylor2
 
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
