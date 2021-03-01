@@ -20,3 +20,7 @@ def test_square(n):
     assert np.sum(mysolvera.x) == pytest.approx(1, rel=1e-4)
 
     assert np.linalg.norm(mysolverb.x - mysolvera.x) == pytest.approx(0, rel=1e-3)
+
+
+if __name__ == "__main__":
+    test_square(4)
