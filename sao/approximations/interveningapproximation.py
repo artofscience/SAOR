@@ -1,6 +1,7 @@
 from .approximation import Approximation
 from sao.approximations.intervening.intervening import Linear
 from .taylor import Taylor1
+from .bounds import Bounds
 
 
 class InterveningApproximation(Approximation):
