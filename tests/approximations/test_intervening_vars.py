@@ -17,7 +17,7 @@ def test_linear(n):
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_reciprocal(n):
-    print("Testing linear intervening variables")
+    print("Testing reciprocal intervening variables")
     prob = Square(n)
     rec = Reciprocal()
 
@@ -28,7 +28,7 @@ def test_reciprocal(n):
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_conlin(n):
-    print("Testing linear intervening variables")
+    print("Testing ConLin intervening variables")
     prob = Square(n)
     conlin = ConLin()
     conlin.update_intervening(prob.dg(prob.x))
