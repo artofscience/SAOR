@@ -173,7 +173,6 @@ class SvanbergIP:
         g_j_tilde_value = approx.g_approx(x)
         dg_j_tilde_value = approx.dg_approx(x)
         dpsi_dx = (dg_j_tilde_value[0, :] + np.dot(lam.T, dg_j_tilde_value[1:, :]))
-
         # Calculation of other residuals
         rex = dpsi_dx - xsi + eta
         rey = c + d * y - mu - lam
