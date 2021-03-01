@@ -2,17 +2,19 @@ from .approximation import Approximation
 from sao.approximations.intervening.intervening import Linear
 from .taylor import Taylor1
 from .bounds import Bounds
+import numpy as np
 
 
 class InterveningApproximation(Approximation):
-    def __init__(self, intervening=Linear(), approximation=Taylor1(), bounds=Bounds(xmin, xmax)):
+    def __init__(self, intervening=Linear(), approximation=Taylor1(), bounds=Bounds()):
         super().__init__()
         self.inter = intervening
         self.approx = approximation
         self.bounds = bounds
 
     def build_approximation(self):
-        self.inter.update_intervening(x=self.x, g=self.g, df=self.dg, ddf=self.ddg, xmin=self.xmin, xmax=self.xmax)
+        self.inter.update_intervening(x=self.x, g=self.g, df=self.dg, ddf=self.ddg,
+                                      xmin=self.bounds.xmin, xmax=self.bounds.xmax)
         self.approx.update_approximation(self.inter.y(self.x), self.g, self.dg*self.inter.dy(self.x), '''TODO ddy''', )
 
         # P = df/dy_i = df/dx_i * dx_i/dy_i [m x n]

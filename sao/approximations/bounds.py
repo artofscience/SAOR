@@ -1,13 +1,14 @@
 import numpy as np
+import math
 
 
 class Bounds:
-    def __init__(self, xmin, xmax, move_limit=0.1):
+    def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1):
         self.xmin = xmin
         self.xmax = xmax
         self.dx = xmax - xmin
-        self.alpha = xmin.copy()
-        self.beta = xmax.copy()
+        self.alpha = xmin + 0
+        self.beta = xmax + 0
         self.move_limit = move_limit
 
     def update_bounds(self, intervening, x):
