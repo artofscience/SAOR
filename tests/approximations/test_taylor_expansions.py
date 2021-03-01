@@ -8,7 +8,7 @@ from sao.approximations.taylor import Taylor2
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_taylor1(n):
 
-    print("Test 1st-order Taylor expansion")
+    print("Testing 1st-order Taylor expansion")
     prob = Square(n)
     taylor1 = Taylor1()
     taylor1.update_approximation(prob.x, prob.xmin, prob.xmax, prob.g(prob.x), prob.dg(prob.x))
@@ -20,7 +20,7 @@ def test_taylor1(n):
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_taylor2(n):
-    print("Test 1st-order Taylor expansion")
+    print("Testing 2nd-order Taylor expansion")
     prob = Square(n)
     taylor2 = Taylor2()
     taylor2.update_approximation(prob.x, prob.xmin, prob.xmax, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))

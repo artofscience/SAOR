@@ -10,7 +10,7 @@ class Taylor1(Approximation):
         return self.dg
 
     def ddg_approx(self, x):
-        return np.zeros_like(self.dg)
+        return np.zeros(self.dg.shape, dtype=float)
 
 
 class Taylor2(Taylor1):
@@ -18,7 +18,7 @@ class Taylor2(Taylor1):
         return super().g_approx(x) + 0.5*self.ddg.dot((x-self.x)**2)
 
     def dg_approx(self, x):
-        return super().dg_approx(x) + self.ddg.dot(x-self.x)
+        return super().dg_approx(x) + self.ddg * (x-self.x)
 
     def ddg_approx(self, x):
         return super().ddg_approx(x) + self.ddg

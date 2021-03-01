@@ -12,6 +12,6 @@ class Dual(GBOpt, ABC):
     def __init__(self, problem):
         super().__init__(problem)
         if self.m > self.n:
-            warnings.warn("You are using a dual optimizer, but the number of responses is large than the number of variables. "
+            warnings.warn("You are using a dual optimizer, but the number of responses > than the number of variables. "
                           "The update process will be slow. "
                           "Opt to use a primal or primal-dual optimizer.")

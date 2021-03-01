@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 class Approximation(ABC):
     def __init__(self):
         self.x = None
-        self.alpha, self.beta = None, None  # Bounds of the subproblem
+        self.alpha, self.beta = None, None                  # Bounds of the local sub-problem
         self.g, self.dg, self.ddg = None, None, None
 
         self.m = -1  # Number of constraints

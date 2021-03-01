@@ -53,21 +53,21 @@ class ConLin(Intervening):
         self.negative = dg < 0
 
     def y(self, x):
-        y = np.zeros_like(self.positive)
-        y[self.positive] = self.lin.y(x[self.positive])
-        y[self.negative] = self.rec.y(x[self.negative])
+        y = np.zeros_like(self.positive, dtype=float)
+        y[self.positive] = self.lin.y(np.broadcast_to(x, self.positive.shape)[self.positive])
+        y[self.negative] = self.rec.y(np.broadcast_to(x, self.negative.shape)[self.negative])
         return y
 
     def dy(self, x):
-        dy = np.zeros_like(self.positive)
-        dy[self.positive] = self.lin.dy(x[self.positive])
-        dy[self.negative] = self.rec.dy(x[self.negative])
+        dy = np.zeros_like(self.positive, dtype=float)
+        dy[self.positive] = self.lin.dy(np.broadcast_to(x, self.positive.shape)[self.positive])
+        dy[self.negative] = self.rec.dy(np.broadcast_to(x, self.negative.shape)[self.negative])
         return dy
 
     def ddy(self, x):
-        ddy = np.zeros_like(self.positive)
-        ddy[self.positive] = self.lin.ddy(x[self.positive])
-        ddy[self.negative] = self.rec.ddy(x[self.negative])
+        ddy = np.zeros_like(self.positive, dtype=float)
+        ddy[self.positive] = self.lin.ddy(np.broadcast_to(x, self.positive.shape)[self.positive])
+        ddy[self.negative] = self.rec.ddy(np.broadcast_to(x, self.negative.shape)[self.negative])
         return ddy
 
 
