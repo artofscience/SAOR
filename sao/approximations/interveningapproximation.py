@@ -9,6 +9,7 @@ class InterveningApproximation(Approximation):
         super().__init__()
         self.inter = intervening
         self.approx = approximation
+        self.bounds = bounds
 
     def build_approximation(self):
         self.inter.update_intervening(x=self.x, g=self.g, df=self.dg, ddf=self.ddg, xmin=self.xmin, xmax=self.xmax)
