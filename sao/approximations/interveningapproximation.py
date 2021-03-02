@@ -12,9 +12,9 @@ class InterveningApproximation(Approximation):
         self.bounds = bounds
 
     def build_approximation(self):
-        self.inter.update_intervening(x=self.x, g=self.g, df=self.dg, ddf=self.ddg,
+        self.inter.update_intervening(x=self.x, g=self.g, dg=self.dg, ddg=self.ddg,
                                       xmin=self.bounds.xmin, xmax=self.bounds.xmax)
-        self.approx.update_approximation(self.inter.y(self.x), self.g, self.dg*self.inter.dy(self.x),
+        self.approx.update_approximation(self.inter.y(self.x).T, self.g, self.dg*self.inter.dxdy(self.x),
                                          self.ddg*(self.inter.dxdy(self.x))**2 + self.dg*(self.inter.ddxddy(self.x)))
         self.bounds.update_bounds(self.inter, self.x)
 
@@ -23,13 +23,13 @@ class InterveningApproximation(Approximation):
         # x = [n]
 
     def g_approx(self, x):
-        return self.approx.g_approx(self.inter.y(x))
+        return self.approx.g_approx(self.inter.y(x).T)
 
     def dg_approx(self, x):
-        return self.approx.dg_approx(self.inter.y(x))
+        return self.approx.dg_approx(self.inter.y(x).T)
 
     def ddg_approx(self, x):
-        return self.approx.ddg_approx(self.inter.y(x))
+        return self.approx.ddg_approx(self.inter.y(x).T)
 
 
     '''
