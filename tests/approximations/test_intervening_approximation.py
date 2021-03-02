@@ -11,6 +11,7 @@ def test_lin_taylor1(n):
     print("Testing 1st-order Taylor wrt y=x")
     prob = Square(n)
     approx = InterveningApproximation(intervening=Linear(), approximation=Taylor1(), bounds=Bounds(prob.xmin, prob.xmax))
+    approx.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
     approx.build_approximation()
 
     assert approx.g_approx(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)

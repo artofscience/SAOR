@@ -6,6 +6,9 @@ class Intervening(ABC):
     def update_intervening(self, **kwargs):
         pass
 
+    def get_bounds(self):
+        pass
+
     @abstractmethod
     def y(self, x):
         ...
