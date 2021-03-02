@@ -39,6 +39,9 @@ class Approximation(ABC):
     def build_approximation(self):
         pass
 
+    def get_bounds(self):
+        pass
+
     @abstractmethod
     def g_approx(self, x):
         ...
