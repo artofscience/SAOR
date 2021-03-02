@@ -91,10 +91,8 @@ class MMA(Intervening):
         self.xold1 = self.x
         self.x = x
 
-        # self.dx = xmax - xmin
-
         # Initial values of asymptotes
-        if self.xold1 is not None and self.xold2 is not None:
+        if self.xold2 is not None:
             self.low = self.x - self.factor * self.dx
             self.upp = self.x + self.factor * self.dx
 
