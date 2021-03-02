@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 
@@ -10,7 +9,7 @@ def test_taylor1(n):
     print("Testing 1st-order Taylor expansion")
     prob = Square(n)
     taylor1 = Taylor1()
-    taylor1.update_approximation(prob.x, prob.xmin, prob.xmax, prob.g(prob.x), prob.dg(prob.x))
+    taylor1.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x))
 
     assert taylor1.g_approx(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert taylor1.dg_approx(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
@@ -22,7 +21,7 @@ def test_taylor2(n):
     print("Testing 2nd-order Taylor expansion")
     prob = Square(n)
     taylor2 = Taylor2()
-    taylor2.update_approximation(prob.x, prob.xmin, prob.xmax, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
+    taylor2.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
     assert taylor2.g_approx(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert taylor2.dg_approx(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)

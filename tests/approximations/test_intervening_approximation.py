@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, Reciprocal, ConLin
