@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from Problems.square import Square
-from sao.approximations.intervening import Linear, Reciprocal, ConLin
+from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
 
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
@@ -48,9 +48,30 @@ def test_conlin(n):
     assert conlin.ddy(prob.x) == pytest.approx(temp_ddy, rel=1e-4)
 
 
+@pytest.mark.parametrize('n', [10, 100, 1000])
+def test_mma(n):
+    print("Testing MMA intervening variables")
+    prob = Square(n)
+    mma = MMA(prob.xmin, prob.xmax)
+    mma.update_intervening(prob.x, prob.g(prob.x), prob.dg(prob.x))
+    temp_y = np.zeros((prob.m + 1, prob.n), dtype=float)
+    temp_dy = np.zeros((prob.m + 1, prob.n), dtype=float)
+    temp_ddy = np.zeros((prob.m + 1, prob.n), dtype=float)
+    for j in range(0, prob.m + 1):
+        temp_y[j, (prob.dg(prob.x) > 0)[j, :]] = (1 / (mma.upp - prob.x))[mma.positive[j, :]]
+        temp_y[j, (prob.dg(prob.x) < 0)[j, :]] = (1 / (prob.x - mma.low))[mma.negative[j, :]]
+        temp_dy[j, (prob.dg(prob.x) > 0)[j, :]] = (1 / (mma.upp - prob.x)**2)[mma.positive[j, :]]
+        temp_dy[j, (prob.dg(prob.x) < 0)[j, :]] = (-1 / (prob.x - mma.low)**2)[mma.negative[j, :]]
+        temp_ddy[j, (prob.dg(prob.x) > 0)[j, :]] = (2 / (mma.upp - prob.x)**3)[mma.positive[j, :]]
+        temp_ddy[j, (prob.dg(prob.x) < 0)[j, :]] = (2 / (prob.x - mma.low)**3)[mma.negative[j, :]]
+
+    assert mma.y(prob.x) == pytest.approx(temp_y, rel=1e-4)
+    assert mma.dy(prob.x) == pytest.approx(temp_dy, rel=1e-4)
+    assert mma.ddy(prob.x) == pytest.approx(temp_ddy, rel=1e-4)
+
+
 if __name__ == "__main__":
     test_linear(4)
     test_reciprocal(4)
     test_conlin(4)
-
-
+    test_mma(4)

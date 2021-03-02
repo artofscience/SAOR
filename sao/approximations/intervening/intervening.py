@@ -136,7 +136,7 @@ class MMA(Intervening):
     def get_asymptotes(self):
 
         # Initial values of asymptotes
-        if self.xold2 is not None:
+        if self.xold2 is None:
             self.low = self.x - self.factor * self.dx
             self.upp = self.x + self.factor * self.dx
 
@@ -193,14 +193,14 @@ class MMA(Intervening):
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
-        dxdy_value = np.zeros_like(self.positive, dtype=float)
-        dxdy_value[self.positive] = None            # TODO: fix that
-        dxdy_value[self.negative] = None            # TODO: fix that
-        return dxdy_value
+        dxdy = np.zeros_like(self.positive, dtype=float)
+        dxdy[self.positive] = np.broadcast_to((1 / self.y(x) ** 2), self.positive.shape)[self.positive]
+        dxdy[self.negative] = np.broadcast_to((-1 / self.y(x) ** 2), self.negative.shape)[self.negative]
+        return dxdy
 
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
-        ddxddy_value = np.zeros_like(self.positive, dtype=float)
-        ddxddy_value[self.positive] = None            # TODO: fix that
-        ddxddy_value[self.negative] = None            # TODO: fix that
-        return ddxddy_value
+        ddxddy = np.zeros_like(self.positive, dtype=float)
+        ddxddy[self.positive] = np.broadcast_to((-2 / self.y(x) ** 3), self.positive.shape)[self.positive]
+        ddxddy[self.negative] = np.broadcast_to((2 / self.y(x) ** 3), self.negative.shape)[self.negative]
+        return ddxddy
