@@ -73,30 +73,36 @@ class ConLin(Intervening):
 
 class MMA(Intervening):
 
-    def __init__(self, asyinit=0.5, globbound = (0, 1)):
-        self.L = None
-        self.U = None
-
-        self.factor = asyinit
-        self.asyinit = asyinit
-        self.asyincr = 1.1
-        self.asydecr = 0.7
+    def __init__(self, xmin, xmax):
         self.x = None
         self.xold1, self.xold2 = None, None
-        self.dx = globbound[1] - globbound[0]
+        self.low, self.upp = None, None
+        self.positive = None
+        self.negative = None
+        self.asyinit = 0.5
+        self.asyincr = 1.1
+        self.asydecr = 0.7
+        self.asybound = 10.0
+        self.albefa = 0.1               # limit the max change of vars wrt asymptotes
+        self.factor = self.asyinit * np.ones(len(xmin))
+        self.dx = xmax - xmin
 
-
-    def update_intervening(self, x, f, df, xmin, xmax, **kwargs):
+    def update_intervening(self, x, g, dg, **kwargs):
         self.xold2 = self.xold1
         self.xold1 = self.x
         self.x = x
+        self.positive = dg > 0   # size of [m_p, n_l]
+        self.negative = dg < 0   # size of [m_p, n_l]
+        self.get_asymptotes()
+
+    def get_asymptotes(self):
 
         # Initial values of asymptotes
         if self.xold2 is not None:
             self.low = self.x - self.factor * self.dx
             self.upp = self.x + self.factor * self.dx
 
-        # Update asymptotes
+        # Update scheme for asymptotes
         else:
             # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
             # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
@@ -124,14 +130,28 @@ class MMA(Intervening):
             self.upp = np.minimum(self.upp, uppmax)
             self.upp = np.maximum(self.upp, uppmin)
 
-            # minimum variable bounds
-            zzl1 = self.low + self.albefa * (self.x - self.low)  # limit change in x_i wrt asymptotes U_i, L_i
-            zzl2 = self.x - self.move_limit * self.dx
-            xmin[:] = np.maximum.reduce([zzl1, zzl2, xmin])  # finds the max for each row of (zzl1, zzl2, xmin)
+    def get_bounds(self):
+        zzl1 = self.low + self.albefa * (self.x - self.low)
+        zzu1 = self.upp - self.albefa * (self.upp - self.x)
+        return zzl1, zzu1
 
-            # maximum variable bounds
-            zzu1 = self.upp - self.albefa * (self.upp - self.x)  # limit change in x_i wrt asymptotes U_i, L_i
-            zzu2 = self.x + self.move_limit * self.dx
-            self.beta = np.minimum.reduce([zzu1, zzu2, self.xmax])  # finds the min for each row of (zzu1, zzu2, xmax)
+    # TODO: Below is how I implemented the intervening vars for MMA. Needs to be edited to fit the current framework
+    def y(self, x):
+        y = np.zeros(self.positive.shape, dtype=float)
+        y[self.positive] = (1 / (self.upp - x))[self.positive]          # TODO: shapes do not match
+        y[self.negative] = 1 / (x - self.low)[self.negative]
+        return y
 
-            xmin[:] = 1.1 * xmin
+    def dy(self, x):
+        dy = np.zeros(self.positive.shape, dtype=float)
+        for j in range(0, self.positive.shape[1]):
+            dy[self.positive] = (1 / (self.upp - x) ** 2)[self.positive]
+            dy[self.negative] = (-1 / (x - self.low) ** 2)[self.negative]
+        return dy
+
+    def ddy(self, x):
+        ddy = np.zeros(self.positive.shape, dtype=float)
+        for j in range(0, self.positive.shape[1]):
+            ddy[self.dg[j, :] >= 0, j] = (2 / (self.upp - x) ** 3)[self.dg[j, :] >= 0]
+            ddy[self.dg[j, :] < 0, j] = (2 / (x - self.low) ** 3)[self.dg[j, :] < 0]
+        return ddy
