@@ -20,32 +20,27 @@ def test_square(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    approx = InterveningApproximation(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(),
+    approx = InterveningApproximation(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                                       bounds=Bounds(prob.xmin, prob.xmax))
     approx.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
-
-    # Instantiate solver
-    # solver = SvanbergIP(n, 1)
-    solver = ipa(approx, epsimin=1e-9)
-    solver.update()
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x.copy()
 
     # Optimization loop
-    while not x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-4):
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-4)):
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
-        g = prob.g(x_k)
-        dg = prob.dg(x_k)
-        ddg = prob.ddg(x_k)
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+        ddf = prob.ddg(x_k)
 
         # Print current iteration and x_k
-        print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}'.format(itte, g[0], g[1]))
+        print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}'.format(itte, f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
-        approx.update_approximation(prob.x, prob.g(prob.x), dg, ddg)
+        approx.update_approximation(prob.x, f, df, ddf)
 
         # Call solver (x_k, g and dg are within approx instance)
         # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
