@@ -13,7 +13,7 @@ class InterveningApproximation(Approximation):
 
     def build_approximation(self):
 
-        self.inter.update_intervening(x=self.x, g=self.f, dg=self.df, ddg=self.ddf,
+        self.inter.update_intervening(x=self.x, f=self.f, df=self.df, ddf=self.ddf,
                                       xmin=self.bounds.xmin, xmax=self.bounds.xmax)
 
         # Preserve convexity
