@@ -89,7 +89,7 @@ def test_conlin_taylor2(n):
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_mma_taylor1(n):
-    print("Testing 1st-order Taylor with y=ConLin")
+    print("Testing 1st-order Taylor with y=MMA")
     prob = Square(n)
     approx = InterveningApproximation(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                                       bounds=Bounds(prob.xmin, prob.xmax))
@@ -104,7 +104,7 @@ def test_mma_taylor1(n):
 
 @pytest.mark.parametrize('n', [10, 100, 1000])
 def test_mma_taylor2(n):
-    print("Testing 2nd-order Taylor with y=ConLin")
+    print("Testing 2nd-order Taylor with y=MMA")
     prob = Square(n)
     approx = InterveningApproximation(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                                       bounds=Bounds(prob.xmin, prob.xmax))

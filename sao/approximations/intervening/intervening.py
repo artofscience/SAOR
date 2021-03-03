@@ -129,8 +129,8 @@ class MMA(Intervening):
         self.xold2 = self.xold1
         self.xold1 = self.x
         self.x = x
-        self.positive = dg > 0   # size of [m_p, n_l]
-        self.negative = dg < 0   # size of [m_p, n_l]
+        self.positive = dg > 0          # size of [m_p, n_l]
+        self.negative = dg < 0          # size of [m_p, n_l]
         self.get_asymptotes()
 
     def get_asymptotes(self):
