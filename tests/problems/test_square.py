@@ -5,7 +5,8 @@ from sao.approximations.taylor import Taylor1
 from sao.approximations.intervening import MMA
 from sao.move_limits.move_limit import MoveLimitStrategy
 from sao.subproblems.subproblem import Subproblem
-from sao.solvers.interior_point_basis import InteriorPointBasis as ipa
+from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
+from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 
 np.set_printoptions(precision=4)
 
@@ -35,7 +36,7 @@ def test_square(n):
         ddf = prob.ddg(x_k)
 
         # Print current iteration and x_k
-        print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}'.format(itte, f[0], f[1]))
+        print('iter: {:<4d}  |  x: {}  |  obj: {:>9.3f}  |  constr: {:>6.3f}'.format(itte, x_k, f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
         subprob.update_approximation(prob.x, f, df, ddf)
@@ -52,5 +53,5 @@ def test_square(n):
 
 
 if __name__ == "__main__":
-    test_square(4)
+    test_square(2)
 
