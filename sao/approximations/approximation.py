@@ -5,6 +5,7 @@ class Approximation(ABC):
     def __init__(self):
         self.x = None
         self.f, self.df, self.ddf = None, None, None
+        self.alpha, self.beta = None, None
 
         self.m = -1  # Number of constraints
         self.n = -1  # Number of variables
@@ -13,9 +14,9 @@ class Approximation(ABC):
         """ Puts in data from the original problem. Once per design iteration.
 
         :param x:
-        :param g:
-        :param dg:
-        :param ddg:
+        :param f:
+        :param df:
+        :param ddf:
         :return:
         """
         self.x = x

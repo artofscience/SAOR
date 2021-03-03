@@ -1,27 +1,27 @@
-from .approximation import Approximation
-from sao.approximations.intervening.intervening import Linear
-from .taylor import Taylor1
-from .bounds import Bounds
+from sao.approximations.approximation import Approximation
+from sao.approximations.intervening import Linear
+from sao.approximations.taylor import Taylor1
+from sao.move_limits.move_limit import MoveLimitStrategy
 
 
-class InterveningApproximation(Approximation):
-    def __init__(self, intervening=Linear(), approximation=Taylor1(), bounds=Bounds()):
+class Subproblem(Approximation):
+    def __init__(self, intervening=Linear(), approximation=Taylor1(), ml=MoveLimitStrategy()):
         super().__init__()
         self.inter = intervening
         self.approx = approximation
-        self.bounds = bounds
+        self.ml = ml
 
     def build_approximation(self):
 
         self.inter.update_intervening(x=self.x, f=self.f, df=self.df, ddf=self.ddf,
-                                      xmin=self.bounds.xmin, xmax=self.bounds.xmax)
+                                      xmin=self.ml.xmin, xmax=self.ml.xmax)
 
         # Preserve convexity
         Q = self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x))
         Q[Q < 0] = 0
 
         self.approx.update_approximation(self.inter.y(self.x).T, self.f, self.df*self.inter.dxdy(self.x), Q)
-        self.bounds.update_bounds(self.inter, self.x)
+        self.alpha, self.beta = self.ml.update_move_limit(self.x, intervening=self.inter)
 
         # P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [m x n]
         # Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [m x n]

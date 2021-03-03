@@ -1,12 +1,10 @@
 import pytest
 import numpy as np
 from Problems.square import Square
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
-from sao.approximations.bounds import Bounds
-from sao.approximations.interveningapproximation import InterveningApproximation
-from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
+from sao.approximations.taylor import Taylor1
+from sao.approximations.intervening import MMA
+from sao.move_limit.move_limit import Bounds
+from sao.subproblems import Subproblem
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipa
 
 np.set_printoptions(precision=4)
@@ -20,8 +18,8 @@ def test_square(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    approx = InterveningApproximation(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                                      bounds=Bounds(prob.xmin, prob.xmax))
+    approx = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+                        bounds=Bounds(prob.xmin, prob.xmax))
     approx.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
     # Initialize iteration counter and design

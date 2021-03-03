@@ -16,8 +16,8 @@ class GBOpt(ABC):
         self.dg = problem.dg
         self.ddg = problem.ddg
 
-        self.alpha = problem.bounds.xmin
-        self.beta = problem.bounds.xmax
+        self.alpha = problem.alpha
+        self.beta = problem.beta
 
 
     @abstractmethod

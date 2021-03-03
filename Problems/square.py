@@ -10,8 +10,8 @@ class Square:
     Solution: all x = 1/n
     """
     def __init__(self, n):
-        self.xmin = -np.ones(n)
-        self.xmax = np.ones(n)
+        self.xmin = self.alpha = -np.ones(n)                # cuz approx needs to have both
+        self.xmax = self.beta = np.ones(n)                  # cuz approx needs to have both
         self.x = np.random.uniform(self.xmin, self.xmax)
         self.n = n
         self.m = 1
