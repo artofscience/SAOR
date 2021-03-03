@@ -12,14 +12,20 @@ class InterveningApproximation(Approximation):
         self.bounds = bounds
 
     def build_approximation(self):
+
         self.inter.update_intervening(x=self.x, g=self.g, dg=self.dg, ddg=self.ddg,
                                       xmin=self.bounds.xmin, xmax=self.bounds.xmax)
-        self.approx.update_approximation(self.inter.y(self.x).T, self.g, self.dg*self.inter.dxdy(self.x),
-                                         self.ddg*(self.inter.dxdy(self.x))**2 + self.dg*(self.inter.ddxddy(self.x)))
+
+        # Preserve convexity
+        Q = self.ddg * (self.inter.dxdy(self.x)) ** 2 + self.dg * (self.inter.ddxddy(self.x))
+        Q[Q < 0] = 0
+
+        self.approx.update_approximation(self.inter.y(self.x).T, self.g, self.dg*self.inter.dxdy(self.x), Q)
         self.bounds.update_bounds(self.inter, self.x)
 
-        # P = df/dy_i = df/dx_i * dx_i/dy_i [m x n]
-        # y = [n]
+        # P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [m x n]
+        # Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [m x n]
+        # y = [m x n] or [n], depending on the intervening variables used (see ReferenceFiles/TaylorExpansion.pdf)
         # x = [n]
 
     def g_approx(self, x):

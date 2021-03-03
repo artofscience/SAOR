@@ -199,8 +199,19 @@ class MMA(Intervening):
         return dxdy
 
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
-    def ddxddy(self, x):
+    def ddxddy(self, x, **kwargs):
         ddxddy = np.zeros_like(self.positive, dtype=float)
         ddxddy[self.positive] = np.broadcast_to((-2 / self.y(x) ** 3), self.positive.shape)[self.positive]
         ddxddy[self.negative] = np.broadcast_to((2 / self.y(x) ** 3), self.negative.shape)[self.negative]
+
+        # # Backwards finite difference to approximate 2nd order diagonal info: Bii = d2g_i/dx_j^2
+        #
+        # # Making sure P and Q remain positive ---> preserve convexity
+        # dijk = np.maximum(0, Bii - 2 * (self.Pij / ux3[:, 0] + self.Qij / xl3[:, 0]))
+        # addijk = dijk * (ux1 * xl1)[:, 0] / (2 * (self.upp - self.low))[:, 0]
+        #
+        # # P and Q matrices
+        # self.Pij += ux2[:, 0] * addijk
+        # self.Qij += xl2[:, 0] * addijk
+
         return ddxddy
