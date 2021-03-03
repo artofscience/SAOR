@@ -3,8 +3,8 @@ import numpy as np
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1
 from sao.approximations.intervening import MMA
-from sao.move_limit.move_limit import Bounds
-from sao.subproblems import Subproblem
+from sao.move_limits.move_limit import MoveLimitStrategy
+from sao.subproblems.subproblem import Subproblem
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipa
 
 np.set_printoptions(precision=4)
@@ -18,9 +18,9 @@ def test_square(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    approx = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                        bounds=Bounds(prob.xmin, prob.xmax))
-    approx.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+                        ml=MoveLimitStrategy(xmin=prob.xmin, xmax=prob.xmax))
+    subprob.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
     # Initialize iteration counter and design
     itte = 0
@@ -38,14 +38,14 @@ def test_square(n):
         print('iter: {:<4d}  |  obj: {:>9.3f}  |  constr: {:>6.3f}'.format(itte, f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
-        approx.update_approximation(prob.x, f, df, ddf)
+        subprob.update_approximation(prob.x, f, df, ddf)
 
         # Call solver (x_k, g and dg are within approx instance)
         # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
-        solver = ipa(approx, epsimin=1e-9)
+        solver = ipa(subprob, epsimin=1e-9)
         solver.update()
 
-        x_k = solver.x
+        x_k = solver.x.copy()
         itte += 1
 
     print('Alles goed!')
