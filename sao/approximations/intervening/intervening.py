@@ -72,9 +72,9 @@ class ConLin(Intervening):
         self.lin = Linear()
         self.rec = Reciprocal()
 
-    def update_intervening(self, dg, **kwargs):
-        self.positive = dg > 0
-        self.negative = dg < 0
+    def update_intervening(self, df, **kwargs):
+        self.positive = df > 0
+        self.negative = df < 0
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
@@ -125,12 +125,12 @@ class MMA(Intervening):
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
 
-    def update_intervening(self, x, g, dg, **kwargs):
+    def update_intervening(self, x, f, df, **kwargs):
         self.xold2 = self.xold1
         self.xold1 = self.x
         self.x = x
-        self.positive = dg > 0          # size of [m_p, n_l]
-        self.negative = dg < 0          # size of [m_p, n_l]
+        self.positive = df > 0          # size of [m_p, n_l]
+        self.negative = df < 0          # size of [m_p, n_l]
         self.get_asymptotes()
 
     def get_asymptotes(self):
@@ -203,15 +203,4 @@ class MMA(Intervening):
         ddxddy = np.zeros_like(self.positive, dtype=float)
         ddxddy[self.positive] = np.broadcast_to((-2 / self.y(x) ** 3), self.positive.shape)[self.positive]
         ddxddy[self.negative] = np.broadcast_to((2 / self.y(x) ** 3), self.negative.shape)[self.negative]
-
-        # # Backwards finite difference to approximate 2nd order diagonal info: Bii = d2g_i/dx_j^2
-        #
-        # # Making sure P and Q remain positive ---> preserve convexity
-        # dijk = np.maximum(0, Bii - 2 * (self.Pij / ux3[:, 0] + self.Qij / xl3[:, 0]))
-        # addijk = dijk * (ux1 * xl1)[:, 0] / (2 * (self.upp - self.low))[:, 0]
-        #
-        # # P and Q matrices
-        # self.Pij += ux2[:, 0] * addijk
-        # self.Qij += xl2[:, 0] * addijk
-
         return ddxddy
