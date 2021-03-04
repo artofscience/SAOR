@@ -45,12 +45,12 @@ def test_square(n):
         subprob.build(x_k, f, df, (ddf if subprob.approx.__class__.__name__ == 'Taylor2' else None))
 
         # Call solver (x_k, g and dg are within approx instance)
-        x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-        x_k = x.copy()
+        # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        # x_k = x.copy()
 
-        # solver = ipb(subprob, epsimin=1e-9)
-        # solver.update()
-        # x_k = solver.x.copy()
+        solver = ipb(subprob, epsimin=1e-9)
+        solver.update()
+        x_k = solver.x.copy()
 
         itte += 1
 

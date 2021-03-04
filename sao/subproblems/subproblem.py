@@ -1,4 +1,3 @@
-from sao.approximations.approximation import Approximation
 from sao.approximations.intervening import Linear
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.move_limit import MoveLimitStrategy
@@ -13,10 +12,12 @@ class Subproblem:
         self.x = None
         self.f, self.df, self.ddf = None, None, None
         self.alpha, self.beta = None, None
+        self.n, self.m = None
 
     def build(self, x, f, df, ddf=None):
         self.x = x
         self.f, self.df, self.ddf = f, df, ddf
+        self.n, self.m = len(x), len(f) - 1
 
         self.inter.update(x=self.x, f=self.f, df=self.df, ddf=self.ddf,
                           xmin=self.ml.xmin, xmax=self.ml.xmax)
@@ -24,7 +25,7 @@ class Subproblem:
         # Preserve convexity
         if self.ddf is not None:
             Q = self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x))
-            # Q[Q < 0] = 0
+            # Q[Q < 0] = 0          # comment out when running test_subproblem.py
         else:
             Q = None
 
