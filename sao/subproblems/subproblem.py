@@ -17,8 +17,11 @@ class Subproblem(Approximation):
                                       xmin=self.ml.xmin, xmax=self.ml.xmax)
 
         # Preserve convexity
-        Q = self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x))
-        Q[Q < 0] = 0
+        if self.ddf is not None:
+            Q = self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x))
+            Q[Q < 0] = 0
+        else:
+            Q = None
 
         self.approx.update_approximation(self.inter.y(self.x).T, self.f, self.df*self.inter.dxdy(self.x), Q)
         self.alpha, self.beta = self.ml.update_move_limit(self.x, intervening=self.inter)

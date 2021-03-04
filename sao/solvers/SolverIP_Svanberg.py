@@ -17,7 +17,7 @@ class SvanbergIP:
         self.name = 'SvanbergIP'
 
     ## Subsolv function
-    def subsolv(self, approx, **kwargs):
+    def subsolv(self, subprob, **kwargs):
         """
         This function subsolv solves the approximate subproblem P_NLP_tilde:
 
@@ -27,7 +27,7 @@ class SvanbergIP:
                               alpha_j <=  xj <=  beta_j,
                               yi >= 0,
                               z >= 0.
-        Input:  approx
+        Input:  subprob
         Output: x, y, z, lam, xsi, eta, mu, zet, s
         """
         # Initialization of parameters (once per design iteration)
@@ -36,12 +36,12 @@ class SvanbergIP:
         c = self.cCoef * np.ones(self.m)
         d = np.zeros(self.m)  # self.d = np.ones((self.m + 1, 1))
         epsi = 1
-        x = 0.5 * (approx.bounds.alpha + approx.bounds.beta)
+        x = 0.5 * (subprob.alpha + subprob.beta)
         y = np.ones(self.m)
         z = 1
         lam = np.ones(self.m)
-        xsi = np.maximum((1.0 / (x - approx.bounds.alpha)), 1)
-        eta = np.maximum((1.0 / (approx.bounds.beta - x)), 1)
+        xsi = np.maximum((1.0 / (x - subprob.alpha)), 1)
+        eta = np.maximum((1.0 / (subprob.beta - x)), 1)
         mu = np.maximum(1, 0.5 * c)
         zet = 1
         s = np.ones(self.m)
@@ -50,7 +50,7 @@ class SvanbergIP:
         while epsi > self.epsimin:
 
             # upcoming lines determine the left hand sides, i.e. the resiudals of all constraints
-            residunorm, residu = self.residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, approx)
+            residunorm, residu = self.residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, subprob)
             residumax = np.max(np.abs(residu))
 
             # Newton step (Section 7.3)
@@ -62,20 +62,20 @@ class SvanbergIP:
                 itera = itera + 1
 
                 # Calculating PSIjj
-                g_j_tilde_value = approx.g_approx(x)
-                dg_j_tilde_value = approx.dg_approx(x)
-                dg_j_tilde2_value = approx.ddg_approx(x)
+                g_j_tilde_value = subprob.g(x)
+                dg_j_tilde_value = subprob.dg(x)
+                dg_j_tilde2_value = subprob.ddg(x)
                 dpsi_dx = (dg_j_tilde_value[0, :] + np.dot(lam, dg_j_tilde_value[1:, :]))
                 d2psi_dx2 = (dg_j_tilde2_value[0, :] + np.dot(lam, dg_j_tilde2_value[1:, :]))
 
                 # Calculation of right hand sides of partially reduced system (Svanberg1998/page 16)
-                delx = dpsi_dx - epsi / (x - approx.bounds.alpha) + epsi / (approx.bounds.beta - x)
+                delx = dpsi_dx - epsi / (x - subprob.alpha) + epsi / (subprob.beta - x)
                 dely = c + d * y - lam - epsi / y
                 delz = a0 - np.dot(a, lam) - epsi / z
-                dellam = g_j_tilde_value[1:] - a * z - y - approx.b + epsi / lam
+                dellam = g_j_tilde_value[1:] - a * z - y + epsi / lam
 
                 # Calculation of diagonal matrices: Dx, Dy, Dlam
-                diagx = d2psi_dx2 + xsi/(x - approx.bounds.alpha) + eta/(approx.bounds.beta - x)
+                diagx = d2psi_dx2 + xsi/(x - subprob.alpha) + eta/(subprob.beta - x)
                 diagy = d + mu / y
                 diaglam = s / lam                           # - is missing
                 diaglamyi = diaglam + 1.0 / diagy           # what is that?
@@ -95,8 +95,8 @@ class SvanbergIP:
                 dz = solut[self.m]
                 dx = -delx / diagx - np.dot(dg_j_tilde_value[1:, :].T, dlam) / diagx
                 dy = -dely / diagy + dlam / diagy
-                dxsi = -xsi + epsi / (x - approx.bounds.alpha) - (xsi * dx) / (x - approx.bounds.alpha)
-                deta = -eta + epsi / (approx.bounds.beta - x) + (eta * dx) / (approx.bounds.beta - x)
+                dxsi = -xsi + epsi / (x - subprob.alpha) - (xsi * dx) / (x - subprob.alpha)
+                deta = -eta + epsi / (subprob.beta - x) + (eta * dx) / (subprob.beta - x)
                 dmu = -mu + epsi / y - (mu * dy) / y
                 dzet = -zet + epsi / z - zet * dz / z
                 ds = -s + epsi / lam - (s * dlam) / lam
@@ -109,10 +109,10 @@ class SvanbergIP:
                 stepxx = -1.01 * dxx / xx
                 stmxx = np.max(stepxx)
 
-                stepalpha = -1.01 * dx / (x - approx.bounds.alpha)
+                stepalpha = -1.01 * dx / (x - subprob.alpha)
                 stmalpha = np.max(stepalpha)
 
-                stepbeta = 1.01 * dx / (approx.bounds.beta - x)
+                stepbeta = 1.01 * dx / (subprob.beta - x)
                 stmbeta = np.max(stepbeta)
 
                 # Step-size calculation: We 're looking for the max{theta} that satisfies the above equalities
@@ -149,7 +149,7 @@ class SvanbergIP:
                     s = sold + steg * ds
 
                     # Recalculate residual of equations
-                    resinew, residu = self.residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, approx)
+                    resinew, residu = self.residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, subprob)
 
                     # Reduce step-size by 50%
                     steg = steg / 2
@@ -167,19 +167,20 @@ class SvanbergIP:
 
     ## Calculates the residual of the relaxed KKT conditions
     @staticmethod
-    def residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, approx):
+    def residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, subprob):
 
         # Calculating g_j_tilde_value, dg_j_tilde_value and dpsi_dx
-        g_j_tilde_value = approx.g_approx(x)
-        dg_j_tilde_value = approx.dg_approx(x)
+        g_j_tilde_value = subprob.g(x)
+        dg_j_tilde_value = subprob.dg(x)
         dpsi_dx = (dg_j_tilde_value[0, :] + np.dot(lam.T, dg_j_tilde_value[1:, :]))
+
         # Calculation of other residuals
         rex = dpsi_dx - xsi + eta
         rey = c + d * y - mu - lam
         rez = a0 - zet - np.dot(a, lam)
-        relam = g_j_tilde_value[1:] - a * z - y + s - approx.b
-        rexsi = xsi * (x - approx.bounds.alpha) - epsi
-        reeta = eta * (approx.bounds.beta - x) - epsi
+        relam = g_j_tilde_value[1:] - a * z - y + s
+        rexsi = xsi * (x - subprob.alpha) - epsi
+        reeta = eta * (subprob.beta - x) - epsi
         remu = mu * y - epsi
         rezet = zet * z - epsi
         res = lam * s - epsi

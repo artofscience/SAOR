@@ -1,12 +1,13 @@
 import pytest
 import numpy as np
 from Problems.square import Square
-from sao.approximations.taylor import Taylor1
-from sao.approximations.intervening import MMA
+from sao.approximations.taylor import Taylor1, Taylor2
+from sao.approximations.intervening import Linear, ConLin, MMA
 from sao.move_limits.move_limit import MoveLimitStrategy
 from sao.subproblems.subproblem import Subproblem
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
+from sao.solvers.SolverIP_Svanberg import SvanbergIP
 
 np.set_printoptions(precision=4)
 
@@ -19,9 +20,11 @@ def test_square(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                        ml=MoveLimitStrategy(xmin=prob.xmin, xmax=prob.xmax))
-    subprob.update_approximation(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
+    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+                         ml=MoveLimitStrategy(xmin=prob.xmin, xmax=prob.xmax))
+
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, 1)
 
     # Initialize iteration counter and design
     itte = 0
@@ -36,17 +39,19 @@ def test_square(n):
         ddf = prob.ddg(x_k)
 
         # Print current iteration and x_k
-        print('iter: {:<4d}  |  x: {}  |  obj: {:>9.3f}  |  constr: {:>6.3f}'.format(itte, x_k, f[0], f[1]))
+        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
-        subprob.update_approximation(prob.x, f, df, ddf)
+        subprob.update_approximation(x_k, f, df, (ddf if subprob.approx.__class__.__name__ == 'Taylor2' else None))
 
         # Call solver (x_k, g and dg are within approx instance)
-        # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(approx)
-        solver = ipa(subprob, epsimin=1e-9)
-        solver.update()
+        x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = x.copy()
 
-        x_k = solver.x.copy()
+        # solver = ipb(subprob, epsimin=1e-9)
+        # solver.update()
+        # x_k = solver.x.copy()
+
         itte += 1
 
     print('Alles goed!')
