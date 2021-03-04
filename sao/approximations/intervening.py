@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Intervening(ABC):
-    def update_intervening(self, **kwargs):
+    def update(self, **kwargs):
         pass
 
     @abstractmethod
@@ -72,8 +72,8 @@ class ConLin(Intervening):
         self.lin = Linear()
         self.rec = Reciprocal()
 
-    def update_intervening(self, df, **kwargs):
-        self.positive = df > 0
+    def update(self, df, **kwargs):
+        self.positive = df >= 0
         self.negative = df < 0
 
     def y(self, x):
@@ -125,11 +125,11 @@ class MMA(Intervening):
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
 
-    def update_intervening(self, x, f, df, **kwargs):
+    def update(self, x, f, df, **kwargs):
         self.xold2 = self.xold1
         self.xold1 = self.x
         self.x = x
-        self.positive = df > 0          # size of [m_p, n_l]
+        self.positive = df >= 0         # size of [m_p, n_l]
         self.negative = df < 0          # size of [m_p, n_l]
         self.get_asymptotes()
 

@@ -12,7 +12,7 @@ from sao.solvers.SolverIP_Svanberg import SvanbergIP
 np.set_printoptions(precision=4)
 
 
-@pytest.mark.parametrize('n', [2, 5, 10])
+@pytest.mark.parametrize('n', [2, 5])
 def test_square(n):
 
     # Instantiate problem
@@ -20,7 +20,7 @@ def test_square(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(),
                          ml=MoveLimitStrategy(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate solver
@@ -42,7 +42,7 @@ def test_square(n):
         print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
-        subprob.update_approximation(x_k, f, df, (ddf if subprob.approx.__class__.__name__ == 'Taylor2' else None))
+        subprob.build(x_k, f, df, (ddf if subprob.approx.__class__.__name__ == 'Taylor2' else None))
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
@@ -58,5 +58,5 @@ def test_square(n):
 
 
 if __name__ == "__main__":
-    test_square(2)
+    test_square(4)
 

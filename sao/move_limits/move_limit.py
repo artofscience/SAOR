@@ -3,7 +3,7 @@ import math
 
 
 class MoveLimitStrategy:
-    def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.2, **kwargs):
+    def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1, **kwargs):
         self.xmin = xmin
         self.xmax = xmax
         self.dx = xmax - xmin
