@@ -20,31 +20,31 @@ class Vanderplaats:
 
         # Initial point
         self.x0 = np.zeros(self.n, dtype=float)
-        self.x0[:self.N] = 5.                                       # initial -b-
-        self.x0[self.N:] = 40.                                      # initial -h-
+        self.x0[:self.N] = 5.       # initial -b-
+        self.x0[self.N:] = 40.      # initial -h-
 
         # Variable bounds
-        self.xmin = np.ones(self.n, dtype=float) * 1e-1            # self.xmin
-        self.xmax = np.ones(self.n, dtype=float) * 1e2             # self.xmax
+        self.xmin = np.ones(self.n, dtype=float) * 1e-1  # self.xmin
+        self.xmax = np.ones(self.n, dtype=float) * 1e2  # self.xmax
 
         # Parameters
-        self.sig_max = 14e3             # Stress limit
-        self.y_max = 2.5                # Displacement limit
-        self.P = 5e4                    # Load
-        self.E = 2e7                    # Young's Modulus
-        self.L = 5e2                    # Total length
-        self.S = self.L / self.N        # Segment length
+        self.sig_max = 14e3  # Stress limit
+        self.y_max = 2.5  # Displacement limit
+        self.P = 5e4  # Load
+        self.E = 2e7  # Young's Modulus
+        self.L = 5e2  # Total length
+        self.S = self.L / self.N  # Segment length
 
     def g(self, x_k):
-        g_j = np.zeros(self.m + 1, dtype=float)
         y = 0.
         ya = 0.
+        g = np.zeros((self.m + 1), dtype=float)
         for i in range(self.N):
-            b = x_k[i]                   # get width
-            h = x_k[self.N + i]          # get height
+            b = x_k[i]  # get width
+            h = x_k[self.N + i]  # get height
 
             # Weight objective
-            g_j[0] = g_j[0] + self.S * b * h * 1e-3
+            g[0] = g[0] + self.S * b * h * 1e-3
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
@@ -54,33 +54,34 @@ class Vanderplaats:
 
             # Stress constraint
             sts = (M * h) / (2 * I)
-            g_j[1 + i] = sts / self.sig_max - 1.
+            g[1 + i] = sts / self.sig_max - 1.
 
             # Geometric constraint
-            g_j[1 + self.N + i] = h - 20 * b
+            g[1 + self.N + i] = h - 20 * b
 
             # Left displacement
-            y = (self.P * self.S ** 2) / (2 * self.E * I) * (self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
+            y = (self.P * self.S ** 2) / (2 * self.E * I) * (
+                        self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
 
             # Right displacement
             ya = (self.P * self.S) / (self.E * I) * (self.L - (i + 1) * self.S + self.S / 2) + ya
 
         # Displacement constraint value
-        g_j[1 + 2 * self.N] = y / self.y_max - 1
+        g[1 + 2 * self.N] = y / self.y_max - 1
 
-        return g_j
+        return g
 
     def dg(self, x_k):
-        dg_j = np.zeros((self.m + 1, self.n), dtype=np.float_)
         y = 0.
         ya = 0.
+        dg = np.zeros((self.m + 1, self.n), dtype=float)
         for i in range(self.N):
-            b = x_k[i]                      # get width
-            h = x_k[self.N + i]             # get height
+            b = x_k[i]              # get width
+            h = x_k[self.N + i]     # get height
 
             # Derivatives of objective
-            dg_j[0, i] = self.S * h * 1e-3
-            dg_j[0, self.N + i] = self.S * b * 1e-3
+            dg[0, i] = self.S * h * 1e-3
+            dg[0, self.N + i] = self.S * b * 1e-3
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
@@ -92,15 +93,16 @@ class Vanderplaats:
 
             # Stress constraint sensitivities
             sts = (M * h) / (2 * I)
-            dg_j[1 + i, i] = - (6 * M) / (self.sig_max * h ** 2 * b ** 2)
-            dg_j[1 + i, self.N + i] = - (12 * M) / (self.sig_max * b * h ** 3)
+            dg[1 + i, i] = - (6 * M) / (self.sig_max * h ** 2 * b ** 2)
+            dg[1 + i, self.N + i] = - (12 * M) / (self.sig_max * b * h ** 3)
 
             # Geometric constraint sensitivities
-            dg_j[1 + self.N + i, i] = -20
-            dg_j[1 + self.N + i, self.N + i] = 1
+            dg[1 + self.N + i, i] = -20
+            dg[1 + self.N + i, self.N + i] = 1
 
             # Left displacement
-            y = (self.P * self.S ** 2) / (2 * self.E * I) * (self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
+            y = (self.P * self.S ** 2) / (2 * self.E * I) * (
+                        self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
 
             # Right displacement
             ya = (self.P * self.S) / (self.E * I) * (self.L - (i + 1) * self.S + self.S / 2) + ya
@@ -114,19 +116,20 @@ class Vanderplaats:
             dAa_dh = -self.P * self.S / self.E / I / I * (self.L - (i + 1) * self.S + self.S / 2) * dIdh
 
             # Displacement constraint sensitivities
-            dg_j[1 + 2 * self.N, i] = ((self.N - i - 1) * dAa_db * self.S + dA_db) / self.y_max
-            dg_j[1 + 2 * self.N, self.N + i] = ((self.N - i - 1) * dAa_dh * self.S + dA_dh) / self.y_max
+            dg[1 + 2 * self.N, i] = ((self.N - i - 1) * dAa_db * self.S + dA_db) / self.y_max
+            dg[1 + 2 * self.N, self.N + i] = ((self.N - i - 1) * dAa_dh * self.S + dA_dh) / self.y_max
 
-        return dg_j
+        return dg
 
-    def visualize(self, k, t, vis, x_k):
+    def visualize(self, x_k, iteration, vis, **kwargs):
         """Function to visualize current design"""
         s = int(self.L / self.N)
         x = np.arange(0, s * self.N, s)
-        y = np.zeros(self.N)
+        # y = np.zeros(self.N)
+        t = kwargs.get('t', 0)
 
         if t != 1:
-            if k == 0:
+            if iteration == 0:
                 plt.ion()
                 fig, (ax1, ax2) = plt.subplots(2, 1)
                 fig.suptitle('Vanderplaats beam of {} elements'.format(self.N), fontsize=20)
