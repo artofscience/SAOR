@@ -3,7 +3,7 @@ import numpy as np
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitStrategy
+from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.subproblems.subproblem import Subproblem
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
@@ -21,7 +21,7 @@ def test_square(n):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(),
-                         ml=MoveLimitStrategy(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, 1)
@@ -36,19 +36,19 @@ def test_square(n):
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        ddf = prob.ddg(x_k)
+        ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
         print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df, (ddf if subprob.approx.__class__.__name__ == 'Taylor2' else None))
+        subprob.build(x_k, f, df, ddf)
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
         x_k = x.copy()
 
-        # solver = ipa(subprob, epsimin=1e-9)
+        # solver = ipb(subprob, epsimin=1e-7)
         # solver.update()
         # x_k = solver.x.copy()
 

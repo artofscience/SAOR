@@ -1,10 +1,10 @@
 from sao.approximations.intervening import Linear
 from sao.approximations.taylor import Taylor1
-from sao.move_limits.move_limit import MoveLimitStrategy
+from sao.move_limits.ml_intervening import MoveLimitIntervening
 
 
 class Subproblem:
-    def __init__(self, intervening=Linear(), approximation=Taylor1(), ml=MoveLimitStrategy()):
+    def __init__(self, intervening=Linear(), approximation=Taylor1(), ml=MoveLimitIntervening()):
         super().__init__()
         self.inter = intervening
         self.approx = approximation
