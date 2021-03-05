@@ -42,9 +42,6 @@ class Subproblem(Problem):
     def ddg(self, x):
         return self.approx.ddg(y=self.inter.y(x).T, dy=self.inter.dy(x), ddy=self.inter.ddy(x))
 
-    def get_bounds(self):
-        # Clip all bounds
-        return self.alpha, self.beta
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
     Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [(m+1) x n]
