@@ -19,17 +19,16 @@ class Subproblem:
         self.f, self.df, self.ddf = f, df, ddf
         self.n, self.m = len(x), len(f) - 1             # to fit Stijn's solvers
 
-        self.inter.update(x=self.x, f=self.f, df=self.df, ddf=self.ddf,
-                          xmin=self.ml.xmin, xmax=self.ml.xmax)
+        self.inter.update(x=self.x, f=self.f, df=self.df, ddf=self.ddf, xmin=self.ml.xmin, xmax=self.ml.xmax)
 
-        # Preserve convexity
+        # Enforce convexity
         if self.ddf is not None:
             Q = self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x))
             Q[Q < 0] = 0          # comment out when running test_subproblem.py
         else:
             Q = None
 
-        self.approx.generate(self.inter.y(self.x).T, self.f, self.df*self.inter.dxdy(self.x), Q)
+        self.approx.update(self.inter.y(self.x).T, self.f, self.df*self.inter.dxdy(self.x), Q)
         self.alpha, self.beta = self.ml.update_move_limit(self.x, intervening=self.inter)
 
     def g(self, x):
@@ -43,9 +42,9 @@ class Subproblem:
 
 
     '''
-    P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [m x n]
-    Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [m x n]
-    y = [m x n] or [n], depending on the intervening variables used (see ReferenceFiles/TaylorExpansion.pdf)
+    P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
+    Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [(m+1) x n]
+    y = [(m+1) x n] or [n], depending on the intervening variables used (see ReferenceFiles/TaylorExpansion.pdf)
     x = [n]
         
           |   resp [1, 2, 3]  |     resp [4, 5]

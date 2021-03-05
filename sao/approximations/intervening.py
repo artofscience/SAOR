@@ -168,7 +168,7 @@ class MMA(Intervening):
             self.upp = np.minimum(self.upp, uppmax)
             self.upp = np.maximum(self.upp, uppmin)
 
-    def get_bounds(self):
+    def get_move_limit(self):
         zzl1 = self.low + self.albefa * (self.x - self.low)
         zzu1 = self.upp - self.albefa * (self.upp - self.x)
         return zzl1, zzu1

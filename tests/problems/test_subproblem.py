@@ -56,7 +56,7 @@ def test_rec_taylor2(n):
 
     P = prob.dg(prob.x) * (-(prob.x**2))
     Q = prob.ddg(prob.x) * prob.x**4 + prob.dg(prob.x) * 2 * prob.x**3
-    # Q[Q < 0] = 0        # preserve convexity
+    # Q[Q < 0] = 0        # enforce convexity
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
@@ -94,7 +94,7 @@ def test_conlin_taylor2(n):
     conlin.update(prob.dg(prob.x))
     P = prob.dg(prob.x) * conlin.dxdy(prob.x)
     Q = prob.ddg(prob.x)*(conlin.dxdy(prob.x))**2 + prob.dg(prob.x)*conlin.ddxddy(prob.x)
-    # Q[Q < 0] = 0      # preserve convexity
+    # Q[Q < 0] = 0      # enforce convexity
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
@@ -132,7 +132,7 @@ def test_mma_taylor2(n):
     mma.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
     P = prob.dg(prob.x) * mma.dxdy(prob.x)
     Q = prob.ddg(prob.x)*(mma.dxdy(prob.x))**2 + prob.dg(prob.x)*mma.ddxddy(prob.x)
-    # Q[Q < 0] = 0      # preserve convexity
+    # Q[Q < 0] = 0      # enforce convexity
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)

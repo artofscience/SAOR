@@ -125,7 +125,6 @@ class Vanderplaats:
         """Function to visualize current design"""
         s = int(self.L / self.N)
         x = np.arange(0, s * self.N, s)
-        # y = np.zeros(self.N)
         t = kwargs.get('t', 0)
 
         if t != 1:

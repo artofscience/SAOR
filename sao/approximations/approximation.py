@@ -10,7 +10,7 @@ class Approximation(ABC):
         self.m = -1  # Number of constraints
         self.n = -1  # Number of variables
 
-    def generate(self, y, f, P, Q=None):
+    def update(self, y, f, P, Q=None):
         """ Puts in data from the original problem. Once per design iteration.
 
         :param y:
