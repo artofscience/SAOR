@@ -11,6 +11,7 @@ class Subproblem(Problem):
         self.approx = approximation
         self.ml = ml
         self.f, self.df, self.ddf = None, None, None
+        self.alpha, self.beta = None, None
 
     def build(self, x, f, df, ddf=None):
         self.x = x

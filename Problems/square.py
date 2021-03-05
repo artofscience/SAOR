@@ -12,8 +12,8 @@ class Square(Problem):
     """
     def __init__(self, n):
         super().__init__()
-        self.xmin = self.alpha = -np.ones(n)                # cuz a subproblem uses both
-        self.xmax = self.beta = np.ones(n)                  # cuz a subproblem uses both
+        self.xmin = self.alpha = -np.ones(n)               # cuz a subproblem uses both, whereas a problem only has xmin
+        self.xmax = self.beta = np.ones(n)                 # cuz a subproblem uses both, whereas a problem only has xmax
         self.x = np.random.uniform(self.xmin, self.xmax)
         self.n = n
         self.m = 1
@@ -26,6 +26,3 @@ class Square(Problem):
 
     def ddg(self, x):
         return np.array([2*np.ones_like(x), np.zeros_like(x)])
-
-    def get_bounds(self):
-        return self.alpha, self.beta

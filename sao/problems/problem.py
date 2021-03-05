@@ -8,7 +8,7 @@ class Problem(ABC):
     def __init__(self):
         # TODO: All problems (and subproblems) must have alpha and beta, but only exact problems have xmin, xmax.
         #  Perhaps xmin, xmax can be removed completely, not sure.
-        self.alpha, self.beta = None, None
+        self.xmin, self.xmax = None, None
         self.x = None
         self.n, self.m = None, None
 
@@ -22,6 +22,3 @@ class Problem(ABC):
 
     def ddg(self, x):
         ...
-
-    def get_bounds(self):
-        return self.alpha, self.beta
