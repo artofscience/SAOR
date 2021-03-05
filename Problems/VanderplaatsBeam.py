@@ -1,13 +1,14 @@
 ## IMPORTS
+from sao.problems.problem import Problem
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 ## CLASS: This is the Vanderplaats cantilever beam by Dirk (scaled objective as: g_0' = 1e-3 * g_0)
-class Vanderplaats:
+class Vanderplaats(Problem):
 
     def __init__(self, N):
-        self.name = 'Vanderplaats'
+        super().__init__()
 
         # Number of segments
         self.N = N

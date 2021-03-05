@@ -15,7 +15,7 @@ class MoveLimitIntervening(MoveLimitStrategy):
         self.alpha = xmin + 0
         self.beta = xmax + 0
 
-    def update_move_limit(self, x, **kwargs):
+    def update(self, x, **kwargs):
 
         # limit change with the move limit
         zzl1 = x - self.move_limit * self.dx

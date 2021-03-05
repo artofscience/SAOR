@@ -3,7 +3,7 @@ from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
-from sao.subproblems.subproblem import Subproblem
+from sao.problems.subproblem import Subproblem
 
 
 @pytest.mark.parametrize('n', [10, 100, 1000])

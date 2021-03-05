@@ -1,9 +1,10 @@
+from sao.problems.problem import Problem
 from sao.approximations.intervening import Linear
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 
 
-class Subproblem:
+class Subproblem(Problem):
     def __init__(self, intervening=Linear(), approximation=Taylor1(), ml=MoveLimitIntervening()):
         super().__init__()
         self.inter = intervening
@@ -29,7 +30,7 @@ class Subproblem:
             Q = None
 
         self.approx.update(self.inter.y(self.x).T, self.f, self.df*self.inter.dxdy(self.x), Q)
-        self.alpha, self.beta = self.ml.update_move_limit(self.x, intervening=self.inter)
+        self.alpha, self.beta = self.ml.update(self.x, intervening=self.inter)
 
     def g(self, x):
         return self.approx.g(y=self.inter.y(x).T)
@@ -40,7 +41,9 @@ class Subproblem:
     def ddg(self, x):
         return self.approx.ddg(y=self.inter.y(x).T, dy=self.inter.dy(x), ddy=self.inter.ddy(x))
 
-
+    def get_bounds(self):
+        # Clip all bounds
+        return self.alpha, self.beta
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
     Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [(m+1) x n]

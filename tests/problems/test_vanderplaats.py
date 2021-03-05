@@ -4,7 +4,7 @@ from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
-from sao.subproblems.subproblem import Subproblem
+from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
