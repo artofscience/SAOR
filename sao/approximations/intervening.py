@@ -168,11 +168,6 @@ class MMA(Intervening):
             self.upp = np.minimum(self.upp, uppmax)
             self.upp = np.maximum(self.upp, uppmin)
 
-    def get_move_limit(self):
-        zzl1 = self.low + self.albefa * (self.x - self.low)
-        zzu1 = self.upp - self.albefa * (self.upp - self.x)
-        return zzl1, zzu1
-
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
         y[self.positive] = np.broadcast_to((1 / (self.upp - x)), self.positive.shape)[self.positive]
@@ -204,3 +199,8 @@ class MMA(Intervening):
         ddxddy[self.positive] = np.broadcast_to((-2 / self.y(x) ** 3), self.positive.shape)[self.positive]
         ddxddy[self.negative] = np.broadcast_to((2 / self.y(x) ** 3), self.negative.shape)[self.negative]
         return ddxddy
+
+    def get_move_limit(self):
+        zzl1 = self.low + self.albefa * (self.x - self.low)
+        zzu1 = self.upp - self.albefa * (self.upp - self.x)
+        return zzl1, zzu1

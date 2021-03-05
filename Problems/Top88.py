@@ -8,12 +8,14 @@ from matplotlib import colors
 import matplotlib.pyplot as plt
 import cvxopt
 import cvxopt.cholmod
+from sao.problems.problem import Problem
 
 
 ## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
-class Top88:
+class Top88(Problem):
 
     def __init__(self, nelx, nely, volfrac, penal, rmin, ft):
+        super().__init__()
         self.Emin = 1e-9
         self.Emax = 1.0
         self.nelx = nelx

@@ -21,6 +21,8 @@ class MoveLimitIntervening(MoveLimitStrategy):
         zzl1 = x - self.move_limit * self.dx
         zzu1 = x + self.move_limit * self.dx
 
+        # TODO: Alter this by implementing a `get_move_limit()` method in abstract class Intervening in order to avoid
+        #  the `if` statement. Didn't do it already cause you don't have access to the variable size `n` there.
         # if intervening vars provide a type of 'move limit' (e.g. MMA), limit change in x_i wrt intermediate variables
         if (inter := kwargs.get('intervening')) and hasattr(inter, 'get_move_limit'):
             zzl2, zzu2 = inter.get_move_limit()

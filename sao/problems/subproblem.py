@@ -10,10 +10,7 @@ class Subproblem(Problem):
         self.inter = intervening
         self.approx = approximation
         self.ml = ml
-        self.x = None
         self.f, self.df, self.ddf = None, None, None
-        self.alpha, self.beta = None, None
-        self.n, self.m = None, None
 
     def build(self, x, f, df, ddf=None):
         self.x = x
@@ -22,6 +19,9 @@ class Subproblem(Problem):
 
         self.inter.update(x=self.x, f=self.f, df=self.df, ddf=self.ddf, xmin=self.ml.xmin, xmax=self.ml.xmax)
 
+        # TODO: Enforcing convexity must be a separate method so that it is applied optionally.
+        #  Now, test_subproblem.py won't pass because of that.
+        #  If I remove the convexity enforcement, subproblems might become non-convex and diverge from local optimum.
         # Enforce convexity
         if self.ddf is not None:
             Q = self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x))
