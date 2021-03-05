@@ -48,7 +48,7 @@ def test_square(n):
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
         x_k = x.copy()
 
-        # solver = ipb(subprob, epsimin=1e-7)
+        # solver = ipa(subprob, epsimin=1e-7)
         # solver.update()
         # x_k = solver.x.copy()
 
