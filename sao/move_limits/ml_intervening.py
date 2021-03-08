@@ -10,10 +10,11 @@ class MoveLimitIntervening(MoveLimitStrategy):
     """
 
     def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1, **kwargs):
-        super().__init__(xmin, xmax, move_limit, **kwargs)
+        super().__init__(xmin, xmax, **kwargs)
         self.dx = xmax - xmin
         self.alpha = xmin + 0
         self.beta = xmax + 0
+        self.move_limit = move_limit
 
     def update(self, x, **kwargs):
 
