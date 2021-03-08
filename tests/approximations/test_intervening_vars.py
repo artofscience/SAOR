@@ -4,7 +4,7 @@ from Problems.square import Square
 from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_linear(n):
     print("Testing linear intervening variables")
     prob = Square(n)
@@ -15,7 +15,7 @@ def test_linear(n):
     assert lin.ddy(prob.x) == pytest.approx(0, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_reciprocal(n):
     print("Testing reciprocal intervening variables")
     prob = Square(n)
@@ -26,7 +26,7 @@ def test_reciprocal(n):
     assert rec.ddy(prob.x) == pytest.approx(2/prob.x**3, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_conlin(n):
     print("Testing ConLin intervening variables")
     prob = Square(n)
@@ -48,7 +48,7 @@ def test_conlin(n):
     assert conlin.ddy(prob.x) == pytest.approx(temp_ddy, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_mma(n):
     print("Testing MMA intervening variables")
     prob = Square(n)

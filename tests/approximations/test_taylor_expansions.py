@@ -4,7 +4,7 @@ from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_taylor1(n):
 
     print("Testing 1st-order Taylor expansion")
@@ -17,7 +17,7 @@ def test_taylor1(n):
     assert taylor1.ddg(ddy=np.zeros_like(prob.x)) == pytest.approx(0, abs=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_taylor2(n):
     print("Testing 2nd-order Taylor expansion")
     prob = Square(n)

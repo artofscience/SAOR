@@ -12,7 +12,7 @@ from sao.solvers.SolverIP_Svanberg import SvanbergIP
 np.set_printoptions(precision=4)
 
 
-@pytest.mark.parametrize('n', [2, 5])
+@pytest.mark.parametrize('n', [10, 20])
 def test_square(n):
 
     # Instantiate problem

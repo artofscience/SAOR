@@ -6,7 +6,7 @@ from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_lin_taylor1(n):
     print("Testing 1st-order Taylor wrt y=x")
     prob = Square(n)
@@ -18,7 +18,7 @@ def test_lin_taylor1(n):
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_lin_taylor2(n):
     print("Testing 2nd-order Taylor wrt y=x")
     prob = Square(n)
@@ -31,7 +31,7 @@ def test_lin_taylor2(n):
     assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_rec_taylor1(n):
     print("Testing 1st-order Taylor wrt y=1/x")
     prob = Square(n)
@@ -46,7 +46,7 @@ def test_rec_taylor1(n):
     assert subprob.approx.P == pytest.approx(P, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_rec_taylor2(n):
     print("Testing 2nd-order Taylor wrt y=1/x")
     prob = Square(n)
@@ -64,7 +64,7 @@ def test_rec_taylor2(n):
     assert subprob.approx.Q == pytest.approx(Q, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_conlin_taylor1(n):
     print("Testing 1st-order Taylor with y=ConLin")
     prob = Square(n)
@@ -81,7 +81,7 @@ def test_conlin_taylor1(n):
     assert subprob.approx.P == pytest.approx(P, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_conlin_taylor2(n):
     print("Testing 2nd-order Taylor with y=ConLin")
     prob = Square(n)
@@ -101,7 +101,7 @@ def test_conlin_taylor2(n):
     assert subprob.approx.Q == pytest.approx(Q, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_mma_taylor1(n):
     print("Testing 1st-order Taylor with y=MMA")
     prob = Square(n)
@@ -118,7 +118,7 @@ def test_mma_taylor1(n):
     assert subprob.approx.P == pytest.approx(P, rel=1e-4)
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [10])
 def test_mma_taylor2(n):
     print("Testing 2nd-order Taylor with y=MMA")
     prob = Square(n)
