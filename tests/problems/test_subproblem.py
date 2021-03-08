@@ -73,7 +73,7 @@ def test_conlin_taylor1(n):
     subprob.build(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
     conlin = ConLin()
-    conlin.update(prob.dg(prob.x))
+    conlin.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
     P = prob.dg(prob.x) * conlin.dxdy(prob.x)
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
@@ -90,7 +90,7 @@ def test_conlin_taylor2(n):
     subprob.build(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
     conlin = ConLin()
-    conlin.update(prob.dg(prob.x))
+    conlin.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
     P = prob.dg(prob.x) * conlin.dxdy(prob.x)
     Q = prob.ddg(prob.x)*(conlin.dxdy(prob.x))**2 + prob.dg(prob.x)*conlin.ddxddy(prob.x)
 

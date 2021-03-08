@@ -31,7 +31,7 @@ def test_conlin(n):
     print("Testing ConLin intervening variables")
     prob = Square(n)
     conlin = ConLin()
-    conlin.update(prob.dg(prob.x))
+    conlin.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
     temp_y = np.zeros((prob.m + 1, prob.n), dtype=float)
     temp_dy = np.zeros((prob.m + 1, prob.n), dtype=float)
     temp_ddy = np.zeros((prob.m + 1, prob.n), dtype=float)

@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Intervening(ABC):
-    def update(self, **kwargs):
+    def update(self, x, f, df):
         pass
 
     @abstractmethod
@@ -72,7 +72,7 @@ class ConLin(Intervening):
         self.lin = Linear()
         self.rec = Reciprocal()
 
-    def update(self, df, **kwargs):
+    def update(self, x, f, df):
         self.positive = df >= 0
         self.negative = df < 0
 
@@ -125,7 +125,7 @@ class MMA(Intervening):
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
 
-    def update(self, x, f, df, **kwargs):
+    def update(self, x, f, df):
         self.xold2 = self.xold1
         self.xold1 = self.x
         self.x = x

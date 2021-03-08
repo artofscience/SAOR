@@ -45,13 +45,13 @@ class Approximation(ABC):
         self.Q[self.Q < 0] = 0
 
     @abstractmethod
-    def g(self, y=None, dy=None, ddy=None):
+    def g(self, y):
         ...
 
     @abstractmethod
-    def dg(self, y=None, dy=None, ddy=None):
+    def dg(self, y, dy):
         ...
 
     @abstractmethod
-    def ddg(self, y=None, dy=None, ddy=None):
+    def ddg(self, y, dy, ddy):
         ...

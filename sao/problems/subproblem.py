@@ -10,33 +10,30 @@ class Subproblem(Problem):
         self.inter = intervening
         self.approx = approximation
         self.ml = ml
-        self.f, self.df, self.ddf = None, None, None
         self.alpha, self.beta = None, None
 
     def build(self, x, f, df, ddf=None):
-        self.x = x
-        self.f, self.df, self.ddf = f, df, ddf
         self.n, self.m = len(x), len(f) - 1             # to fit Stijn's solvers
 
-        self.inter.update(x=self.x, f=self.f, df=self.df, ddf=self.ddf, xmin=self.ml.xmin, xmax=self.ml.xmax)
+        self.inter.update(x, f, df)
 
         # If available, handle 2nd-order information
-        if self.ddf is not None:
-            self.approx.update(self.inter.y(self.x).T, self.f, self.df * self.inter.dxdy(self.x),
-                               self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x)))
+        if ddf is not None:
+            self.approx.update(self.inter.y(x).T, f, df * self.inter.dxdy(x),
+                               ddf * (self.inter.dxdy(x)) ** 2 + df * (self.inter.ddxddy(x)))
         else:
-            self.approx.update(self.inter.y(self.x).T, self.f, self.df * self.inter.dxdy(self.x))
+            self.approx.update(self.inter.y(x).T, f, df * self.inter.dxdy(x))
 
-        self.alpha, self.beta = self.ml.update(self.x, intervening=self.inter)
+        self.alpha, self.beta = self.ml.update(x, intervening=self.inter)
 
     def g(self, x):
-        return self.approx.g(y=self.inter.y(x).T)
+        return self.approx.g(self.inter.y(x).T)
 
     def dg(self, x):
-        return self.approx.dg(y=self.inter.y(x).T, dy=self.inter.dy(x))
+        return self.approx.dg(self.inter.y(x).T, self.inter.dy(x))
 
     def ddg(self, x):
-        return self.approx.ddg(y=self.inter.y(x).T, dy=self.inter.dy(x), ddy=self.inter.ddy(x))
+        return self.approx.ddg(self.inter.y(x).T, self.inter.dy(x), self.inter.ddy(x))
 
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
