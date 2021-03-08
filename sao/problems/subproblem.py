@@ -20,17 +20,13 @@ class Subproblem(Problem):
 
         self.inter.update(x=self.x, f=self.f, df=self.df, ddf=self.ddf, xmin=self.ml.xmin, xmax=self.ml.xmax)
 
-        # TODO: Enforcing convexity must be a separate method so that it is applied optionally.
-        #  Now, test_subproblem.py won't pass because of that.
-        #  If I remove the convexity enforcement, subproblems might become non-convex and diverge from local optimum.
-        # Enforce convexity
+        # If available, handle 2nd-order information
         if self.ddf is not None:
-            Q = self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x))
-            Q[Q < 0] = 0          # comment out when running test_subproblem.py
+            self.approx.update(self.inter.y(self.x).T, self.f, self.df * self.inter.dxdy(self.x),
+                               self.ddf * (self.inter.dxdy(self.x)) ** 2 + self.df * (self.inter.ddxddy(self.x)))
         else:
-            Q = None
+            self.approx.update(self.inter.y(self.x).T, self.f, self.df * self.inter.dxdy(self.x))
 
-        self.approx.update(self.inter.y(self.x).T, self.f, self.df*self.inter.dxdy(self.x), Q)
         self.alpha, self.beta = self.ml.update(self.x, intervening=self.inter)
 
     def g(self, x):

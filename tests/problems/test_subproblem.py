@@ -50,13 +50,12 @@ def test_rec_taylor1(n):
 def test_rec_taylor2(n):
     print("Testing 2nd-order Taylor wrt y=1/x")
     prob = Square(n)
-    subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor2(),
+    subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
     P = prob.dg(prob.x) * (-(prob.x**2))
     Q = prob.ddg(prob.x) * prob.x**4 + prob.dg(prob.x) * 2 * prob.x**3
-    # Q[Q < 0] = 0        # enforce convexity
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
@@ -86,7 +85,7 @@ def test_conlin_taylor1(n):
 def test_conlin_taylor2(n):
     print("Testing 2nd-order Taylor with y=ConLin")
     prob = Square(n)
-    subprob = Subproblem(intervening=ConLin(), approximation=Taylor2(),
+    subprob = Subproblem(intervening=ConLin(), approximation=Taylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
@@ -94,12 +93,11 @@ def test_conlin_taylor2(n):
     conlin.update(prob.dg(prob.x))
     P = prob.dg(prob.x) * conlin.dxdy(prob.x)
     Q = prob.ddg(prob.x)*(conlin.dxdy(prob.x))**2 + prob.dg(prob.x)*conlin.ddxddy(prob.x)
-    # Q[Q < 0] = 0      # enforce convexity
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
     assert subprob.approx.P == pytest.approx(P, rel=1e-4)
-    assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), rel=1e-4)
+    assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), abs=1e-4)
     assert subprob.approx.Q == pytest.approx(Q, rel=1e-4)
 
 
@@ -124,7 +122,7 @@ def test_mma_taylor1(n):
 def test_mma_taylor2(n):
     print("Testing 2nd-order Taylor with y=MMA")
     prob = Square(n)
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
@@ -132,12 +130,11 @@ def test_mma_taylor2(n):
     mma.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
     P = prob.dg(prob.x) * mma.dxdy(prob.x)
     Q = prob.ddg(prob.x)*(mma.dxdy(prob.x))**2 + prob.dg(prob.x)*mma.ddxddy(prob.x)
-    # Q[Q < 0] = 0      # enforce convexity
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
     assert subprob.approx.P == pytest.approx(P, rel=1e-4)
-    assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), rel=1e-4)
+    assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), abs=1e-4)
     assert subprob.approx.Q == pytest.approx(Q, rel=1e-4)
 
 

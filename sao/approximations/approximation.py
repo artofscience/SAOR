@@ -2,13 +2,15 @@ from abc import ABC, abstractmethod
 
 
 class Approximation(ABC):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.x, self.y = None, None
         self.f, self.df, self.ddf = None, None, None
         self.P, self.Q = None, None
 
         self.m = -1  # Number of constraints
         self.n = -1  # Number of variables
+
+        self.force_convex = kwargs.get('force_convex', True)
 
     def update(self, y, f, P, Q=None):
         """ Puts in data from the original problem. Once per design iteration.
@@ -34,7 +36,13 @@ class Approximation(ABC):
                    f"Received: {self.Q.shape}.")
             assert self.Q.shape == (self.m + 1, self.n), msg
 
+            if self.force_convex:
+                self.enforce_convexity()
+
         return self
+
+    def enforce_convexity(self):
+        self.Q[self.Q < 0] = 0
 
     @abstractmethod
     def g(self, y=None, dy=None, ddy=None):
