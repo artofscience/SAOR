@@ -6,7 +6,7 @@ from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 
 
-@pytest.mark.parametrize('n', [10, 100, 1000])
+@pytest.mark.parametrize('n', [100])
 def test_square(n):
 
     # Test sao.solvers.interior_point_basis.py
