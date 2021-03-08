@@ -16,7 +16,7 @@ class Taylor1(Approximation):
 
 class Taylor2(Taylor1):
     def g(self, y=None, dy=None, ddy=None):
-        return super().g(y) + 0.5 * (self.Q.dot((y-self.y)**2) if len(y.shape) == 1 else np.diag(self.Q.dot(y-self.y)))
+        return super().g(y) + 0.5 * (self.Q.dot((y-self.y)**2) if len(y.shape) == 1 else np.diag(self.Q.dot((y-self.y)**2)))
 
     def dg(self, y=None, dy=None, ddy=None):
         return super().dg(y, dy) + (self.Q * (y-self.y).T) * dy
