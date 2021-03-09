@@ -3,38 +3,38 @@ from abc import ABC, abstractmethod
 
 class Approximation(ABC):
     def __init__(self, **kwargs):
-        self.x, self.y = None, None
+        self.y = None
         self.f, self.df, self.ddf = None, None, None
-        self.P, self.Q = None, None
+        self.dfdy, self.ddfddy = None, None
 
         self.m = -1  # Number of constraints
         self.n = -1  # Number of variables
 
         self.force_convex = kwargs.get('force_convex', True)
 
-    def update(self, y, f, P, Q=None):
+    def update(self, y, f, dfdy, ddfddy=None):
         """ Puts in data from the original problem. Once per design iteration.
 
         :param y:
         :param f:
-        :param P:
-        :param Q:
+        :param dfdy:
+        :param ddfddy:
         :return:
         """
         self.y = y
-        self.f, self.P, self.Q = f, P, Q
+        self.f, self.dfdy, self.ddfddy = f, dfdy, ddfddy
 
         self.m = len(self.f) - 1
         self.n = len(self.y)
 
         msg = (f'Expect sensitivity of size {self.m+1}x{self.n}: '
-               f'Received {self.P.shape}.')
-        assert self.P.shape == (self.m + 1, self.n), msg
+               f'Received {self.dfdy.shape}.')
+        assert self.dfdy.shape == (self.m + 1, self.n), msg
 
-        if self.Q is not None:
+        if self.ddfddy is not None:
             msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
-                   f"Received: {self.Q.shape}.")
-            assert self.Q.shape == (self.m + 1, self.n), msg
+                   f"Received: {self.ddfddy.shape}.")
+            assert self.ddfddy.shape == (self.m + 1, self.n), msg
 
             if self.force_convex:
                 self.enforce_convexity()
@@ -42,7 +42,7 @@ class Approximation(ABC):
         return self
 
     def enforce_convexity(self):
-        self.Q[self.Q < 0] = 0
+        self.ddfddy[self.ddfddy < 0] = 0
 
     @abstractmethod
     def g(self, y):

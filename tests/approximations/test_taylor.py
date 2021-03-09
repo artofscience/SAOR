@@ -53,20 +53,20 @@ def test_taylor1_intervening(n, h):
     prob = Square(n)
     inter = ConLin()
     inter.update(prob.x, prob.dg(prob.x), prob.dg(prob.x))
-    P = prob.dg(prob.x) * inter.dxdy(prob.x)
+    dfdy = prob.dg(prob.x) * inter.dxdy(prob.x)
     taylor1 = Taylor1()
-    taylor1.update(inter.y(prob.x).T, prob.g(prob.x), P)
+    taylor1.update(inter.y(prob.x).T, prob.g(prob.x), dfdy)
 
     # Check validity of Taylor expansion at expansion point X^(k)
     assert taylor1.g(inter.y(prob.x).T) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert taylor1.dg(inter.y(prob.x).T, inter.dy(prob.x)) == pytest.approx(prob.dg(prob.x), rel=1e-4)
-    assert taylor1.ddg(inter.y(prob.x).T, inter.dy(prob.x), inter.ddy(prob.x)) == pytest.approx(P * inter.ddy(prob.x), abs=1e-4)
+    assert taylor1.ddg(inter.y(prob.x).T, inter.dy(prob.x), inter.ddy(prob.x)) == pytest.approx(dfdy * inter.ddy(prob.x), abs=1e-4)
 
     # Check validity of Taylor expansion at a point close to the expansion point X^(k)
     delta_y = (inter.y(prob.x + h) - inter.y(prob.x)).T
-    assert taylor1.g(inter.y(prob.x + h).T) == pytest.approx(prob.g(prob.x) + np.diag(P.dot(delta_y)), rel=1e-4)
-    assert taylor1.dg(inter.y(prob.x + h).T, inter.dy(prob.x + h)) == pytest.approx(P * inter.dy(prob.x + h), rel=1e-4)
-    assert taylor1.ddg(inter.y(prob.x + h).T, inter.dy(prob.x + h), inter.ddy(prob.x + h)) == pytest.approx(P * inter.ddy(prob.x + h), rel=1e-4)
+    assert taylor1.g(inter.y(prob.x + h).T) == pytest.approx(prob.g(prob.x) + np.diag(dfdy.dot(delta_y)), rel=1e-4)
+    assert taylor1.dg(inter.y(prob.x + h).T, inter.dy(prob.x + h)) == pytest.approx(dfdy * inter.dy(prob.x + h), rel=1e-4)
+    assert taylor1.ddg(inter.y(prob.x + h).T, inter.dy(prob.x + h), inter.ddy(prob.x + h)) == pytest.approx(dfdy * inter.ddy(prob.x + h), rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -76,10 +76,10 @@ def test_taylor2_intervening(n, h):
     prob = Square(n)
     inter = ConLin()
     inter.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
-    P = prob.dg(prob.x) * inter.dxdy(prob.x)
-    Q = prob.ddg(prob.x) * (inter.dxdy(prob.x)) ** 2 + prob.dg(prob.x) * (inter.ddxddy(prob.x))
+    dfdy = prob.dg(prob.x) * inter.dxdy(prob.x)
+    ddfddy = prob.ddg(prob.x) * (inter.dxdy(prob.x)) ** 2 + prob.dg(prob.x) * (inter.ddxddy(prob.x))
     taylor2 = Taylor2(force_convex=False)
-    taylor2.update(inter.y(prob.x).T, prob.g(prob.x), P, Q)
+    taylor2.update(inter.y(prob.x).T, prob.g(prob.x), dfdy, ddfddy)
 
     # Check validity of Taylor expansion at expansion point X^(k)
     assert taylor2.g(inter.y(prob.x).T) == pytest.approx(prob.g(prob.x), rel=1e-4)
@@ -88,13 +88,13 @@ def test_taylor2_intervening(n, h):
 
     # Check validity of Taylor expansion at a point close to the expansion point X^(k)
     delta_y = (inter.y(prob.x + h) - inter.y(prob.x)).T
-    assert taylor2.g(inter.y(prob.x + h).T) == pytest.approx(prob.g(prob.x) + np.diag(P.dot(delta_y)) +
-                                                             + 0.5 * np.diag(Q.dot(delta_y**2)), rel=1e-4)
-    assert taylor2.dg(inter.y(prob.x + h).T, inter.dy(prob.x + h)) == pytest.approx(P * inter.dy(prob.x + h) +
-                                                                                    Q * delta_y.T * inter.dy(prob.x + h), rel=1e-4)
-    assert taylor2.ddg(inter.y(prob.x + h).T, inter.dy(prob.x + h), inter.ddy(prob.x + h)) == pytest.approx(P * inter.ddy(prob.x + h) +
-                                                                                                            Q * delta_y.T * inter.ddy(prob.x + h) +
-                                                                                                            Q * inter.dy(prob.x + h) ** 2, rel=1e-4)
+    assert taylor2.g(inter.y(prob.x + h).T) == pytest.approx(prob.g(prob.x) + np.diag(dfdy.dot(delta_y)) +
+                                                             + 0.5 * np.diag(ddfddy.dot(delta_y**2)), rel=1e-4)
+    assert taylor2.dg(inter.y(prob.x + h).T, inter.dy(prob.x + h)) == pytest.approx(dfdy * inter.dy(prob.x + h) +
+                                                                                    ddfddy * delta_y.T * inter.dy(prob.x + h), rel=1e-4)
+    assert taylor2.ddg(inter.y(prob.x + h).T, inter.dy(prob.x + h), inter.ddy(prob.x + h)) == pytest.approx(dfdy * inter.ddy(prob.x + h) +
+                                                                                                            ddfddy * delta_y.T * inter.ddy(prob.x + h) +
+                                                                                                            ddfddy * inter.dy(prob.x + h) ** 2, rel=1e-4)
 
 
 if __name__ == "__main__":

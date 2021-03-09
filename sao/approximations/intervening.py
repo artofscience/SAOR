@@ -111,17 +111,17 @@ class ConLin(Intervening):
 
 class MMA(Intervening):
 
-    def __init__(self, xmin, xmax):
+    def __init__(self, xmin, xmax, **kwargs):
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
         self.positive = None
         self.negative = None
-        self.asyinit = 0.5
-        self.asyincr = 1.1
-        self.asydecr = 0.7
-        self.asybound = 10.0
-        self.albefa = 0.1               # limit the max change of vars wrt asymptotes
+        self.asyinit = kwargs.get('asyinit', 0.5)
+        self.asyincr = kwargs.get('asyincr', 1.1)
+        self.asydecr = kwargs.get('asydecr', 0.7)
+        self.asybound = kwargs.get('asydecr', 0.7)
+        self.albefa = kwargs.get('asydecr', 0.1)               # limit the max change of vars wrt asymptotes
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
 

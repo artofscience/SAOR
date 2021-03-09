@@ -22,8 +22,6 @@ def test_square(n):
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    # subprob = Subproblem(intervening=ConLin(), approximation=Taylor2(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, 1)

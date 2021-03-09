@@ -39,11 +39,11 @@ def test_rec_taylor1(n):
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
-    P = prob.dg(prob.x) * (-(prob.x**2))
+    dfdy = prob.dg(prob.x) * (-(prob.x**2))
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
-    assert subprob.approx.P == pytest.approx(P, rel=1e-4)
+    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -54,14 +54,14 @@ def test_rec_taylor2(n):
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x, prob.g(prob.x), prob.dg(prob.x), prob.ddg(prob.x))
 
-    P = prob.dg(prob.x) * (-(prob.x**2))
-    Q = prob.ddg(prob.x) * prob.x**4 + prob.dg(prob.x) * 2 * prob.x**3
+    dfdy = prob.dg(prob.x) * (-(prob.x**2))
+    ddfddy = prob.ddg(prob.x) * prob.x**4 + prob.dg(prob.x) * 2 * prob.x**3
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
-    assert subprob.approx.P == pytest.approx(P, rel=1e-4)
+    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
     assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), rel=1e-4)
-    assert subprob.approx.Q == pytest.approx(Q, rel=1e-4)
+    assert subprob.approx.ddfddy == pytest.approx(ddfddy, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -74,11 +74,11 @@ def test_conlin_taylor1(n):
 
     conlin = ConLin()
     conlin.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
-    P = prob.dg(prob.x) * conlin.dxdy(prob.x)
+    dfdy = prob.dg(prob.x) * conlin.dxdy(prob.x)
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
-    assert subprob.approx.P == pytest.approx(P, rel=1e-4)
+    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -91,14 +91,14 @@ def test_conlin_taylor2(n):
 
     conlin = ConLin()
     conlin.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
-    P = prob.dg(prob.x) * conlin.dxdy(prob.x)
-    Q = prob.ddg(prob.x)*(conlin.dxdy(prob.x))**2 + prob.dg(prob.x)*conlin.ddxddy(prob.x)
+    dfdy = prob.dg(prob.x) * conlin.dxdy(prob.x)
+    ddfddy = prob.ddg(prob.x)*(conlin.dxdy(prob.x))**2 + prob.dg(prob.x)*conlin.ddxddy(prob.x)
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
-    assert subprob.approx.P == pytest.approx(P, rel=1e-4)
+    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
     assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), abs=1e-4)
-    assert subprob.approx.Q == pytest.approx(Q, rel=1e-4)
+    assert subprob.approx.ddfddy == pytest.approx(ddfddy, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -111,11 +111,11 @@ def test_mma_taylor1(n):
 
     mma = MMA(prob.xmin, prob.xmax)
     mma.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
-    P = prob.dg(prob.x) * mma.dxdy(prob.x)
+    dfdy = prob.dg(prob.x) * mma.dxdy(prob.x)
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
-    assert subprob.approx.P == pytest.approx(P, rel=1e-4)
+    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -128,14 +128,14 @@ def test_mma_taylor2(n):
 
     mma = MMA(prob.xmin, prob.xmax)
     mma.update(prob.x, prob.g(prob.x), prob.dg(prob.x))
-    P = prob.dg(prob.x) * mma.dxdy(prob.x)
-    Q = prob.ddg(prob.x)*(mma.dxdy(prob.x))**2 + prob.dg(prob.x)*mma.ddxddy(prob.x)
+    dfdy = prob.dg(prob.x) * mma.dxdy(prob.x)
+    ddfddy = prob.ddg(prob.x)*(mma.dxdy(prob.x))**2 + prob.dg(prob.x)*mma.ddxddy(prob.x)
 
     assert subprob.g(prob.x) == pytest.approx(prob.g(prob.x), rel=1e-4)
     assert subprob.dg(prob.x) == pytest.approx(prob.dg(prob.x), rel=1e-4)
-    assert subprob.approx.P == pytest.approx(P, rel=1e-4)
+    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
     assert subprob.ddg(prob.x) == pytest.approx(prob.ddg(prob.x), abs=1e-4)
-    assert subprob.approx.Q == pytest.approx(Q, rel=1e-4)
+    assert subprob.approx.ddfddy == pytest.approx(ddfddy, rel=1e-4)
 
 
 if __name__ == "__main__":
