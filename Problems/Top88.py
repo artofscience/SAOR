@@ -31,7 +31,7 @@ class Top88(Problem):
         self.xmax = np.ones(self.n, dtype=float)
         self.x0 = self.volfrac * np.ones(self.n, dtype=float)
         self.xold = self.xmin.copy()
-        self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
+        # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
         self.name = 'Top88'
@@ -166,7 +166,7 @@ class Top88(Problem):
         A = A[:, keep]
         return A
 
-    def visualize(self, vis, x_k, iteration):
+    def visualize(self, x_k, iteration, vis):
         """Function to visualize current design"""
         xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
         if iteration == 0:
