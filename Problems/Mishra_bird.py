@@ -1,11 +1,13 @@
 ## IMPORTS
+from sao.problems.problem import Problem
 import numpy as np
 
 
 ## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
-class MishraBird:
+class MishraBird(Problem):
 
     def __init__(self):
+        super().__init__()
         self.n = 2
         self.m = 1
         self.xmin = np.array([0., 0.])

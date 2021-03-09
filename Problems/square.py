@@ -1,7 +1,8 @@
 import numpy as np
+from sao.problems.problem import Problem
 
 
-class Square:
+class Square(Problem):
     """
     min(x)  x.x
     s.t.    sum(x) > 1
@@ -10,8 +11,9 @@ class Square:
     Solution: all x = 1/n
     """
     def __init__(self, n):
-        self.xmin = self.alpha = -np.ones(n)                # cuz approx needs to have both
-        self.xmax = self.beta = np.ones(n)                  # cuz approx needs to have both
+        super().__init__()
+        self.xmin = self.alpha = -np.ones(n)               # cuz a subproblem uses both, whereas a problem only has xmin
+        self.xmax = self.beta = np.ones(n)                 # cuz a subproblem uses both, whereas a problem only has xmax
         self.x = np.random.uniform(self.xmin, self.xmax)
         self.n = n
         self.m = 1

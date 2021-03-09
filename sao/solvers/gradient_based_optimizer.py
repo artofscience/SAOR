@@ -7,7 +7,7 @@ class GBOpt(ABC):
     """
 
     def __init__(self, problem):
-        self.n = problem.n
+        self.n = len(problem.x)
         self.m = problem.m
 
         self.x = problem.x
