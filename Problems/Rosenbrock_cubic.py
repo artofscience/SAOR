@@ -12,7 +12,7 @@ class RosenCubic(Problem):
         self.m = 2
         self.xmin = np.array([0., 0.])
         self.xmax = np.array([3., 3.])
-        self.x_init = np.array([0.5, 0.3])
+        self.x0 = np.array([0.5, 0.3])
         self.name = 'RosenCubic'
 
     def g(self, x_k):

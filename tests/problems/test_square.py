@@ -28,7 +28,7 @@ def test_square(n):
 
     # Initialize iteration counter and design
     itte = 0
-    x_k = prob.x.copy()
+    x_k = prob.x0.copy()
 
     # Optimization loop
     while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-4)):

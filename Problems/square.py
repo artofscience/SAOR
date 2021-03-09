@@ -14,7 +14,7 @@ class Square(Problem):
         super().__init__()
         self.xmin = self.alpha = -np.ones(n)               # cuz a subproblem uses both, whereas a problem only has xmin
         self.xmax = self.beta = np.ones(n)                 # cuz a subproblem uses both, whereas a problem only has xmax
-        self.x = np.random.uniform(self.xmin, self.xmax)
+        self.x0 = np.random.uniform(self.xmin, self.xmax)
         self.n = n
         self.m = 1
 

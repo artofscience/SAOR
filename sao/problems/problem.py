@@ -9,7 +9,7 @@ class Problem(ABC):
         # TODO: All problems (and subproblems) must have alpha and beta, but only exact problems have xmin, xmax.
         #  Perhaps xmin, xmax can be removed completely, not sure.
         self.xmin, self.xmax = None, None
-        self.x = None
+        self.x0 = None
         self.n, self.m = None, None
 
     @abstractmethod
