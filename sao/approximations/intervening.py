@@ -68,44 +68,42 @@ class Reciprocal(Intervening):
 class ConLin(Intervening):
     def __init__(self):
         self.positive = None
-        self.negative = None
         self.lin = Linear()
         self.rec = Reciprocal()
 
     def update(self, x, f, df):
         self.positive = df >= 0
-        self.negative = df < 0
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
         y[self.positive] = self.lin.y(np.broadcast_to(x, self.positive.shape)[self.positive])
-        y[self.negative] = self.rec.y(np.broadcast_to(x, self.negative.shape)[self.negative])
+        y[~self.positive] = self.rec.y(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return y
 
     def dy(self, x):
         dy = np.zeros_like(self.positive, dtype=float)
         dy[self.positive] = self.lin.dy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        dy[self.negative] = self.rec.dy(np.broadcast_to(x, self.negative.shape)[self.negative])
+        dy[~self.positive] = self.rec.dy(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return dy
 
     def ddy(self, x):
         ddy = np.zeros_like(self.positive, dtype=float)
         ddy[self.positive] = self.lin.ddy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        ddy[self.negative] = self.rec.ddy(np.broadcast_to(x, self.negative.shape)[self.negative])
+        ddy[~self.positive] = self.rec.ddy(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return ddy
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
         dxdy = np.zeros_like(self.positive, dtype=float)
         dxdy[self.positive] = self.lin.dxdy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        dxdy[self.negative] = self.rec.dxdy(np.broadcast_to(x, self.negative.shape)[self.negative])
+        dxdy[~self.positive] = self.rec.dxdy(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return dxdy
 
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
         ddxddy = np.zeros_like(self.positive, dtype=float)
         ddxddy[self.positive] = self.lin.ddxddy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        ddxddy[self.negative] = self.rec.ddxddy(np.broadcast_to(x, self.negative.shape)[self.negative])
+        ddxddy[~self.positive] = self.rec.ddxddy(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return ddxddy
 
 
@@ -116,11 +114,10 @@ class MMA(Intervening):
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
         self.positive = None
-        self.negative = None
         self.asyinit = kwargs.get('asyinit', 0.5)
         self.asyincr = kwargs.get('asyincr', 1.1)
         self.asydecr = kwargs.get('asydecr', 0.7)
-        self.asybound = kwargs.get('asydecr', 0.7)
+        self.asybound = kwargs.get('asydecr', 10.0)
         self.albefa = kwargs.get('asydecr', 0.1)               # limit the max change of vars wrt asymptotes
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
@@ -130,7 +127,6 @@ class MMA(Intervening):
         self.xold1 = self.x
         self.x = x
         self.positive = df >= 0         # size of [m_p, n_l]
-        self.negative = df < 0          # size of [m_p, n_l]
         self.get_asymptotes()
 
     def get_asymptotes(self):
@@ -171,33 +167,33 @@ class MMA(Intervening):
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
         y[self.positive] = np.broadcast_to((1 / (self.upp - x)), self.positive.shape)[self.positive]
-        y[self.negative] = np.broadcast_to((1 / (x - self.low)), self.negative.shape)[self.negative]
+        y[~self.positive] = np.broadcast_to((1 / (x - self.low)), self.positive.shape)[~self.positive]
         return y
 
     def dy(self, x):
         dy = np.zeros_like(self.positive, dtype=float)
         dy[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]
-        dy[self.negative] = np.broadcast_to((-1 / (x - self.low)**2), self.negative.shape)[self.negative]
+        dy[~self.positive] = np.broadcast_to((-1 / (x - self.low)**2), self.positive.shape)[~self.positive]
         return dy
 
     def ddy(self, x):
         ddy = np.zeros_like(self.positive, dtype=float)
         ddy[self.positive] = np.broadcast_to((2 / (self.upp - x) ** 3), self.positive.shape)[self.positive]
-        ddy[self.negative] = np.broadcast_to((2 / (x - self.low) ** 3), self.negative.shape)[self.negative]
+        ddy[~self.positive] = np.broadcast_to((2 / (x - self.low) ** 3), self.positive.shape)[~self.positive]
         return ddy
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
         dxdy = np.zeros_like(self.positive, dtype=float)
         dxdy[self.positive] = np.broadcast_to((1 / self.y(x) ** 2), self.positive.shape)[self.positive]
-        dxdy[self.negative] = np.broadcast_to((-1 / self.y(x) ** 2), self.negative.shape)[self.negative]
+        dxdy[~self.positive] = np.broadcast_to((-1 / self.y(x) ** 2), self.positive.shape)[~self.positive]
         return dxdy
 
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x, **kwargs):
         ddxddy = np.zeros_like(self.positive, dtype=float)
         ddxddy[self.positive] = np.broadcast_to((-2 / self.y(x) ** 3), self.positive.shape)[self.positive]
-        ddxddy[self.negative] = np.broadcast_to((2 / self.y(x) ** 3), self.negative.shape)[self.negative]
+        ddxddy[~self.positive] = np.broadcast_to((2 / self.y(x) ** 3), self.positive.shape)[~self.positive]
         return ddxddy
 
     def get_move_limit(self):
