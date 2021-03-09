@@ -11,11 +11,11 @@ class Intervening(ABC):
         ...
 
     @abstractmethod
-    def dy(self, x):
+    def dydx(self, x):
         ...
 
     @abstractmethod
-    def ddy(self, x):
+    def ddyddx(self, x):
         ...
 
     @abstractmethod
@@ -31,10 +31,10 @@ class Linear(Intervening):
     def y(self, x):
         return x
 
-    def dy(self, x):
+    def dydx(self, x):
         return np.ones_like(x)
 
-    def ddy(self, x):
+    def ddyddx(self, x):
         return np.zeros_like(x)
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
@@ -50,10 +50,10 @@ class Reciprocal(Intervening):
     def y(self, x):
         return 1 / x
 
-    def dy(self, x):
+    def dydx(self, x):
         return -1 / (x ** 2)
 
-    def ddy(self, x):
+    def ddyddx(self, x):
         return 2 / (x ** 3)
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
@@ -80,17 +80,17 @@ class ConLin(Intervening):
         y[~self.positive] = self.rec.y(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return y
 
-    def dy(self, x):
-        dy = np.zeros_like(self.positive, dtype=float)
-        dy[self.positive] = self.lin.dy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        dy[~self.positive] = self.rec.dy(np.broadcast_to(x, self.positive.shape)[~self.positive])
-        return dy
+    def dydx(self, x):
+        dydx = np.zeros_like(self.positive, dtype=float)
+        dydx[self.positive] = self.lin.dydx(np.broadcast_to(x, self.positive.shape)[self.positive])
+        dydx[~self.positive] = self.rec.dydx(np.broadcast_to(x, self.positive.shape)[~self.positive])
+        return dydx
 
-    def ddy(self, x):
-        ddy = np.zeros_like(self.positive, dtype=float)
-        ddy[self.positive] = self.lin.ddy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        ddy[~self.positive] = self.rec.ddy(np.broadcast_to(x, self.positive.shape)[~self.positive])
-        return ddy
+    def ddyddx(self, x):
+        ddyddx = np.zeros_like(self.positive, dtype=float)
+        ddyddx[self.positive] = self.lin.ddyddx(np.broadcast_to(x, self.positive.shape)[self.positive])
+        ddyddx[~self.positive] = self.rec.ddyddx(np.broadcast_to(x, self.positive.shape)[~self.positive])
+        return ddyddx
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
@@ -170,17 +170,17 @@ class MMA(Intervening):
         y[~self.positive] = np.broadcast_to((1 / (x - self.low)), self.positive.shape)[~self.positive]
         return y
 
-    def dy(self, x):
-        dy = np.zeros_like(self.positive, dtype=float)
-        dy[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]
-        dy[~self.positive] = np.broadcast_to((-1 / (x - self.low)**2), self.positive.shape)[~self.positive]
-        return dy
+    def dydx(self, x):
+        dydx = np.zeros_like(self.positive, dtype=float)
+        dydx[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]
+        dydx[~self.positive] = np.broadcast_to((-1 / (x - self.low)**2), self.positive.shape)[~self.positive]
+        return dydx
 
-    def ddy(self, x):
-        ddy = np.zeros_like(self.positive, dtype=float)
-        ddy[self.positive] = np.broadcast_to((2 / (self.upp - x) ** 3), self.positive.shape)[self.positive]
-        ddy[~self.positive] = np.broadcast_to((2 / (x - self.low) ** 3), self.positive.shape)[~self.positive]
-        return ddy
+    def ddyddx(self, x):
+        ddyddx = np.zeros_like(self.positive, dtype=float)
+        ddyddx[self.positive] = np.broadcast_to((2 / (self.upp - x) ** 3), self.positive.shape)[self.positive]
+        ddyddx[~self.positive] = np.broadcast_to((2 / (x - self.low) ** 3), self.positive.shape)[~self.positive]
+        return ddyddx
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):

@@ -30,10 +30,10 @@ class Subproblem(Problem):
         return self.approx.g(self.inter.y(x).T)
 
     def dg(self, x):
-        return self.approx.dg(self.inter.y(x).T, self.inter.dy(x))
+        return self.approx.dg(self.inter.y(x).T, self.inter.dydx(x))
 
     def ddg(self, x):
-        return self.approx.ddg(self.inter.y(x).T, self.inter.dy(x), self.inter.ddy(x))
+        return self.approx.ddg(self.inter.y(x).T, self.inter.dydx(x), self.inter.ddyddx(x))
 
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]

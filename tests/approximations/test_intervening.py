@@ -11,8 +11,8 @@ def test_linear(n):
     lin = Linear()
 
     assert lin.y(prob.x) == pytest.approx(prob.x, rel=1e-4)
-    assert lin.dy(prob.x) == pytest.approx(1, rel=1e-4)
-    assert lin.ddy(prob.x) == pytest.approx(0, rel=1e-4)
+    assert lin.dydx(prob.x) == pytest.approx(1, rel=1e-4)
+    assert lin.ddyddx(prob.x) == pytest.approx(0, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -22,8 +22,8 @@ def test_reciprocal(n):
     rec = Reciprocal()
 
     assert rec.y(prob.x) == pytest.approx(1/prob.x, rel=1e-4)
-    assert rec.dy(prob.x) == pytest.approx(-1/prob.x**2, rel=1e-4)
-    assert rec.ddy(prob.x) == pytest.approx(2/prob.x**3, rel=1e-4)
+    assert rec.dydx(prob.x) == pytest.approx(-1/prob.x**2, rel=1e-4)
+    assert rec.ddyddx(prob.x) == pytest.approx(2/prob.x**3, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -44,8 +44,8 @@ def test_conlin(n):
         temp_ddy[j, (prob.dg(prob.x) < 0)[j, :]] = 2 / (prob.x[~conlin.positive[j, :]])**3
 
     assert conlin.y(prob.x) == pytest.approx(temp_y, rel=1e-4)
-    assert conlin.dy(prob.x) == pytest.approx(temp_dy, rel=1e-4)
-    assert conlin.ddy(prob.x) == pytest.approx(temp_ddy, rel=1e-4)
+    assert conlin.dydx(prob.x) == pytest.approx(temp_dy, rel=1e-4)
+    assert conlin.ddyddx(prob.x) == pytest.approx(temp_ddy, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -66,8 +66,8 @@ def test_mma(n):
         temp_ddy[j, (prob.dg(prob.x) < 0)[j, :]] = (2 / (prob.x - mma.low)**3)[~mma.positive[j, :]]
 
     assert mma.y(prob.x) == pytest.approx(temp_y, rel=1e-4)
-    assert mma.dy(prob.x) == pytest.approx(temp_dy, rel=1e-4)
-    assert mma.ddy(prob.x) == pytest.approx(temp_ddy, rel=1e-4)
+    assert mma.dydx(prob.x) == pytest.approx(temp_dy, rel=1e-4)
+    assert mma.ddyddx(prob.x) == pytest.approx(temp_ddy, rel=1e-4)
 
 
 if __name__ == "__main__":
