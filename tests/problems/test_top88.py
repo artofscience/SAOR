@@ -32,6 +32,7 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
     vis = None
 
     # Optimization loop
+    # while np.linalg.norm(x_k - xold1) > 1e-3
     while itte < 10:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
