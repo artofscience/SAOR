@@ -4,7 +4,7 @@ import numpy as np
 
 class Taylor1(Approximation):
     def g(self, y):
-        return self.f + (self.dfdy.dot(y-self.y) if len(y.shape) == 1 else np.diag(self.dfdy.dot(y-self.y)))
+        return self.f + (np.dot(self.dfdy, (y-self.y)) if len(y.shape) == 1 else np.einsum('ij,ji->i', self.dfdy, (y-self.y)))
 
     def dg(self, y, dy):
         return self.dfdy * dy
@@ -15,7 +15,7 @@ class Taylor1(Approximation):
 
 class Taylor2(Taylor1):
     def g(self, y):
-        return super().g(y) + 0.5 * (self.ddfddy.dot((y-self.y)**2) if len(y.shape) == 1 else np.diag(self.ddfddy.dot((y-self.y)**2)))
+        return super().g(y) + 0.5 * (np.dot(self.ddfddy, (y-self.y)**2) if len(y.shape) == 1 else np.einsum('ij,ji->i', self.ddfddy, (y-self.y)**2))
 
     def dg(self, y, dy):
         return super().dg(y, dy) + (self.ddfddy * (y-self.y).T) * dy

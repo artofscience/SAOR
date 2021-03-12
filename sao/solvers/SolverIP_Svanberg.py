@@ -83,8 +83,8 @@ class SvanbergIP:
                 # form reduced system of Eq(7.9)
                 blam = dellam + dely / diagy - np.dot(dg_j_tilde_value[1:, :], (delx / diagx))
                 bb = np.hstack((blam, delz))
-                Alam = np.diag(diaglamyi) + np.dot(np.dot(dg_j_tilde_value[1:, :], np.diag(1/diagx)),
-                                                   dg_j_tilde_value[1:, :].T)
+                Alam = np.diag(diaglamyi) + np.einsum('ij,j,kj->ik', dg_j_tilde_value[1:, :], (1 / diagx),
+                                                      dg_j_tilde_value[1:, :])
                 AA = np.hstack((np.vstack((Alam, a.T)), np.array([np.hstack((a, -zet / z))]).T))
 
                 # solve system for delta lambda and delta z
