@@ -8,6 +8,7 @@ from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
 
@@ -33,7 +34,7 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
 
     # Optimization loop
     # while np.linalg.norm(x_k - xold1) > 1e-3
-    while itte < 100:
+    while itte < 5:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
