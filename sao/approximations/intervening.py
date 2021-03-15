@@ -200,3 +200,22 @@ class MMA(Intervening):
         zzl1 = self.low + self.albefa * (self.x - self.low)
         zzu1 = self.upp - self.albefa * (self.upp - self.x)
         return zzl1, zzu1
+
+
+class ReciSquared(Intervening):
+    def y(self, x):
+        return 1 / x**2
+
+    def dydx(self, x):
+        return -2 / (x ** 3)
+
+    def ddyddx(self, x):
+        return 6 / (x ** 4)
+
+    # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
+    def dxdy(self, x):
+        return - 0.5 * x**3
+
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    def ddxddy(self, x):
+        return 3/4 * x**5
