@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import logging
 from Problems.Top88 import Top88
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, ConLin, MMA
@@ -11,6 +12,22 @@ from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
+
+# Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+
+# If you want to print on terminal
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+# # If you want to write to a .log file (stored in the same directory as the script you run)
+# file_handler = logging.FileHandler('test_mixed_square.log')
+# file_handler.setLevel(logging.INFO)
+# file_handler.setFormatter(formatter)
+# logger.addHandler(file_handler)
 
 
 def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
@@ -29,12 +46,10 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
-    xold1 = np.zeros_like(x_k)
     vis = None
 
     # Optimization loop
-    while np.any(x_k - xold1) > 1e-2:
-    # while itte < 5:
+    while itte < 100:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -42,7 +57,7 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        print('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
 
         # Build approximate sub-problem at X^(k)
@@ -50,7 +65,6 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-        xold1 = x_k.copy()
         x_k = x.copy()
 
         # solver = ipb(subprob, epsimin=1e-7)
@@ -59,7 +73,7 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
 
         itte += 1
 
-    print('Alles goed!')
+    logger.info('Optimization loop converged!')
 
 
 if __name__ == "__main__":

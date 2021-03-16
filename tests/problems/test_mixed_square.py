@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, ConLin, MMA
@@ -9,52 +10,62 @@ from sao.problems.mixed import Mixed
 from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
 from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
 
+# Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 
+# If you want to print on terminal
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+
+@pytest.mark.parametrize('n', [10, 20])
 def test_mixed_square(n):
 
     # Instantiate problem
     prob = Square(n)
     assert prob.n == n
 
-    # Define variable and response sets as dictionaries
+    # Define variable and response sets of a mixed approximation scheme as dictionaries
     var_set = {0: np.array([0]),
                1: np.array([1]),
                2: np.arange(2, prob.n)}
     resp_set = {0: np.array([0]),
                 1: np.array([1])}
 
-    # Instantiate a mixed approximation scheme
-    subprob_dict = {(0, 0): Subproblem(intervening=MMA(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
-                                       approximation=Taylor1(),
-                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                               xmax=prob.xmax[var_set[0]])),
-                    (0, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
-                                       approximation=Taylor1(),
-                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                               xmax=prob.xmax[var_set[1]])),
-                    (0, 2): Subproblem(intervening=MMA(prob.xmin[var_set[2]], prob.xmax[var_set[2]]),
-                                       approximation=Taylor1(),
-                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
-                                                               xmax=prob.xmax[var_set[2]])),
-                    (1, 0): Subproblem(intervening=Linear(),
-                                       approximation=Taylor1(),
-                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                               xmax=prob.xmax[var_set[0]])),
-                    (1, 1): Subproblem(intervening=Linear(),
-                                       approximation=Taylor1(),
-                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                               xmax=prob.xmax[var_set[1]])),
-                    (1, 2): Subproblem(intervening=Linear(),
-                                       approximation=Taylor1(),
-                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
-                                                               xmax=prob.xmax[var_set[2]]))}
+    # Instantiate subproblem objects for a mixed approximation scheme
+    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]])),
+                   (0, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                                              xmax=prob.xmax[var_set[1]])),
+                   (0, 2): Subproblem(intervening=MMA(prob.xmin[var_set[2]], prob.xmax[var_set[2]]),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
+                                                              xmax=prob.xmax[var_set[2]])),
+                   (1, 0): Subproblem(intervening=Linear(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]])),
+                   (1, 1): Subproblem(intervening=Linear(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                                              xmax=prob.xmax[var_set[1]])),
+                   (1, 2): Subproblem(intervening=Linear(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
+                                                              xmax=prob.xmax[var_set[2]]))}
 
     # Instantiate a mixed scheme
-    subprob = Mixed(prob.n, prob.m, subprob_dict, var_set, resp_set)
+    subprob = Mixed(subprob_map, var_set, resp_set)
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -71,7 +82,7 @@ def test_mixed_square(n):
         df = prob.dg(x_k)
 
         # Print current iteration and x_k
-        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
             itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
@@ -87,7 +98,7 @@ def test_mixed_square(n):
 
         itte += 1
 
-    print('Alles goed!')
+    logger.info('Optimization loop converged!')
 
 
 if __name__ == "__main__":

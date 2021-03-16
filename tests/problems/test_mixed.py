@@ -6,6 +6,7 @@ from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
+from sao.problems.mixed import Mixed
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -23,9 +24,44 @@ logger.addHandler(stream_handler)
 def test_lin_taylor1(n, h):
     logger.info("Testing Subproblem(Taylor1, y=x)")
     prob = Square(n)
-    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
+    # Define variable and response sets of a mixed approximation scheme as dictionaries
+    var_set = {0: np.array([0]),
+               1: np.array([1]),
+               2: np.arange(2, prob.n)}
+    resp_set = {0: np.array([0]),
+                1: np.array([1])}
+
+    # Instantiate subproblem objects for a mixed approximation scheme
+    subprob_map = {(0, 0): Subproblem(intervening=Linear(),
+                                      approximation=Taylor2(force_convex=False),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]])),
+                   (0, 1): Subproblem(intervening=ConLin(),
+                                      approximation=Taylor2(force_convex=False),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                                              xmax=prob.xmax[var_set[1]])),
+                   (0, 2): Subproblem(intervening=MMA(prob.xmin[var_set[2]], prob.xmax[var_set[2]]),
+                                      approximation=Taylor2(force_convex=False),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
+                                                              xmax=prob.xmax[var_set[2]])),
+                   (1, 0): Subproblem(intervening=MMA(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]])),
+                   (1, 1): Subproblem(intervening=Linear(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                                              xmax=prob.xmax[var_set[1]])),
+                   (1, 2): Subproblem(intervening=ConLin(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
+                                                              xmax=prob.xmax[var_set[2]]))}
+
+    # Instantiate a mixed scheme
+    subprob = Mixed(subprob_map, var_set, resp_set)
+
+    # Build the subproblem resulting from a mixed scheme at the current point
+    subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
 
     # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
     assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
