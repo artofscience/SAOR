@@ -24,7 +24,7 @@ logger.addHandler(stream_handler)
 def test_mixed(n, h):
 
     ## Initializations
-    logger.info("Testing Subproblem(Taylor1, y=x)")
+    logger.info("Testing Mixed(Subproblem) class")
     prob = Square(n)
 
     # Define variable and response sets of a mixed approximation scheme as dictionaries
@@ -127,62 +127,5 @@ def test_mixed(n, h):
     assert subprob.ddg(prob.x0 + h)[np.ix_(resp_set[1], var_set[1])] == pytest.approx(0, abs=1e-4)
 
 
-@pytest.mark.parametrize('n', [10])
-@pytest.mark.parametrize('h', [0.1, 0.5])
-def test_rec_taylor1(n, h):
-    logger.info("Testing Subproblem(Taylor1, y=1/x)")
-    prob = Square(n)
-    subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
-    inter = Reciprocal()
-    inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
-    dfdy = prob.dg(prob.x0) * (-(prob.x0**2))
-
-    # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
-    assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
-    assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
-    assert dfdy == pytest.approx(prob.dg(prob.x0) * inter.dxdy(prob.x0), rel=1e-4)
-    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
-
-    # Check validity of approximate responses (and sensitivities) at X^(k) + h
-    delta_y = (inter.y(prob.x0 + h) - inter.y(prob.x0)).T
-    assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + dfdy.dot(delta_y), rel=1e-4)
-    assert subprob.dg(prob.x0 + h) == pytest.approx(dfdy * inter.dydx(prob.x0 + h), rel=1e-4)
-    assert subprob.ddg(prob.x0 + h) == pytest.approx(dfdy * inter.ddyddx(prob.x0 + h), rel=1e-4)
-
-
-@pytest.mark.parametrize('n', [10])
-@pytest.mark.parametrize('h', [0.1, 0.5])
-def test_rec_taylor2(n, h):
-    logger.info("Testing Subproblem(Taylor2, y=1/x)")
-    prob = Square(n)
-    subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor2(force_convex=False),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
-    inter = Reciprocal()
-    inter.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
-    dfdy = prob.dg(prob.x0) * (-(prob.x0**2))
-    ddfddy = prob.ddg(prob.x0) * prob.x0**4 + prob.dg(prob.x0) * 2 * prob.x0**3
-
-    # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
-    assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
-    assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
-    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
-    assert subprob.ddg(prob.x0) == pytest.approx(prob.ddg(prob.x0), rel=1e-4)
-    assert dfdy == pytest.approx(prob.dg(prob.x0) * inter.dxdy(prob.x0), rel=1e-4)
-    assert ddfddy == pytest.approx(prob.ddg(prob.x0) * (inter.dxdy(prob.x0)) ** 2 + prob.dg(prob.x0) * (inter.ddxddy(prob.x0)), rel=1e-4)
-    assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
-    assert subprob.approx.ddfddy == pytest.approx(ddfddy, rel=1e-4)
-
-    # Check validity of approximate responses (and sensitivities) at X^(k) + h
-    delta_y = (inter.y(prob.x0 + h) - inter.y(prob.x0)).T
-    assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + dfdy.dot(delta_y) + 0.5 * ddfddy.dot(delta_y ** 2), rel=1e-4)
-    assert subprob.dg(prob.x0 + h) == pytest.approx(dfdy * inter.dydx(prob.x0 + h) + ddfddy * delta_y.T * inter.dydx(prob.x0 + h), rel=1e-4)
-    assert subprob.ddg(prob.x0 + h) == pytest.approx(dfdy * inter.ddyddx(prob.x0 + h) + ddfddy * delta_y.T *
-                                                    inter.ddyddx(prob.x0 + h) + ddfddy * inter.dydx(prob.x0 + h) ** 2, rel=1e-4)
-
-
 if __name__ == "__main__":
     test_mixed(4, 0.1)
-
