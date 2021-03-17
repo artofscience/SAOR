@@ -20,7 +20,7 @@ logger.addHandler(stream_handler)
 
 
 @pytest.mark.parametrize('n', [10])
-@pytest.mark.parametrize('h', [0.1], 0.5)
+@pytest.mark.parametrize('h', [0.1, 0.5])
 def test_mixed(n, h):
 
     ## Initializations

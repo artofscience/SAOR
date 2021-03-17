@@ -52,8 +52,8 @@ class Mixed(Subproblem):
         self.get_bounds()
 
     def get_bounds(self):
-        self.alpha[:] = 1e-1        # TODO: initialization of alpha, beta is problem dependent. You can do smth nicer!
-        self.beta[:] = 1e2
+        self.alpha[:] = -np.inf
+        self.beta[:] = np.inf
         for p in range(0, self.num_of_resp_sets):
             for l in range(0, self.num_of_var_sets):
                 self.alpha[self.var_set[l]] = np.maximum(self.alpha[self.var_set[l]],
