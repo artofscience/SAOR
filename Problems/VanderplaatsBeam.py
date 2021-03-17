@@ -25,8 +25,8 @@ class Vanderplaats(Problem):
         self.x0[self.N:] = 40.      # initial -h-
 
         # Variable bounds
-        self.xmin = np.ones(self.n, dtype=float) * 1e-1  # self.xmin
-        self.xmax = np.ones(self.n, dtype=float) * 1e2  # self.xmax
+        self.xmin = np.ones(self.n, dtype=float) * 1e-1         # self.xmin
+        self.xmax = np.ones(self.n, dtype=float) * 1e2          # self.xmax
 
         # Parameters
         self.sig_max = 14e3  # Stress limit

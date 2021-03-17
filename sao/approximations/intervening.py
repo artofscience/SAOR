@@ -219,3 +219,22 @@ class ReciSquared(Intervening):
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
         return 3/4 * x**5
+
+
+class ReciCubed(Intervening):
+    def y(self, x):
+        return 1 / x**3
+
+    def dydx(self, x):
+        return -3 / (x ** 4)
+
+    def ddyddx(self, x):
+        return 12 / (x ** 5)
+
+    # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
+    def dxdy(self, x):
+        return - 1/3 * x**4
+
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    def ddxddy(self, x):
+        return 3/9 * x**7

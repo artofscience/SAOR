@@ -52,8 +52,8 @@ class Mixed(Subproblem):
         self.get_bounds()
 
     def get_bounds(self):
-        self.alpha[:] = -1.
-        self.beta[:] = 1.
+        self.alpha[:] = 1e-1        # TODO: initialization of alpha, beta is problem dependent. You can do smth nicer!
+        self.beta[:] = 1e2
         for p in range(0, self.num_of_resp_sets):
             for l in range(0, self.num_of_var_sets):
                 self.alpha[self.var_set[l]] = np.maximum(self.alpha[self.var_set[l]],
@@ -73,7 +73,7 @@ class Mixed(Subproblem):
         dg_value = np.zeros_like(self.df)
         for p in range(0, self.num_of_resp_sets):
             for l in range(0, self.num_of_var_sets):
-                dg_value[[self.resp_set[p]], [self.var_set[l]]] = self.subprob_map[p, l].approx.dg(
+                dg_value[np.ix_(self.resp_set[p], self.var_set[l])] = self.subprob_map[p, l].approx.dg(
                     self.subprob_map[p, l].inter.y(x[self.var_set[l]]).T,
                     self.subprob_map[p, l].inter.dydx(x[self.var_set[l]]))
         return dg_value
@@ -82,7 +82,7 @@ class Mixed(Subproblem):
         ddg_value = np.zeros_like(self.df)
         for p in range(0, self.num_of_resp_sets):
             for l in range(0, self.num_of_var_sets):
-                ddg_value[[self.resp_set[p]], [self.var_set[l]]] = self.subprob_map[p, l].approx.ddg(
+                ddg_value[np.ix_(self.resp_set[p], self.var_set[l])] = self.subprob_map[p, l].approx.ddg(
                     self.subprob_map[p, l].inter.y(x[self.var_set[l]]).T,
                     self.subprob_map[p, l].inter.dydx(x[self.var_set[l]]),
                     self.subprob_map[p, l].inter.ddyddx(x[self.var_set[l]]))
