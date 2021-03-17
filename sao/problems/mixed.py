@@ -41,12 +41,12 @@ class Mixed(Subproblem):
                 if ddf is not None:
                     self.subprob_map[p, l].build(x[self.var_set[l]],
                                                  f[self.resp_set[p]],
-                                                 df[[self.resp_set[p]], [self.var_set[l]]],
-                                                 ddf[[self.resp_set[p]], [self.var_set[l]]])
+                                                 df[np.ix_(self.resp_set[p], self.var_set[l])],
+                                                 ddf[np.ix_(self.resp_set[p], self.var_set[l])])
                 else:
                     self.subprob_map[p, l].build(x[self.var_set[l]],
                                                  f[self.resp_set[p]],
-                                                 df[[self.resp_set[p]], [self.var_set[l]]])
+                                                 df[np.ix_(self.resp_set[p], self.var_set[l])])
 
         # Get mixed subproblem bounds
         self.get_bounds()
