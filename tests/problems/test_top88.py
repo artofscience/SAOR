@@ -30,7 +30,7 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
+def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=0):
 
     # Instantiate problem
     prob = Top88(nelx, nely, volfrac, penal, rmin, ft)

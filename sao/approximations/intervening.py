@@ -238,3 +238,46 @@ class ReciCubed(Intervening):
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
         return 3/9 * x**7
+
+
+class MMASquared(MMA):
+    def y(self, x):
+        y = np.zeros_like(self.positive, dtype=float)
+        y[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]
+        y[~self.positive] = np.broadcast_to((1 / (x - self.low)**2), self.positive.shape)[~self.positive]
+        return y
+
+    def dydx(self, x):
+        dydx = np.zeros_like(self.positive, dtype=float)
+        dydx[self.positive] = np.broadcast_to((2 / (self.upp - x)**3), self.positive.shape)[self.positive]
+        dydx[~self.positive] = np.broadcast_to((-2 / (x - self.low)**3), self.positive.shape)[~self.positive]
+        return dydx
+
+    def ddyddx(self, x):
+        ddyddx = np.zeros_like(self.positive, dtype=float)
+        ddyddx[self.positive] = np.broadcast_to((6 / (self.upp-x)**4), self.positive.shape)[self.positive]
+        ddyddx[~self.positive] = np.broadcast_to((6 / (x-self.low)**4), self.positive.shape)[~self.positive]
+        return ddyddx
+
+    # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
+    def dxdy(self, x):
+        dxdy = np.zeros_like(self.positive, dtype=float)
+        temp1 = (self.upp - 1/self.y(x))
+        temp2 = (1/self.y(x) - self.low)
+        temp1[temp1 < 0] = 1e-3
+        temp2[temp2 < 0] = 1e-3
+        dxdy[self.positive] = np.broadcast_to((1 / (2*(self.y(x))**(3/2))), self.positive.shape)[self.positive]
+        dxdy[~self.positive] = np.broadcast_to((-1 / (2*(self.y(x))**(3/2))), self.positive.shape)[~self.positive]
+        return dxdy
+
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    def ddxddy(self, x, **kwargs):
+        ddxddy = np.zeros_like(self.positive, dtype=float)
+        ddxddy[self.positive] = np.broadcast_to((-3 / (4 * x**(5/2))), self.positive.shape)[self.positive]
+        ddxddy[~self.positive] = np.broadcast_to((3 / (4 * x**(5/2))), self.positive.shape)[~self.positive]
+        return ddxddy
+
+    def get_move_limit(self):
+        zzl1 = self.low + self.albefa * (self.x - self.low)
+        zzu1 = self.upp - self.albefa * (self.upp - self.x)
+        return zzl1, zzu1

@@ -54,10 +54,6 @@ def test_mixed_vanderplaats(N):
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
-                   # (1, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
-                   #                    approximation=Taylor1(),
-                   #                    ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                   #                                            xmax=prob.xmax[var_set[1]])),
                    (1, 1): Subproblem(intervening=ReciSquared(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
@@ -74,10 +70,6 @@ def test_mixed_vanderplaats(N):
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
-                   # (3, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
-                   #                    approximation=Taylor1(),
-                   #                    ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                   #                                            xmax=prob.xmax[var_set[1]]))
                    (3, 1): Subproblem(intervening=ReciCubed(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
@@ -105,8 +97,9 @@ def test_mixed_vanderplaats(N):
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
-            itte, np.array2string(x_k[0:2]), f[0], f[1]))
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
+                itte, f[0], f[1], f[2], f[3]))
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -127,3 +120,5 @@ def test_mixed_vanderplaats(N):
 
 if __name__ == "__main__":
     test_mixed_vanderplaats(50)
+    test_mixed_vanderplaats(100)
+    test_mixed_vanderplaats(200)
