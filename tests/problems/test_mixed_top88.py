@@ -25,7 +25,7 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def test_mixed_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=0):
+def test_mixed_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
 
     # Instantiate problem
     prob = Top88(nelx, nely, volfrac, penal, rmin, ft)
