@@ -276,8 +276,3 @@ class MMASquared(MMA):
         ddxddy[self.positive] = np.broadcast_to((-3 / (4 * x**(5/2))), self.positive.shape)[self.positive]
         ddxddy[~self.positive] = np.broadcast_to((3 / (4 * x**(5/2))), self.positive.shape)[~self.positive]
         return ddxddy
-
-    def get_move_limit(self):
-        zzl1 = self.low + self.albefa * (self.x - self.low)
-        zzu1 = self.upp - self.albefa * (self.upp - self.x)
-        return zzl1, zzu1
