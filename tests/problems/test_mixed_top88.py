@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.Top88 import Top88
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA, ReciSquared, ReciCubed, MMASquared
+from sao.approximations.intervening import Linear, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, ReciFit
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
@@ -25,7 +25,7 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def test_mixed_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
+def test_mixed_top88(nelx=180*2, nely=60*2, volfrac=0.4, penal=3, rmin=5.4, ft=0):
 
     # Instantiate problem
     prob = Top88(nelx, nely, volfrac, penal, rmin, ft)
@@ -37,7 +37,7 @@ def test_mixed_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
                 1: np.array([1])}
 
     # Instantiate a mixed approximation scheme
-    subprob_map = {(0, 0): Subproblem(intervening=MMASquared(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
+    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),

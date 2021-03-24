@@ -74,7 +74,4 @@ def test_vanderplaats(N):
 
 
 if __name__ == "__main__":
-    test_vanderplaats(50)
     test_vanderplaats(100)
-    test_vanderplaats(200)
-

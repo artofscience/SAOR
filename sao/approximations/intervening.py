@@ -276,3 +276,44 @@ class MMASquared(MMA):
         ddxddy[self.positive] = np.broadcast_to((-3 / (4 * x**(5/2))), self.positive.shape)[self.positive]
         ddxddy[~self.positive] = np.broadcast_to((3 / (4 * x**(5/2))), self.positive.shape)[~self.positive]
         return ddxddy
+
+
+class ReciFit(Intervening):
+    def __init__(self):
+        self.x = None
+        self.xold1, self.xold2 = None, None
+        self.a, self.b = None, None
+        self.f, self.df = None, None
+
+    def update(self, x, f, df):
+        self.f = f
+        self.df = df
+        self.x = x
+        self.get_coefficients()
+
+    def get_coefficients(self):
+        self.a = - self.df / self.f ** 2
+        self.b = 1 / self.f - self.a * self.x
+        self.a[abs(self.a) < 1e-3] = 1e-3 * np.sign(self.a[abs(self.a) < 1e-3])
+
+    def y(self, x):
+        y = 1 / (self.a * x + self.b)
+        return y
+
+    def dydx(self, x):
+        dydx = - self.a / (self.a * self.x + self.b) ** 2
+        return dydx
+
+    def ddyddx(self, x):
+        ddyddx = 2 * self.a ** 2 / (self.a * self.x + self.b) ** 3
+        return ddyddx
+
+    # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
+    def dxdy(self, x):
+        dxdy = - (self.a * self.x + self.b) ** 2 / self.a
+        return dxdy
+
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    def ddxddy(self, x, **kwargs):
+        ddxddy = 2 * (self.a * self.x + self.b) ** 3 / self.a
+        return ddxddy

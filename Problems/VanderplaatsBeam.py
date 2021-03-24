@@ -132,7 +132,7 @@ class Vanderplaats(Problem):
             if iteration == 0:
                 plt.ion()
                 fig, (ax1, ax2) = plt.subplots(2, 1)
-                fig.suptitle('Vanderplaats beam of {} elements'.format(self.N), fontsize=20)
+                fig.suptitle('iter = {}'.format(iteration), fontsize=20)
                 ax1.set_ylabel('h [cm]', fontsize=16)
                 ax2.set_ylabel('b [cm]', fontsize=16)
                 ax2.set_xlabel('L [cm]', fontsize=16)
@@ -153,6 +153,7 @@ class Vanderplaats(Problem):
                 vis = [fig, ax1, ax2, ims1, ims2]
                 return vis
             else:
+                vis[0].suptitle('iter = {}'.format(iteration), fontsize=20)
                 ims1 = vis[3]
                 ims2 = vis[4]
                 fig = vis[0]

@@ -45,35 +45,35 @@ def test_mixed_vanderplaats(N):
                    (0, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
+                                                              xmax=prob.xmax[var_set[0]], move_limit=0.2)),
                    (0, 1): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]])),
+                                                              xmax=prob.xmax[var_set[1]], move_limit=0.2)),
                    (1, 0): Subproblem(intervening=ConLin(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
+                                                              xmax=prob.xmax[var_set[0]], move_limit=0.2)),
                    (1, 1): Subproblem(intervening=ReciSquared(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]])),
+                                                              xmax=prob.xmax[var_set[1]], move_limit=0.2)),
                    (2, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
+                                                              xmax=prob.xmax[var_set[0]], move_limit=0.2)),
                    (2, 1): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]])),
+                                                              xmax=prob.xmax[var_set[1]], move_limit=0.2)),
                    (3, 0): Subproblem(intervening=ConLin(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
+                                                              xmax=prob.xmax[var_set[0]], move_limit=0.2)),
                    (3, 1): Subproblem(intervening=ReciCubed(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]]))
+                                                              xmax=prob.xmax[var_set[1]], move_limit=0.2))
                    }
 
     # Instantiate a mixed scheme
@@ -119,6 +119,4 @@ def test_mixed_vanderplaats(N):
 
 
 if __name__ == "__main__":
-    test_mixed_vanderplaats(50)
     test_mixed_vanderplaats(100)
-    test_mixed_vanderplaats(200)
