@@ -53,28 +53,29 @@ class InteriorPoint(PrimalDual, ABC):
         ...
 
     def get_step_size(self):
-        temp = [self.alphab * self.dw[i+1] / w for i, w in enumerate(self.w[1:])]
+        temp = [self.alphab * self.dw[1:][i] / a for i, a in enumerate(self.w[1:])]
         temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
         temp.append(-self.alphab * self.dw[0] / (self.beta - self.w[0]))
         temp.append(np.array([1]))
-        self.step = 1 / np.amax([np.amax(i) for i in temp])
+        self.step = 1 / np.max(([np.max(i) for i in temp]))
 
     def update(self):
 
         # iterate until convergence
         while self.epsi > self.epsimin:
             self.iter += 1
-            # print("iter: %2d" % (self.iter), ", ",
-            #       "solves: %2d" % (self.iterin), ", ",
-            #       "x:", ["{:+.2f}".format(i) for i in self.x[1:3]], ", ",
-            #       "lam:", ["{:+.2f}".format(i) for i in self.w[3]], ", ",
-            #       "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
+            print("iter: %2d" % self.iter, ", ",
+                  "solves: %2d" % self.iterin, ", ",
+                  "obj: %.2e" % self.g(self.x)[0], ", ",
+                  "x:", ["{:+.2f}".format(i) for i in self.x[1:3]], ", ",
+                  "lam:", ["{:+.2f}".format(i) for i in self.w[3]], ", ",
+                  "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
 
             # Calculate the initial residual, its norm and maximum value
             # This indicates how far we are from the global optimum for THIS epsi
             self.get_residual()
             rnorm = np.linalg.norm([np.linalg.norm(i) for i in self.r])
-            rmax = np.max([np.max(i) for i in self.r])
+            rmax = np.max([np.max(np.abs(i)) for i in self.r])
 
             self.iterin = 0
             while rmax > self.epsifac*self.epsi and self.iterin < self.iterinmax:
@@ -88,9 +89,12 @@ class InteriorPoint(PrimalDual, ABC):
                 """
                 self.get_newton_direction()
 
+                self.get_step_size()
+                # print(self.step)
+
                 # Set w_old = w
-                for count, value in enumerate(self.wold):
-                    value[:] = self.w[count]
+                for i in range(0, len(self.w)):
+                    self.wold[i] = self.w[i].copy()
 
                 # Initialize the counter for the line search
                 self.itera = 0
@@ -100,19 +104,19 @@ class InteriorPoint(PrimalDual, ABC):
                 while rnew > rnorm and self.itera < self.iteramax:
                     self.itera += 1
 
-                    # calculate step size
-                    self.get_step_size()
 
                     # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
-                    for count, value in enumerate(self.w):
-                        value[:] = self.wold[count] + self.step * self.dw[count]
+                    for i in range(0, len(self.w)):
+                        self.w[i][:] = self.wold[i][:] + self.step * self.dw[i][:]
 
                     self.get_residual()
                     rnew = np.linalg.norm([np.linalg.norm(i) for i in self.r])
+                    # print(rnew)
                     self.step *= 0.5
 
                 rnorm = 1.0 * rnew
-                rmax = np.max([np.max(i) for i in self.r])
+                rmax = np.max([np.max(np.abs(i)) for i in self.r])
+                # print(rmax)
                 self.step *= 2
 
             self.epsi *= self.epsired

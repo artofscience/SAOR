@@ -107,8 +107,17 @@ class InteriorPointBasis(InteriorPoint):
                   np.zeros(self.m),
                   np.zeros(self.m)]
 
-        self.dw = deepcopy(self.r)
-        self.wold = deepcopy(self.w)
+        self.dw = [np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.m),
+                  np.zeros(self.m)]
+
+        self.wold = [np.ones(self.n),
+                  np.ones(self.n),
+                  np.ones(self.n),
+                  np.ones(self.m),
+                  np.ones(self.m)]
 
     def get_residual(self):
         """
@@ -140,24 +149,24 @@ class InteriorPointBasis(InteriorPoint):
         diag_lambda = self.w[4]/self.w[3]  # s./lam
         diag_x = ddg[0] + self.w[3].dot(ddg[1:]) + self.w[1]/a + self.w[2]/b
 
-        # FIXME: implement dense solvers and CG
-        if self.m > self.n:
-            dldl = delta_lambda/diag_lambda
-            B = -delta_x - dldl.dot(dg[1:])
-            A = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambda) * dg[1:])
+        # # FIXME: implement dense solvers and CG
+        # if self.m > self.n:
+        #     dldl = delta_lambda/diag_lambda
+        #     B = -delta_x - dldl.dot(dg[1:])
+        #     A = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambda) * dg[1:])
+        #
+        #     # solve for dx
+        #     self.dw[0][:] = np.linalg.solve(A, B)  # n x n
+        #     self.dw[3][:] = dg[1:].dot(self.dw[0])/diag_lambda + dldl  # calculate dlam[dx]
+        #
+        # else:
+        dxdx = delta_x/diag_x
+        B = delta_lambda - dxdx.dot(dg[1:].transpose())
+        A = diags(diag_lambda) + dg[1:].dot(diags(1/diag_x) * dg[1:].transpose())  # calculate dx[lam]
 
-            # solve for dx
-            self.dw[0][:] = np.linalg.solve(A, B)  # n x n
-            self.dw[3][:] = dg[1:].dot(self.dw[0])/diag_lambda + dldl  # calculate dlam[dx]
-
-        else:
-            dxdx = delta_x/diag_x
-            B = delta_lambda - dxdx.dot(dg[1:].transpose())
-            A = diags(diag_lambda) + dg[1:].dot(diags(1/diag_x) * dg[1:].transpose())  # calculate dx[lam]
-
-            # solve for dlam
-            self.dw[3][:] = np.linalg.solve(A, B)  # m x m
-            self.dw[0][:] = -dxdx - (self.dw[3].dot(dg[1:]))/diag_x
+        # solve for dlam
+        self.dw[3][:] = np.linalg.solve(A, B)  # m x m
+        self.dw[0][:] = -dxdx - (self.dw[3].dot(dg[1:]))/diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
         self.dw[1][:] = -self.w[1] + self.epsi/a - (self.w[1] * self.dw[0])/a

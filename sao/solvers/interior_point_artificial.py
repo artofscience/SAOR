@@ -129,9 +129,9 @@ class InteriorPointArtificial(InteriorPoint):
     def __init__(self, problem, **kwargs):
         super().__init__(problem, **kwargs)
 
-        self.c = kwargs.get('c', 100*np.ones(self.m))
+        self.c = kwargs.get('c', 1000*np.ones(self.m))
         self.a0 = kwargs.get('a0', 1)
-        self.d = kwargs.get('d', np.ones(self.m))
+        self.d = kwargs.get('d', np.zeros(self.m))
         self.a = kwargs.get('a', np.zeros(self.m))
 
         """
@@ -142,7 +142,7 @@ class InteriorPointArtificial(InteriorPoint):
         w.x = (a + b)/2
         """
         #FIXME: implement correct initialization
-        self.w = [self.x,  # x
+        self.w = [0.5*(self.alpha + self.beta),  # x
                   np.maximum(1/(self.x - self.alpha), 1),  # xsi
                   np.maximum(1/(self.beta - self.x), 1),  # eta
                   np.ones(self.m),  # lam
@@ -162,8 +162,27 @@ class InteriorPointArtificial(InteriorPoint):
                   np.zeros(1),
                   np.zeros(1)]
 
-        self.dw = deepcopy(self.r)
-        self.wold = deepcopy(self.w)
+        self.dw = [np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.m),
+                  np.zeros(self.m),
+                  np.zeros(self.m),
+                  np.zeros(self.m),
+                  np.zeros(1),
+                  np.zeros(1)]
+
+        self.wold = [np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.n),
+                  np.zeros(self.m),
+                  np.zeros(self.m),
+                  np.zeros(self.m),
+                  np.zeros(self.m),
+                  np.zeros(1),
+                  np.zeros(1)]
+
+
 
     def get_residual(self):
         """
