@@ -20,7 +20,7 @@ class InteriorPoint(PrimalDual, ABC):
 
         self.epsimin = kwargs.get('epsimin', 1e-7)
         self.iteramax = kwargs.get('iteramax', 50)
-        self.iterinmax = kwargs.get('iterinmax', 100)
+        self.iterinmax = kwargs.get('iterinmax', 20)
         self.alphab = kwargs.get('alphab', -1.01)
         self.epsifac = kwargs.get('epsifac', 0.9)
         self.epsired = kwargs.get('epsired', 0.1)  # 0.0 < (float) epsired < 1.0
@@ -66,8 +66,8 @@ class InteriorPoint(PrimalDual, ABC):
             self.iter += 1
             print("iter: %2d" % self.iter, ", ",
                   "solves: %2d" % self.iterin, ", ",
-                  "obj: %.2e" % self.g(self.x)[0], ", ",
-                  "x:", ["{:+.2f}".format(i) for i in self.x[1:3]], ", ",
+                  "obj: %.2e" % self.g(self.w[0])[0], ", ",
+                  "x:", ["{:+.2f}".format(i) for i in self.w[0][1:3]], ", ",
                   "lam:", ["{:+.2f}".format(i) for i in self.w[3]], ", ",
                   "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
 
@@ -113,6 +113,7 @@ class InteriorPoint(PrimalDual, ABC):
                     rnew = np.linalg.norm([np.linalg.norm(i) for i in self.r])
                     # print(rnew)
                     self.step *= 0.5
+                    print(self.w[7], self.w[8])
 
                 rnorm = 1.0 * rnew
                 rmax = np.max([np.max(np.abs(i)) for i in self.r])
@@ -121,6 +122,4 @@ class InteriorPoint(PrimalDual, ABC):
 
             self.epsi *= self.epsired
 
-
-
-        # end
+        self.x = self.w[0]

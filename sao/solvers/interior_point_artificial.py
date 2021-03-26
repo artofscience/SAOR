@@ -262,6 +262,6 @@ class InteriorPointArtificial(InteriorPoint):
         self.dw[5][:] = (self.dw[3] - delta_y)/diag_y
         self.dw[6][:] = -self.w[6] + self.epsi/self.w[5] - (self.w[6] * self.dw[5])/self.w[5]
         self.dw[8][:] = -self.w[8] + self.epsi/self.w[7] - (self.w[8] * self.dw[7])/self.w[7]
-
+        # print(self.dw[1])
         # print("y:", self.w[5], "z:", self.w[7])
 
