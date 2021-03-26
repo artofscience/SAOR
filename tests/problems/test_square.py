@@ -12,7 +12,7 @@ from sao.solvers.SolverIP_Svanberg import SvanbergIP
 np.set_printoptions(precision=4)
 
 
-@pytest.mark.parametrize('n', [10, 20])
+@pytest.mark.parametrize('n', [2, 3])
 def test_square(n):
 
     # Instantiate problem
@@ -20,18 +20,16 @@ def test_square(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(),
+    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
-    # Instantiate solver
     solver = SvanbergIP(prob.n, 1)
-
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-4)):
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -43,14 +41,14 @@ def test_square(n):
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
-
-        # Call solver (x_k, g and dg are within approx instance)
-        x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-        x_k = x.copy()
-
-        # solver = ipa(subprob, epsimin=1e-7)
-        # solver.update()
-        # x_k = solver.x.copy()
+        #
+        #
+        # x  = solver.subsolv(subprob)
+        # x_k = x.copy()
+        #
+        solver = ipa(subprob, epsimin=1e-6)
+        solver.update()
+        x_k = solver.x.copy()
 
         itte += 1
 
