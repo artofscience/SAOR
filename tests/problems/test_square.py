@@ -24,9 +24,9 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-@pytest.mark.parametrize('n', [10, 20])
+@pytest.mark.parametrize('n', [10])
 def test_square_Svanberg(n):
-    print("Solving test_square using Ipopt Svanberg")
+    logger.info("Solving test_square using Ipopt Svanberg")
 
     # Instantiate problem
     prob = Square(n)
@@ -51,18 +51,22 @@ def test_square_Svanberg(n):
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
-        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
+            itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
-        x_k = solver.subsolv(subprob)
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         itte += 1
 
-    print('Alles goed!')
+    logger.info('Alles goed!')
 
+
+@pytest.mark.parametrize('n', [10])
 def test_square_ipx(n):
-    print("Solving test_square using Ipopt x")
+    logger.info("Solving test_square using Ipopt x")
+
     # Instantiate problem
     prob = Square(n)
     assert prob.n == n
@@ -84,7 +88,8 @@ def test_square_ipx(n):
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
-        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
+            itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -93,10 +98,13 @@ def test_square_ipx(n):
 
         itte += 1
 
-    print('Alles goed!')
+    logger.info('Alles goed!')
 
+
+@pytest.mark.parametrize('n', [10])
 def test_square_ipxy(n):
-    print("Solving test_square using Ipopt xy")
+    logger.info("Solving test_square using Ipopt xy")
+
     # Instantiate problem
     prob = Square(n)
     assert prob.n == n
@@ -128,10 +136,13 @@ def test_square_ipxy(n):
 
         itte += 1
 
-    print('Alles goed!')
+    logger.info('Alles goed!')
 
+
+@pytest.mark.parametrize('n', [10])
 def test_square_ipxyz(n):
-    print("Solving test_square using Ipopt xyz")
+    logger.info("Solving test_square using Ipopt xyz")
+
     # Instantiate problem
     prob = Square(n)
     assert prob.n == n
@@ -153,7 +164,8 @@ def test_square_ipxyz(n):
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
-        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
+            itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -162,12 +174,12 @@ def test_square_ipxyz(n):
 
         itte += 1
 
-    logger.info('Optimization loop converged!')
+    logger.info('Alles goed!')
 
 
 if __name__ == "__main__":
-    test_square_Svanberg(4)
-    test_square_ipx(4)
-    test_square_ipxy(4)
-    test_square_ipxyz(4)
+    test_square_Svanberg(10)
+    # test_square_ipx(10)
+    test_square_ipxy(10)
+    test_square_ipxyz(10)
 
