@@ -13,9 +13,45 @@ from sao.solvers.SolverIP_Svanberg import SvanbergIP
 np.set_printoptions(precision=4)
 
 
-@pytest.mark.parametrize('n', [2, 3])
-def test_square(n):
+@pytest.mark.parametrize('n', [10, 20])
+def test_square_Svanberg(n):
+    print("Solving test_square using Ipopt Svanberg")
 
+    # Instantiate problem
+    prob = Square(n)
+    assert prob.n == n
+
+    # Instantiate a non-mixed approximation scheme
+    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+
+    solver = SvanbergIP(prob.n, 1)
+
+    # Optimization loop
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+        ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
+
+        # Print current iteration and x_k
+        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df, ddf)
+        x_k = solver.subsolv(subprob)
+
+        itte += 1
+
+    print('Alles goed!')
+
+def test_square_ipx(n):
+    print("Solving test_square using Ipopt x")
     # Instantiate problem
     prob = Square(n)
     assert prob.n == n
@@ -41,14 +77,76 @@ def test_square(n):
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
-        solverx = ipx(subprob, epsimin=1e-4)
-        x_k = solverx.update()
+        solver = ipx(subprob, epsimin=1e-6)
+        x_k = solver.update()
 
-        solverxy = ipxy(subprob, epsimin=1e-4)
-        x_k = solverxy.update()
+        itte += 1
 
-        solverxyz = ipxyz(subprob, epsimin=1e-4)
-        x_k = solverxyz.update()
+    print('Alles goed!')
+
+def test_square_ipxy(n):
+    print("Solving test_square using Ipopt xy")
+    # Instantiate problem
+    prob = Square(n)
+    assert prob.n == n
+
+    # Instantiate a non-mixed approximation scheme
+    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+
+    # Optimization loop
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+        ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
+
+        # Print current iteration and x_k
+        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df, ddf)
+        solver = ipxy(subprob, epsimin=1e-6)
+        x_k = solver.update()
+
+        itte += 1
+
+    print('Alles goed!')
+
+def test_square_ipxyz(n):
+    print("Solving test_square using Ipopt xyz")
+    # Instantiate problem
+    prob = Square(n)
+    assert prob.n == n
+
+    # Instantiate a non-mixed approximation scheme
+    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+
+    # Optimization loop
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+        ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
+
+        # Print current iteration and x_k
+        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df, ddf)
+        solver = ipxyz(subprob, epsimin=1e-6)
+        x_k = solver.update()
 
         itte += 1
 
@@ -56,5 +154,8 @@ def test_square(n):
 
 
 if __name__ == "__main__":
-    test_square(4)
+    test_square_Svanberg(4)
+    test_square_ipx(4)
+    test_square_ipxy(4)
+    test_square_ipxyz(4)
 
