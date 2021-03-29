@@ -125,13 +125,13 @@ Subsequently we are left with a reduced system in terms of dx and dlam
 """
 
 
-class InteriorPointArtificial(InteriorPoint):
+class InteriorPointXYZ(InteriorPoint):
     def __init__(self, problem, **kwargs):
         super().__init__(problem, **kwargs)
 
-        self.c = kwargs.get('c', 100*np.ones(self.m))
+        self.c = kwargs.get('c', 1000*np.ones(self.m))
         self.a0 = kwargs.get('a0', 1)
-        self.d = kwargs.get('d', np.ones(self.m))
+        self.d = kwargs.get('d', np.zeros(self.m))
         self.a = kwargs.get('a', np.zeros(self.m))
 
         """
@@ -142,9 +142,9 @@ class InteriorPointArtificial(InteriorPoint):
         w.x = (a + b)/2
         """
         #FIXME: implement correct initialization
-        self.w = [self.x,  # x
-                  np.maximum(1/(self.x - self.alpha), 1),  # xsi
-                  np.maximum(1/(self.beta - self.x), 1),  # eta
+        self.w = [self.x0,  # x
+                  np.maximum(1/(self.x0 - self.alpha), 1),  # xsi
+                  np.maximum(1/(self.beta - self.x0), 1),  # eta
                   np.ones(self.m),  # lam
                   np.ones(self.m),  # s
                   np.ones(self.m),  # y
@@ -152,17 +152,8 @@ class InteriorPointArtificial(InteriorPoint):
                   np.ones(1),  # z
                   np.ones(1)]  # zeta
 
-        self.r = [np.zeros(self.n),
-                  np.zeros(self.n),
-                  np.zeros(self.n),
-                  np.zeros(self.m),
-                  np.zeros(self.m),
-                  np.zeros(self.m),
-                  np.zeros(self.m),
-                  np.zeros(1),
-                  np.zeros(1)]
-
-        self.dw = deepcopy(self.r)
+        self.r = deepcopy(self.w)
+        self.dw = deepcopy(self.w)
         self.wold = deepcopy(self.w)
 
     def get_residual(self):
@@ -179,15 +170,15 @@ class InteriorPointArtificial(InteriorPoint):
         r(zeta)     = z*zeta - e
         """
 
-        self.r[0][:] = self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]) - self.w[1] + self.w[2]  #rex
-        self.r[1][:] = self.w[1] * (self.w[0] - self.alpha) - self.epsi  #rexsi
-        self.r[2][:] = self.w[2] * (self.beta - self.w[0]) - self.epsi  #reeta
-        self.r[3][:] = self.g(self.w[0])[1:] + self.w[4] - self.w[7]*self.a - self.w[5] #relam
-        self.r[4][:] = self.w[3] * self.w[4] - self.epsi  #res
-        self.r[5][:] = self.c + self.d * self.w[5] - self.w[6] - self.w[3]  #rey
-        self.r[6][:] = self.w[6] * self.w[5] - self.epsi  #remu
-        self.r[7][:] = self.a0 - self.w[8] - self.w[3].dot(self.a)  #rez
-        self.r[8][:] = self.w[7] * self.w[8] - self.epsi  #rezet
+        self.r[0] = self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]) - self.w[1] + self.w[2]  #rex
+        self.r[1] = self.w[1] * (self.w[0] - self.alpha) - self.epsi  #rexsi
+        self.r[2] = self.w[2] * (self.beta - self.w[0]) - self.epsi  #reeta
+        self.r[3] = self.g(self.w[0])[1:] + self.w[4] - self.w[7]*self.a - self.w[5] #relam
+        self.r[4] = self.w[3] * self.w[4] - self.epsi  #res
+        self.r[5] = self.c + self.d * self.w[5] - self.w[6] - self.w[3]  #rey
+        self.r[6] = self.w[6] * self.w[5] - self.epsi  #remu
+        self.r[7] = self.a0 - self.w[8] - self.w[3].dot(self.a)  #rez
+        self.r[8] = self.w[7] * self.w[8] - self.epsi  #rezet
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -232,17 +223,17 @@ class InteriorPointArtificial(InteriorPoint):
 
             # solve for dlam
             X = np.linalg.solve(np.block([[Alam, self.a], [self.a.transpose(), -self.w[8]/self.w[7]]]), np.block([[Blam], [delta_z]]))
-            self.dw[3][:] = X[:-1]  # m x m
-            self.dw[7][:] = X[-1]
-            self.dw[0][:] = -dxdx - (self.dw[3].dot(dg[1:]))/diag_x
+            self.dw[3][:] = X[:-1]  # m x m # here I cannot remove the [:], why?
+            self.dw[7] = X[-1]
+            self.dw[0] = -dxdx - (self.dw[3].dot(dg[1:]))/diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
-        self.dw[1][:] = -self.w[1] + self.epsi/a - (self.w[1] * self.dw[0])/a
-        self.dw[2][:] = -self.w[2] + self.epsi/b + (self.w[2] * self.dw[0])/b
-        self.dw[4][:] = -self.w[4] + self.epsi/self.w[3] - (self.w[4] * self.dw[3])/self.w[3]
-        self.dw[5][:] = (self.dw[3] - delta_y)/diag_y
-        self.dw[6][:] = -self.w[6] + self.epsi/self.w[5] - (self.w[6] * self.dw[5])/self.w[5]
-        self.dw[8][:] = -self.w[8] + self.epsi/self.w[7] - (self.w[8] * self.dw[7])/self.w[7]
-
+        self.dw[1] = -self.w[1] + self.epsi/a - (self.w[1] * self.dw[0])/a
+        self.dw[2] = -self.w[2] + self.epsi/b + (self.w[2] * self.dw[0])/b
+        self.dw[4] = -self.w[4] + self.epsi/self.w[3] - (self.w[4] * self.dw[3])/self.w[3]
+        self.dw[5] = (self.dw[3] - delta_y)/diag_y
+        self.dw[6] = -self.w[6] + self.epsi/self.w[5] - (self.w[6] * self.dw[5])/self.w[5]
+        self.dw[8] = -self.w[8] + self.epsi/self.w[7] - (self.w[8] * self.dw[7])/self.w[7]
+        # print(self.dw[1])
         # print("y:", self.w[5], "z:", self.w[7])
 

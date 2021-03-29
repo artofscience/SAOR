@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import logging
 from Problems.square import Square
-from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
-from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
+from sao.solvers.interior_point_xyz import InteriorPointArtificial as ipa
+from sao.solvers.interior_point_x import InteriorPointBasis as ipb
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -20,21 +20,21 @@ logger.addHandler(stream_handler)
 @pytest.mark.parametrize('n', [100])
 def test_square(n):
 
-    # Test sao.solvers.interior_point_basis.py
+    # Test sao.solvers.interior_point_x.py
     logger.info("Solve x**2 using ipopt basis")
     problemb = Square(n)
-    mysolverb = ipb(problemb, epsimin=1e-9)
+    mysolverb = ipb(problemb, epsimin=1e-7)
     mysolverb.update()
     assert np.sum(mysolverb.x) == pytest.approx(1, rel=1e-4)
 
-    # Test sao.solvers.interior_point_artificial.py
+    # Test sao.solvers.interior_point_xyz.py
     logger.info("Solve x**2 using ipopt with artificial variables")
     problema = Square(n)
     mysolvera = ipa(problema, epsimin=1e-9)
     mysolvera.update()
     assert np.sum(mysolvera.x) == pytest.approx(1, rel=1e-4)
 
-    # Test SvanbergIP
+    # Test sao.solvers.SolverIP_Svanberg.py
     logger.info("Solve x**2 using SvanbergIP")
     problemc = Square(n)
     mysolverc = SvanbergIP(problemc.n, 1)
@@ -47,4 +47,4 @@ def test_square(n):
 
 
 if __name__ == "__main__":
-    test_square(4)
+    test_square(10)
