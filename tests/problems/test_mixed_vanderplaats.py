@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed
+from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, PolyFit, PolyFit2
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
@@ -75,6 +75,40 @@ def test_mixed_vanderplaats(N):
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
                                                               xmax=prob.xmax[var_set[1]], move_limit=0.2))
                    }
+    # subprob_map = {
+    #     (0, 0): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+    #                                                xmax=prob.xmax[var_set[0]], move_limit=0.2)),
+    #     (0, 1): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+    #                                                xmax=prob.xmax[var_set[1]], move_limit=0.2)),
+    #     (1, 0): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+    #                                                xmax=prob.xmax[var_set[0]], move_limit=0.2)),
+    #     (1, 1): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+    #                                                xmax=prob.xmax[var_set[1]], move_limit=0.2)),
+    #     (2, 0): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+    #                                                xmax=prob.xmax[var_set[0]], move_limit=0.2)),
+    #     (2, 1): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+    #                                                xmax=prob.xmax[var_set[1]], move_limit=0.2)),
+    #     (3, 0): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+    #                                                xmax=prob.xmax[var_set[0]], move_limit=0.2)),
+    #     (3, 1): Subproblem(intervening=PolyFit2(),
+    #                        approximation=Taylor1(),
+    #                        ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+    #                                                xmax=prob.xmax[var_set[1]], move_limit=0.2))
+    # }
 
     # Instantiate a mixed scheme
     subprob = Mixed(subprob_map, var_set, resp_set)
@@ -119,4 +153,4 @@ def test_mixed_vanderplaats(N):
 
 
 if __name__ == "__main__":
-    test_mixed_vanderplaats(100)
+    test_mixed_vanderplaats(5)

@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA
+from sao.approximations.intervening import Linear, ConLin, MMA, PolyFit, PolyFit2
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
@@ -32,37 +32,21 @@ def test_mixed_square(n):
     assert prob.n == n
 
     # Define variable and response sets of a mixed approximation scheme as dictionaries
-    var_set = {0: np.array([0]),
-               1: np.array([1]),
-               2: np.arange(2, prob.n)}
+    var_set = {0: np.arange(0, prob.n)}
     resp_set = {0: np.array([0]),
                 1: np.array([1])}
 
     # Instantiate subproblem objects for a mixed approximation scheme
-    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
+    subprob_map = {
+                   (0, 0): Subproblem(intervening=PolyFit(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
-                   (0, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]])),
-                   (0, 2): Subproblem(intervening=MMA(prob.xmin[var_set[2]], prob.xmax[var_set[2]]),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
-                                                              xmax=prob.xmax[var_set[2]])),
-                   (1, 0): Subproblem(intervening=Linear(),
+                   (1, 0): Subproblem(intervening=PolyFit(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
-                   (1, 1): Subproblem(intervening=Linear(),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]])),
-                   (1, 2): Subproblem(intervening=Linear(),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[2]],
-                                                              xmax=prob.xmax[var_set[2]]))}
+                                                              xmax=prob.xmax[var_set[0]]))
+                   }
 
     # Instantiate a mixed scheme
     subprob = Mixed(subprob_map, var_set, resp_set)

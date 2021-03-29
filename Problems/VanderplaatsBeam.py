@@ -45,7 +45,7 @@ class Vanderplaats(Problem):
             h = x_k[self.N + i]  # get height
 
             # Weight objective
-            g[0] = g[0] + self.S * b * h * 1e-3
+            g[0] = g[0] + self.S * b * h * 1e-2
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
@@ -81,8 +81,8 @@ class Vanderplaats(Problem):
             h = x_k[self.N + i]     # get height
 
             # Derivatives of objective
-            dg[0, i] = self.S * h * 1e-3
-            dg[0, self.N + i] = self.S * b * 1e-3
+            dg[0, i] = self.S * h * 1e-2
+            dg[0, self.N + i] = self.S * b * 1e-2
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
