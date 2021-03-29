@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, ConLin, MMA
@@ -8,6 +9,16 @@ from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point_x import InteriorPointBasis as ipb
 from sao.solvers.interior_point_xyz import InteriorPointArtificial as ipa
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+
+# Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+
+# If you want to print on terminal
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 np.set_printoptions(precision=4)
 
@@ -41,7 +52,9 @@ def test_vanderplaats(N):
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        print('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1]))
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
+                itte, f[0], f[1], f[2], f[3]))
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -57,9 +70,8 @@ def test_vanderplaats(N):
 
         itte += 1
 
-    print('Alles goed!')
+    logger.info('Optimization loop converged!')
 
 
 if __name__ == "__main__":
-    test_vanderplaats(50)
-
+    test_vanderplaats(100)

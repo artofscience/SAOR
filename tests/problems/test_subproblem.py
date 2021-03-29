@@ -1,16 +1,27 @@
 import pytest
 import numpy as np
+import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 
+# Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+
+# If you want to print on terminal
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
 
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_lin_taylor1(n, h):
-    print("Testing Subproblem(Taylor1, y=x)")
+    logger.info("Testing Subproblem(Taylor1, y=x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
@@ -29,7 +40,7 @@ def test_lin_taylor1(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_lin_taylor2(n, h):
-    print("Subproblem(Taylor2, y=x)")
+    logger.info("Subproblem(Taylor2, y=x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Linear(), approximation=Taylor2(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
@@ -50,7 +61,7 @@ def test_lin_taylor2(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_rec_taylor1(n, h):
-    print("Testing Subproblem(Taylor1, y=1/x)")
+    logger.info("Testing Subproblem(Taylor1, y=1/x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
@@ -75,7 +86,7 @@ def test_rec_taylor1(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_rec_taylor2(n, h):
-    print("Testing Subproblem(Taylor2, y=1/x)")
+    logger.info("Testing Subproblem(Taylor2, y=1/x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
@@ -106,7 +117,7 @@ def test_rec_taylor2(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_conlin_taylor1(n, h):
-    print("Testing Subproblem(Taylor1, y=ConLin)")
+    logger.info("Testing Subproblem(Taylor1, y=ConLin)")
     prob = Square(n)
     subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
@@ -130,7 +141,7 @@ def test_conlin_taylor1(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_conlin_taylor2(n, h):
-    print("Testing Subproblem(Taylor2, y=ConLin)")
+    logger.info("Testing Subproblem(Taylor2, y=ConLin)")
     prob = Square(n)
     subprob = Subproblem(intervening=ConLin(), approximation=Taylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
@@ -162,7 +173,7 @@ def test_conlin_taylor2(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_mma_taylor1(n, h):
-    print("Testing Subproblem(Taylor1, y=MMA)")
+    logger.info("Testing Subproblem(Taylor1, y=MMA)")
     prob = Square(n)
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
@@ -186,7 +197,7 @@ def test_mma_taylor1(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_mma_taylor2(n, h):
-    print("Testing Subproblem(Taylor2, y=MMA)")
+    logger.info("Testing Subproblem(Taylor2, y=MMA)")
     prob = Square(n)
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))

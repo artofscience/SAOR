@@ -1,15 +1,26 @@
 import pytest
 import numpy as np
+import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import ConLin
+
+# Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+
+# If you want to print on terminal
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_taylor1(n, h):
 
-    print("Testing 1st-order Taylor expansion with y=x")
+    logger.info("Testing 1st-order Taylor expansion with y=x")
     prob = Square(n)
     taylor1 = Taylor1()
     taylor1.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
@@ -28,7 +39,7 @@ def test_taylor1(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_taylor2(n, h):
-    print("Testing 2nd-order Taylor expansion with y=x")
+    logger.info("Testing 2nd-order Taylor expansion with y=x")
     prob = Square(n)
     taylor2 = Taylor2()
     taylor2.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
@@ -49,7 +60,7 @@ def test_taylor2(n, h):
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_taylor1_intervening(n, h):
 
-    print("Testing 1st-order Taylor expansion with y=ConLin")
+    logger.info("Testing 1st-order Taylor expansion with y=ConLin")
     prob = Square(n)
     inter = ConLin()
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
@@ -72,7 +83,7 @@ def test_taylor1_intervening(n, h):
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_taylor2_intervening(n, h):
-    print("Testing 2nd-order Taylor expansion with y=ConLin")
+    logger.info("Testing 2nd-order Taylor expansion with y=ConLin")
     prob = Square(n)
     inter = ConLin()
     inter.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))

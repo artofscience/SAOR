@@ -3,15 +3,14 @@ import numpy as np
 import logging
 from Problems.Top88 import Top88
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA
+from sao.approximations.intervening import Linear, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, ReciFit, Bezier, PolyFit, PolyFit2
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
-from sao.solvers.interior_point_x import InteriorPointBasis as ipb
-from sao.solvers.interior_point_xyz import InteriorPointArtificial as ipa
+from sao.problems.mixed import Mixed
+from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
+from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from line_profiler import LineProfiler
-
-np.set_printoptions(precision=4)
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -23,22 +22,32 @@ stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-# # If you want to write to a .log file (stored in the same directory as the script you run)
-# file_handler = logging.FileHandler('test_mixed_square.log')
-# file_handler.setLevel(logging.INFO)
-# file_handler.setFormatter(formatter)
-# logger.addHandler(file_handler)
+np.set_printoptions(precision=4)
 
 
-def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
+def test_mixed_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
 
     # Instantiate problem
     prob = Top88(nelx, nely, volfrac, penal, rmin, ft)
     assert prob.n == nelx * nely
 
-    # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    # Define variable and response sets as dictionaries
+    var_set = {0: np.arange(0, prob.n)}
+    resp_set = {0: np.array([0]),
+                1: np.array([1])}
+
+    # Instantiate a mixed approximation scheme
+    subprob_map = {(0, 0): Subproblem(intervening=PolyFit2(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]])),
+                   (1, 0): Subproblem(intervening=Linear(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]]))}
+
+    # Instantiate a mixed scheme
+    subprob = Mixed(subprob_map, var_set, resp_set)
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -77,4 +86,4 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
 
 
 if __name__ == "__main__":
-    test_top88()
+    test_mixed_top88()
