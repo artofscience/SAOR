@@ -1,14 +1,14 @@
 import pytest
 import numpy as np
 from Problems.square import Square
-from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
-from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
+from sao.solvers.interior_point_xyz import InteriorPointArtificial as ipa
+from sao.solvers.interior_point_x import InteriorPointBasis as ipb
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 
 
 @pytest.mark.parametrize('n', [100])
 def test_square(n):
-    # Test sao.solvers.interior_point_basis.py
+    # Test sao.solvers.interior_point_x.py
     print("Solve x**2 using ipopt basis")
     problemb = Square(n)
     # Test SvanbergIP
@@ -23,7 +23,7 @@ def test_square(n):
     mysolverb.update()
     assert np.sum(mysolverb.x) == pytest.approx(1, rel=1e-4)
 
-    # Test sao.solvers.interior_point_artificial.py
+    # Test sao.solvers.interior_point_xyz.py
     print("Solve x**2 using ipopt with artificial variables")
     # problema = Square(n)
     mysolvera = ipa(problemb, epsimin=1e-7)

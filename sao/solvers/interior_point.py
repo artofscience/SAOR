@@ -16,9 +16,9 @@ class InteriorPoint(PrimalDual, ABC):
     """
 
     def __init__(self, problem, **kwargs):
-        super().__init__(problem)
+        super().__init__(problem, **kwargs)
 
-        self.epsimin = kwargs.get('epsimin', 1e-7)
+        self.epsimin = kwargs.get('epsimin', 1e-4)
         self.iteramax = kwargs.get('iteramax', 50)
         self.iterinmax = kwargs.get('iterinmax', 20)
         self.alphab = kwargs.get('alphab', -1.01)
@@ -82,19 +82,16 @@ class InteriorPoint(PrimalDual, ABC):
                 self.iterin += 1
                 self.iterout += 1
 
-
                 """
                 Get the Newton direction
                 This basically builds dw and includes a solve
                 """
                 self.get_newton_direction()
-
                 self.get_step_size()
-                # print(self.step)
 
                 # Set w_old = w
-                for i in range(0, len(self.w)):
-                    self.wold[i] = self.w[i].copy()
+                for count, value in enumerate(self.w):
+                    self.wold[count] = value
 
                 # Initialize the counter for the line search
                 self.itera = 0
@@ -104,22 +101,18 @@ class InteriorPoint(PrimalDual, ABC):
                 while rnew > rnorm and self.itera < self.iteramax:
                     self.itera += 1
 
-
                     # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
-                    for i in range(0, len(self.w)):
-                        self.w[i][:] = self.wold[i][:] + self.step * self.dw[i][:]
+                    for count, value in enumerate(self.dw):
+                        self.w[count] = self.wold[count] + self.step * value
 
                     self.get_residual()
                     rnew = np.linalg.norm([np.linalg.norm(i) for i in self.r])
-                    # print(rnew)
                     self.step *= 0.5
-                    print(self.w[7], self.w[8])
 
                 rnorm = 1.0 * rnew
                 rmax = np.max([np.max(np.abs(i)) for i in self.r])
-                # print(rmax)
                 self.step *= 2
 
             self.epsi *= self.epsired
 
-        self.x = self.w[0]
+        return self.w[0]
