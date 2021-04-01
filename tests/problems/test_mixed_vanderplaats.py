@@ -7,8 +7,6 @@ from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA, Reci
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
-from sao.solvers.interior_point_basis import InteriorPointBasis as ipb
-from sao.solvers.interior_point_artificial import InteriorPointArtificial as ipa
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from line_profiler import LineProfiler
 

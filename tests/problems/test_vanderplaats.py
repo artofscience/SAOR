@@ -6,8 +6,6 @@ from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
-from sao.solvers.interior_point_x import InteriorPointBasis as ipb
-from sao.solvers.interior_point_xyz import InteriorPointArtificial as ipa
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -33,6 +31,8 @@ def test_vanderplaats(N):
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    # subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -74,4 +74,4 @@ def test_vanderplaats(N):
 
 
 if __name__ == "__main__":
-    test_vanderplaats(100)
+    test_vanderplaats(200)

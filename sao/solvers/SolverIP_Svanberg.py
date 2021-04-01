@@ -54,11 +54,11 @@ class SvanbergIP:
         while epsi > self.epsimin:
             self.counter += 1
 
-            print("iter: %2d" % self.counter, ", ",
-                  "solves: %2d" % ittt, ", ",
-                  "obj: %.2e" % subprob.g(x)[0], ", ",
-                  "x:", ["{:+.2f}".format(i) for i in x[1:3]], ", ",
-                  "lam:", ["{:+.2f}".format(i) for i in lam])
+            # print("iter: %2d" % self.counter, ", ",
+            #       "solves: %2d" % ittt, ", ",
+            #       "obj: %.2e" % subprob.g(x)[0], ", ",
+            #       "x:", ["{:+.2f}".format(i) for i in x[1:3]], ", ",
+            #       "lam:", ["{:+.2f}".format(i) for i in lam])
 
             # upcoming lines determine the left hand sides, i.e. the resiudals of all constraints
             residunorm, residu = self.residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, subprob)

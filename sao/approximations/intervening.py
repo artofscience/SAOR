@@ -130,7 +130,6 @@ class MMA(Intervening):
         self.get_asymptotes()
 
     def get_asymptotes(self):
-
         # Initial values of asymptotes
         if self.xold2 is None:
             self.low = self.x - self.factor * self.dx
@@ -435,73 +434,3 @@ class PolyFit(Intervening):
             ddxddy = 2 * self.a / (4 * self.a * (self.y(x) - self.c) + self.b ** 2) ** (3 / 2)
         return ddxddy
 
-
-class PolyFit2(Intervening):
-    def __init__(self):
-        self.x, self.xold1 = None, None
-        self.a, self.b, self.c = None, None, None
-        self.f, self.fold1 = None, None
-        self.df, self.dfold1 = None, None
-        self.ais0, self.bis0 = None, None
-
-    def update(self, x, f, df):
-        if self.fold1 is None:
-            self.fold1 = 2 * f
-            self.dfold1 = 2 * df
-            self.xold1 = 2 * x
-        else:
-            self.xold1 = self.x
-            self.fold1 = self.f
-            self.dfold1 = self.df
-        self.x = x
-        self.f = f
-        self.df = df
-        self.get_coefficients()
-
-    def get_coefficients(self):
-        # Polynomial satisfies: current point, current gradient, previous gradient
-        self.a = np.zeros_like(self.df)
-        self.b = np.zeros_like(self.df)
-        self.c = np.zeros_like(self.df)
-        bot = abs(self.x - self.xold1)
-        bot2 = np.asarray(np.where(bot > 1e-4))
-        bot2 = bot2[0, :]
-        self.a[:, bot2] = 0.5 * self.a[:, bot2] + 0.5 * ((self.df[:, bot2] - self.dfold1[:, bot2]) / (2 * (self.x[bot2] - self.xold1[bot2])))
-        self.a[self.a < 0] = 0
-        self.b = 0.5 * self.b + 0.5 * (self.df - 2 * self.a * self.x)
-        self.c = 0.5 * self.c + 0.5 * (self.f.reshape((len(self.f), 1)) - self.a * self.x ** 2 - self.b * self.x)
-        self.ais0 = abs(self.a) < 1e-4
-        self.bis0 = abs(self.b) < 1e-4
-
-    def y(self, x):
-        y = self.a*x**2 + self.b*x + self.c
-        return y
-
-    def dydx(self, x):
-        dydx = 2*self.a*x + self.b
-        return dydx
-
-    def ddyddx(self, x):
-        ddyddx = 2*self.a
-        return ddyddx
-
-    # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
-    def dxdy(self, x):
-        # self.x1 = -self.b/(2*self.a) + (self.b**2 + 4*self.a*(self.y(x)-self.c))**(1/2) / (2*self.a)
-        # self.x2 = -self.b/(2*self.a) + (self.b**2 + 4*self.a*(self.y(x)-self.c))**(1/2) / (2*self.a)
-        # if 0 < self.x1 < 1:
-        #     dxdy = (1 / (4*self.a*(self.y(x) - self.c) + self.b**2)**(1/2))
-        # elif 0 < self.x2 < 1:
-        dxdy = np.zeros_like(self.a)
-        dxdy[~self.ais0] = -1 / (4 * self.a[~self.ais0] * (self.y(x)[~self.ais0] - self.c[~self.ais0]) + self.b[~self.ais0]**2) ** (1/2)
-        dxdy[self.ais0] = 1 / self.b[self.ais0]
-        dxdy[self.bis0] = 0
-        return dxdy
-
-    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
-    def ddxddy(self, x):
-        if 0 < self.x1 < 1:
-            ddxddy = - 2*self.a / (4*self.a*(self.y(x) - self.c) + self.b**2)**(3/2)
-        elif 0 < self.x2 < 1:
-            ddxddy = 2 * self.a / (4 * self.a * (self.y(x) - self.c) + self.b ** 2) ** (3 / 2)
-        return ddxddy
