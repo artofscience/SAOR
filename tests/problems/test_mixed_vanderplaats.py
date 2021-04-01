@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, PolyFit, PolyFit2
+from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, PolyFit
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
