@@ -7,6 +7,7 @@ from sao.approximations.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+from sao.util.plotter import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -37,6 +38,9 @@ def test_vanderplaats(N):
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1', 'constraint_6'])
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
@@ -56,6 +60,9 @@ def test_vanderplaats(N):
             'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
                 itte, f[0], f[1], f[2], f[3]))
 
+        # Live plot
+        plotter.live_plot([f[0], f[1], f[6]])
+
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
 
@@ -74,4 +81,4 @@ def test_vanderplaats(N):
 
 
 if __name__ == "__main__":
-    test_vanderplaats(200)
+    test_vanderplaats(50)

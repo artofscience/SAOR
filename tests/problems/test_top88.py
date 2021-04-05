@@ -7,7 +7,7 @@ from sao.approximations.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from line_profiler import LineProfiler
+from sao.util.plotter import Plot
 
 np.set_printoptions(precision=4)
 
@@ -41,6 +41,9 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'])
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
@@ -57,6 +60,9 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
         vis = prob.visualize(x_k, itte, vis)
         logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+
+        # Live plot
+        plotter.live_plot([f[0], f[1]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
