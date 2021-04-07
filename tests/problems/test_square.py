@@ -6,9 +6,9 @@ from sao.approximations.taylor import Taylor1, Taylor2
 from sao.approximations.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
-from sao.solvers.interior_point_x import InteriorPointX as ipx
-from sao.solvers.interior_point_xy import InteriorPointXY as ipxy
-from sao.solvers.interior_point_xyz import InteriorPointXYZ as ipxyz
+from sao.solvers.interior_point import InteriorPointX as ipx
+from sao.solvers.interior_point import InteriorPointXY as ipxy
+from sao.solvers.interior_point import InteriorPointXYZ as ipxyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -33,7 +33,7 @@ def test_square_Svanberg(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -43,7 +43,7 @@ def test_square_Svanberg(n):
     solver = SvanbergIP(prob.n, 1)
 
     # Optimization loop
-    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-2)):
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -148,7 +148,7 @@ def test_square_ipxyz(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -156,7 +156,7 @@ def test_square_ipxyz(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-2)):
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -171,6 +171,7 @@ def test_square_ipxyz(n):
         subprob.build(x_k, f, df, ddf)
         solver = ipxyz(subprob, epsimin=1e-6)
         x_k = solver.update()
+        print(solver.itera)
 
         itte += 1
 
@@ -178,8 +179,9 @@ def test_square_ipxyz(n):
 
 
 if __name__ == "__main__":
-    test_square_Svanberg(10)
+    test_square_Svanberg(100)
     # test_square_ipx(10)
-    test_square_ipxy(10)
-    test_square_ipxyz(10)
+    # test_square_ipxy(10)
+    test_square_ipxyz(100)
+    # test_square_dummy(10)
 
