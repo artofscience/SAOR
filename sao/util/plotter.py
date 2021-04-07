@@ -2,6 +2,7 @@ import colorsys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import os
 
 
 class Plot:
@@ -9,7 +10,7 @@ class Plot:
         self.names = names
         plt.ion()
         self.fig = []
-        for i, s in enumerate(self.names):
+        for i in range(0, len(self.names)):
             self.fig.append(plt.subplots(1, 1)[0])
         self.nplot = len(self.names)
         self.cols = [colorsys.hsv_to_rgb(1.0 / (self.nplot + 1) * v, 1.0, 1.0) for v in np.arange(0, self.nplot)]
@@ -22,9 +23,12 @@ class Plot:
             ax.grid(True)
             ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             self.lines[idx], = ax.plot([], [], marker='.', color=self.cols[idx], label=name)
+        self.save_figures = kwargs.get('save_figures', False)
+        if self.save_figures:
+            self.my_path = os.path.abspath(__file__)        # absolute path
         self.iter = 0
 
-    def live_plot(self, y_values, **kwargs):
+    def plot(self, y_values, **kwargs):
         for idx, yi in enumerate(y_values):
             ax = self.fig[idx].gca()
             self.lines[idx].set_xdata(np.append(self.lines[idx].get_xdata(), np.ones_like(yi)*self.iter))
@@ -35,3 +39,9 @@ class Plot:
             self.fig[idx].canvas.flush_events()
         self.iter += 1
         plt.show()
+
+    def save_fig(self):
+        for idx, fig in enumerate(self.fig):
+            plt.figure(fig.number)
+            path = os.getcwd()
+            plt.savefig(os.path.dirname(path) + '/{}.png'.format(self.names[idx]))

@@ -12,6 +12,7 @@ from sao.solvers.interior_point_xyz import InteriorPointXYZ as ipxyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.util.plotter import Plot
 
+
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -45,7 +46,7 @@ def test_square_Svanberg(n):
     solver = SvanbergIP(prob.n, 1)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'])
+    plotter = Plot(['objective', 'constraint_1'], save_figures=True)
 
     # Optimization loop
     while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
@@ -60,7 +61,7 @@ def test_square_Svanberg(n):
             itte, np.array2string(x_k[0:2]), f[0], f[1]))
 
         # Live plot
-        plotter.live_plot([f[0], f[1]])
+        plotter.plot([f[0], f[1]], save_fig=True)
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -68,6 +69,8 @@ def test_square_Svanberg(n):
 
         itte += 1
 
+    if plotter.save_figures:
+        plotter.save_fig()
     logger.info('Alles goed!')
 
 
@@ -188,6 +191,6 @@ def test_square_ipxyz(n):
 if __name__ == "__main__":
     test_square_Svanberg(10)
     # test_square_ipx(10)
-    test_square_ipxy(10)
-    test_square_ipxyz(10)
+    # test_square_ipxy(10)
+    # test_square_ipxyz(10)
 

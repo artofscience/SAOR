@@ -8,6 +8,7 @@ from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.util.plotter import Plot
+import os
 
 np.set_printoptions(precision=4)
 
@@ -62,7 +63,7 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
 
         # Live plot
-        plotter.live_plot([f[0], f[1]])
+        plotter.plot([f[0], f[1]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)

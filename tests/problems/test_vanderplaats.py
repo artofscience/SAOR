@@ -61,7 +61,7 @@ def test_vanderplaats(N):
                 itte, f[0], f[1], f[2], f[3]))
 
         # Live plot
-        plotter.live_plot([f[0], f[1], f[6]])
+        plotter.plot([f[0], f[1], f[6]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
