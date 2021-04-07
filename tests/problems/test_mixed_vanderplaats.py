@@ -2,13 +2,12 @@ import pytest
 import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, PolyFit
+from sao.approximations.taylor import Taylor1
+from sao.intervening_vars import Linear, ConLin, ReciSquared, ReciCubed
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from line_profiler import LineProfiler
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

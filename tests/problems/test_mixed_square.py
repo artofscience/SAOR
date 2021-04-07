@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import logging
 from Problems.square import Square
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA, PolyFit
+from sao.approximations.taylor import Taylor1
+from sao.intervening_vars import PolyFit
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed

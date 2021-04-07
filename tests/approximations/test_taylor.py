@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import ConLin
+from sao.intervening_vars import ConLin
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

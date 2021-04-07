@@ -1,5 +1,5 @@
 from sao.problems.problem import Problem
-from sao.approximations.intervening import Linear
+from sao.intervening_vars.intervening import Linear
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 
@@ -19,10 +19,9 @@ class Subproblem(Problem):
 
         # If available, handle 2nd-order information
         if ddf is not None:
-            self.approx.update(self.inter.y(x).T, f, df * self.inter.dxdy(x),
-                               ddf * (self.inter.dxdy(x)) ** 2 + df * (self.inter.ddxddy(x)))
+            self.approx.update(x, self.inter.y, f, df, self.inter.dxdy, ddf=ddf, ddxddy=self.inter.ddxddy)
         else:
-            self.approx.update(self.inter.y(x).T, f, df * self.inter.dxdy(x))
+            self.approx.update(x, self.inter.y, f, df, self.inter.dxdy)
 
         self.alpha, self.beta = self.ml.update(x, intervening=self.inter)
 

@@ -12,7 +12,7 @@ class Approximation(ABC):
 
         self.force_convex = kwargs.get('force_convex', True)
 
-    def update(self, y, f, dfdy, ddfddy=None):
+    def update(self, x, y, f, df, dxdy, **kwargs):
         """ Puts in data from the original problem. Once per design iteration.
 
         :param y:
@@ -21,8 +21,14 @@ class Approximation(ABC):
         :param ddfddy:
         :return:
         """
-        self.y = y
-        self.f, self.dfdy, self.ddfddy = f, dfdy, ddfddy
+        self.y = y(x).T
+        self.f, self.dfdy = f, df * dxdy(x)
+
+        # 2nd-order part
+        ddf = kwargs.get('ddf', None)
+        if ddf is not None:
+            ddxddy = kwargs.get('ddxddy', None)
+            self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
 
         self.m = len(self.f) - 1
         self.n = len(self.y)

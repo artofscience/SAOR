@@ -1,13 +1,11 @@
-import pytest
 import numpy as np
 import logging
 from Problems.Top88 import Top88
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA
+from sao.approximations.taylor import Taylor1
+from sao.intervening_vars import MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
 
