@@ -113,8 +113,8 @@ class InteriorPointX(InteriorPoint):
         r(lam)      = gi[x] - ri + si
         r(s)        = lam * si - e
         """
-
-        self.r[0] = self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]) - self.w[1] + self.w[2]
+        dg_cur = self.dg(self.w[0])
+        self.r[0] = dg_cur[0] + self.w[3].dot(dg_cur[1:]) - self.w[1] + self.w[2]
         self.r[1] = self.w[1] * (self.w[0] - self.alpha) - self.epsi
         self.r[2] = self.w[2] * (self.beta - self.w[0]) - self.epsi
         self.r[3] = self.g(self.w[0])[1:] + self.w[4]
@@ -148,7 +148,7 @@ class InteriorPointX(InteriorPoint):
         # else:
         dxdx = delta_x/diag_x
         B = delta_lambda - dxdx.dot(dg[1:].transpose())
-        A = diags(diag_lambda) + dg[1:].dot(diags(1/diag_x) * dg[1:].transpose())  # calculate dx[lam]
+        A = np.diag(diag_lambda) + np.einsum("ki,i,ji->kj", dg[1:], 1/diag_x, dg[1:])
 
         # solve for dlam
         self.dw[3] = np.linalg.solve(A, B)  # m x m
