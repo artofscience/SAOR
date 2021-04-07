@@ -459,7 +459,7 @@ class InteriorPointXY(InteriorPointX):
         Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1/diag_x, dg[1:])  # calculate dx[lam]
 
         # solve for dlam
-        self.dw[3] = np.linalg.solve(Alam, Blam)
+        self.dw[3][:] = np.linalg.solve(Alam, Blam)
         self.dw[0] = -dxdx - (self.dw[3].dot(dg[1:])) / diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
@@ -665,11 +665,11 @@ class InteriorPointXYZ(InteriorPointXY):
             az = self.w[8] / self.w[7] + - (self.a / diag_lambday).dot(self.a)
 
             # solve for dx
-            X = np.linalg.solve(np.block([[Ax, ax], [ax.transpose(), az]]),
-                                np.block([[Bx], [-delta_z + - (delta_lambday / diag_lambday).dot(self.a)]]))  # n x n
+            X = np.linalg.solve(np.block([[Ax, ax[np.newaxis, :].transpose()], [ax[np.newaxis,:], az]]),
+                                np.block([[Bx[:,np.newaxis]], [-delta_z - (delta_lambday / diag_lambday).dot(self.a)]])).flatten() # n x n
             self.dw[0] = X[:-1]
             self.dw[7] = X[-1]
-            self.dw[3] = (delta_lambday + self.dw[0].dot(dg[1:]) + self.dw[7] * self.a) / diag_lambday
+            self.dw[3] = (delta_lambday + dg[1:].dot(self.dw[0]) + self.dw[7] * self.a) / diag_lambday
 
         else:
             dxdx = delta_x / diag_x
