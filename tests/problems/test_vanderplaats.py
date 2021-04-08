@@ -3,13 +3,14 @@ import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA
+from sao.approximations.intervening import Linear, ConLin, MMA, MMASquared
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointX as ip_x
 from sao.solvers.interior_point import InteriorPointXY as ip_xy
 from sao.solvers.interior_point import InteriorPointXYZ as ip_xyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -32,19 +33,18 @@ def test_vanderplaats(N):
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    # subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
+    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
     #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=MMASquared(prob.xmin, prob.xmax), approximation=Taylor1(),
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
     xold1 = np.zeros_like(x_k)
     vis = None
+    solves = 0
 
     # Optimization loop
     while np.linalg.norm(x_k - xold1) > 1e-3:
@@ -63,17 +63,18 @@ def test_vanderplaats(N):
         subprob.build(x_k, f, df)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        solver = ipopt(subprob, epsimin=1e-9, x0=x_k)
+        x = solver.update()
+        solves += solver.itera
         xold1 = x_k.copy()
         x_k = x.copy()
 
-        # solver = ipb(subprob, epsimin=1e-7)
-        # solver.update()
-        # x_k = solver.x.copy()
 
         itte += 1
 
     logger.info('Optimization loop converged!')
+    print(solves)
 
 
 if __name__ == "__main__":
