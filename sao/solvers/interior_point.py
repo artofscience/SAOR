@@ -231,20 +231,22 @@ class InteriorPointX(InteriorPoint):
         r(lam)      = gi[x] - ri + si
         r(s)        = lam * si - e
         """
+
+        g = self.g(self.w[0])
         dg = self.dg(self.w[0])
+
         self.r[0] = dg[0] + self.w[3].dot(dg[1:]) - self.w[1] + self.w[2]
         self.r[1] = self.w[1] * (self.w[0] - self.alpha) - self.epsi
         self.r[2] = self.w[2] * (self.beta - self.w[0]) - self.epsi
-        self.r[3] = self.g(self.w[0])[1:] + self.w[4]
+        self.r[3] = g[1:] + self.w[4]
         self.r[4] = self.w[3] * self.w[4] - self.epsi
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
         a = self.w[0] - self.alpha
         b = self.beta - self.w[0]
-        g = self.g(self.w[0])
-        dg = self.dg(self.w[0])
-        ddg = self.ddg(self.w[0])
+
+        g, dg, ddg = self.g_dg_ddg(self.w[0])
 
         # delta_lambda
         delta_lambda = g[1:] + self.epsi / self.w[3]
@@ -297,21 +299,21 @@ s.t.    gi[x] - yi <= ri,    i = 1...m         (constraints)
         aj <= xj <= bj  i = 1...n                       (bound constraints)
         yi >= 0                                         (bound constraints)
 
-Constant real numbers: 
+Constant real numbers:
 ci >= 0
 
 Further, let di = 1 and ci = "large", so that variables yi become relatively expensive.
 Typically, y = 0 in any optimal solution of Part, and the corresponding x is an optimal solution of P as well.
 
-The user should avoid "extremely large" value for ci (e.g. 10^10). 
-It is good practice to start with low values for ci (e.g. 10^3) 
+The user should avoid "extremely large" value for ci (e.g. 10^10).
+It is good practice to start with low values for ci (e.g. 10^3)
 and raise if not all yi* = 0. (star denotes optimal solution)
 
 
 Lagrangian L:
 
-L := g0[x] + sum(ci*yi) + 
-    sum(lami * (gi[x] - yi - ri)) + 
+L := g0[x] + sum(ci*yi) +
+    sum(lami * (gi[x] - yi - ri)) +
     sum(xsij*(aj - xj) + etaj*(xj - bj)) -
     sum(muj*yj)
 
@@ -320,8 +322,8 @@ xsij    >= 0    := Lagrange multipliers wrt     aj <= xj
 etaj    >= 0    := Lagrange multipliers wrt     xj <= bj
 muj     >= 0    := Lagrange multipliers wrt     yi >= 0
 
-L           = psi[x,lam] + 
-                sum(ci*yi - lami*(yi + ri) - mui*yi) + 
+L           = psi[x,lam] +
+                sum(ci*yi - lami*(yi + ri) - mui*yi) +
                 sum(alphaj * (aj - xj) + betaj * (xj - bj))
 psi[x,lam]  = g0[x] + sum(lami * gi[x])
 
@@ -420,9 +422,8 @@ class InteriorPointXY(InteriorPointX):
         # Some calculations to omit repetitive calculations later on
         a = self.w[0] - self.alpha
         b = self.beta - self.w[0]
-        g = self.g(self.w[0])
-        dg = self.dg(self.w[0])
-        ddg = self.ddg(self.w[0])
+
+        g, dg, ddg = self.g_dg_ddg(self.w[0])
 
         # delta_lambda
         delta_lambda = g[1:] - self.w[5] + self.epsi / self.w[3]
@@ -489,7 +490,7 @@ s.t.    gi[x] - ai * z - yi <= ri,    i = 1...m         (constraints)
         yi >= 0                                         (bound constraints)
         z >= 0
 
-Constant real numbers: 
+Constant real numbers:
 a0 > 0
 ai >= 0
 ci >= 0
@@ -506,15 +507,15 @@ Then z = 0 in any optimal solution of Part.
 Further, let di = 1 and ci = "large", so that variables yi become relatively expensive.
 Typically, y = 0 in any optimal solution of Part, and the corresponding x is an optimal solution of P as well.
 
-The user should avoid "extremely large" value for ci (e.g. 10^10). 
-It is good practice to start with low values for ci (e.g. 10^3) 
+The user should avoid "extremely large" value for ci (e.g. 10^10).
+It is good practice to start with low values for ci (e.g. 10^3)
 and raise if not all yi* = 0. (star denotes optimal solution)
 
 
 Lagrangian L:
 
-L := g0[x] + a0*z + sum(ci*yi + 0.5*di*yi^2) + 
-    sum(lami * (gi[x] - ai*z - yi - ri)) + 
+L := g0[x] + a0*z + sum(ci*yi + 0.5*di*yi^2) +
+    sum(lami * (gi[x] - ai*z - yi - ri)) +
     sum(xsij*(aj - xj) + etaj*(xj - bj)) -
     sum(muj*yj) - zeta*z
 
@@ -524,9 +525,9 @@ etaj    >= 0    := Lagrange multipliers wrt     xj <= bj
 muj     >= 0    := Lagrange multipliers wrt     yi >= 0
 zeta    >= 0    := Lagrange multiplier wrt      z >= 0
 
-L           = psi[x,lam] + 
-                sum(ci*yi + 0.5*di*yi^2 - lami*(ai*z + yi + ri) - mui*yi) + 
-                sum(alphaj * (aj - xj) + betaj * (xj - bj)) + 
+L           = psi[x,lam] +
+                sum(ci*yi + 0.5*di*yi^2 - lami*(ai*z + yi + ri) - mui*yi) +
+                sum(alphaj * (aj - xj) + betaj * (xj - bj)) +
                 (a0 - zeta)*z
 psi[x,lam]  = g0[x] + sum(lami * gi[x])
 
@@ -590,6 +591,7 @@ Subsequently we are left with a reduced system in terms of dx and dlam
 
 
 class InteriorPointXYZ(InteriorPointXY):
+
     def __init__(self, problem, **kwargs):
         super().__init__(problem, **kwargs)
 
@@ -636,9 +638,7 @@ class InteriorPointXYZ(InteriorPointXY):
         # Some calculations to omit repetitive calculations later on
         a = self.w[0] - self.alpha
         b = self.beta - self.w[0]
-        g = self.g(self.w[0])
-        dg = self.dg(self.w[0])
-        ddg = self.ddg(self.w[0])
+        g, dg, ddg = self.g_dg_ddg(self.w[0])
 
         # delta_lambda
         delta_lambda = g[1:] - self.a * self.w[7] - self.w[5] + self.epsi / self.w[3]
@@ -671,7 +671,7 @@ class InteriorPointXYZ(InteriorPointXY):
         else:
             dxdx = delta_x / diag_x
             Blam = delta_lambday - dxdx.dot(dg[1:].transpose())
-            Alam = diags(diag_lambday) + dg[1:].dot(diags(1 / diag_x) * dg[1:].transpose())  # calculate dx[lam]
+            Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1/diag_x, dg[1:])  # calculate dx[lam]
 
             # solve for dlam
             X = np.linalg.solve(np.block([[Alam, self.a], [self.a.transpose(), -self.w[8] / self.w[7]]]), np.block([[Blam], [delta_z]]))
