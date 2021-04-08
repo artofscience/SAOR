@@ -43,7 +43,7 @@ def test_square_Svanberg(n):
     solver = SvanbergIP(prob.n, 1)
 
     # Optimization loop
-    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-2)):
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -95,7 +95,7 @@ def test_square_ipx(n):
         subprob.build(x_k, f, df, ddf)
         solver = ipx(subprob, epsimin=1e-6)
         x_k = solver.update()
-
+        print(solver.itera)
         itte += 1
 
     logger.info('Alles goed!')
@@ -133,7 +133,7 @@ def test_square_ipxy(n):
         subprob.build(x_k, f, df, ddf)
         solver = ipxy(subprob, epsimin=1e-6)
         x_k = solver.update()
-
+        print(solver.itera)
         itte += 1
 
     logger.info('Alles goed!')
@@ -156,7 +156,7 @@ def test_square_ipxyz(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-2)):
+    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -179,9 +179,9 @@ def test_square_ipxyz(n):
 
 
 if __name__ == "__main__":
-    test_square_Svanberg(100)
+    test_square_Svanberg(20)
     # test_square_ipx(10)
     # test_square_ipxy(10)
-    test_square_ipxyz(100)
+    test_square_ipxyz(20)
     # test_square_dummy(10)
 

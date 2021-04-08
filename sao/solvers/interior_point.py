@@ -122,7 +122,6 @@ class InteriorPoint(PrimalDual, ABC):
 
         return self.w[0]
 
-
 """
 This is a primal-dual interior-point approach (without artificial variables)
 to solve a convex and separable nonlinear optimization problem.
@@ -276,7 +275,6 @@ class InteriorPointX(InteriorPoint):
         self.dw[1] = -self.w[1] + self.epsi / a - (self.w[1] * self.dw[0]) / a
         self.dw[2] = -self.w[2] + self.epsi / b + (self.w[2] * self.dw[0]) / b
         self.dw[4] = -self.w[4] + self.epsi / self.w[3] - (self.w[4] * self.dw[3]) / self.w[3]
-
 
 """
 This is an addition to pdip, which extends problem P
@@ -468,7 +466,6 @@ class InteriorPointXY(InteriorPointX):
         self.dw[4] = -self.w[4] + self.epsi / self.w[3] - (self.w[4] * self.dw[3]) / self.w[3]
         self.dw[5] = (self.dw[3] - delta_y) / diag_y
         self.dw[6] = -self.w[6] + self.epsi / self.w[5] - (self.w[6] * self.dw[5]) / self.w[5]
-
 
 """
 This is an addition to pdip, which extends problem P
