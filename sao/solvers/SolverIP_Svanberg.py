@@ -11,6 +11,7 @@ class SvanbergIP:
         self.m = m
         self.epsimin = 1e-6
         self.maxittt = 20
+        self.solves = 0
         self.counter = 0
         self.move_lim = 0.15
         self.cCoef = 1e3
@@ -50,15 +51,10 @@ class SvanbergIP:
         itera = 0
         ittt = 0
 
+        self.counter = 0
 
         while epsi > self.epsimin:
             self.counter += 1
-
-            # print("iter: %2d" % self.counter, ", ",
-            #       "solves: %2d" % ittt, ", ",
-            #       "obj: %.2e" % subprob.g(x)[0], ", ",
-            #       "x:", ["{:+.2f}".format(i) for i in x[1:3]], ", ",
-            #       "lam:", ["{:+.2f}".format(i) for i in lam])
 
             # upcoming lines determine the left hand sides, i.e. the resiudals of all constraints
             residunorm, residu = self.residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, subprob)
@@ -173,6 +169,12 @@ class SvanbergIP:
 
             # Decrease epsilon with factor 10
             epsi *= 0.1
+
+            # print("iter: %2d" % self.counter, ", ",
+            #       "solves: %2d" % ittt, ", ",
+            #       "obj: %.2e" % subprob.g(x)[0], ", ",
+            #       "x:", ["{:+.2f}".format(i) for i in x[1:3]], ", ",
+            #       "lam:", ["{:+.2f}".format(i) for i in lam])
 
         return x, y, z, lam, xsi, eta, mu, zet, s
 
