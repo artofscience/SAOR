@@ -14,20 +14,18 @@ from sao.problems.problem import Problem
 ## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
 class Top88(Problem):
 
-    def __init__(self, nelx, nely, volfrac, penal, rmin, ft):
+    def __init__(self, nelx, nely, volfrac, penal, rmin):
         super().__init__()
-        self.Emin = 1e-9
-        self.Emax = 1.0
+        self.Eps = 1e-9 # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
         self.volfrac = volfrac
         self.ndof = 2 * (self.nelx + 1) * (self.nely + 1)
         self.penal = penal
         self.rmin = rmin
-        self.ft = ft
         self.n = self.nely * self.nelx
         self.m = 1
-        self.xmin = 1e-3 * np.ones(self.n, dtype=float)
+        self.xmin = np.zeros(self.n, dtype=float)
         self.xmax = np.ones(self.n, dtype=float)
         self.x0 = self.volfrac * np.ones(self.n, dtype=float)
         self.xold = self.xmin.copy()
@@ -93,13 +91,10 @@ class Top88(Problem):
         g_j = np.empty(self.m + 1)
 
         # Filter design variables
-        if self.ft == 0:
-            xPhys = x_k.copy()
-        elif self.ft == 1:
-            xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
+        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
 
         # Setup and solve FE problem
-        sK = ((self.KE.flatten()[np.newaxis]).T * (self.Emin + xPhys ** self.penal * (self.Emax - self.Emin))).flatten(order='F')
+        sK = ((self.KE.flatten()[np.newaxis]).T * (self.Eps + xPhys ** self.penal * (1 - self.Eps))).flatten(order='F')
         K = coo_matrix((sK, (self.iK, self.jK)), shape=(self.ndof, self.ndof)).tocsc()
 
         # Remove constrained dofs from matrix
@@ -114,28 +109,23 @@ class Top88(Problem):
         # Objective and volume constraint
         self.ce[:] = (np.dot(self.u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
                       self.u[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
-        g_j[0] = ((self.Emin + xPhys ** self.penal * (self.Emax - self.Emin)) * self.ce).sum()
+        g_j[0] = ((self.Eps + xPhys ** self.penal * (1 - self.Eps)) * self.ce).sum()
         g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
         return g_j
 
     def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
-        # Filter design variables
-        if self.ft == 0:
-            xPhys = x_k.copy()
-        elif self.ft == 1:
-            xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
+        # Filter design variable sensitivities
+        # TODO unfortunately we filter twice (both in g and dg), can we circumvent this?
+        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
 
-        dg_j[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (self.Emax - self.Emin)) * self.ce
+        dg_j[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (1 - self.Eps)) * self.ce
         dg_j[1, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
 
         # Sensitivity filtering
-        if self.ft == 0:
-            dg_j[0, :] = np.asarray((self.H * (x_k * dg_j[0, :]))[np.newaxis].T / self.Hs)[:, 0] / np.maximum(0.001, x_k)
-        elif self.ft == 1:
-            dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
-            dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
+        dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
+        dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
 
         return dg_j
 
