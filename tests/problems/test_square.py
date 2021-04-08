@@ -148,7 +148,7 @@ def test_square_ipxyz(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -179,9 +179,9 @@ def test_square_ipxyz(n):
 
 
 if __name__ == "__main__":
-    test_square_Svanberg(100)
-    # test_square_ipx(10)
-    # test_square_ipxy(10)
-    test_square_ipxyz(100)
+    test_square_Svanberg(50)
+    test_square_ipx(50)
+    # test_square_ipxy(100)
+    test_square_ipxyz(50)
     # test_square_dummy(10)
 
