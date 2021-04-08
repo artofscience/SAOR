@@ -9,10 +9,15 @@ import matplotlib.pyplot as plt
 import cvxopt
 import cvxopt.cholmod
 from sao.problems.problem import Problem
-
+from abc import ABC
 
 ## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
-class Top88(Problem):
+class Top88(Problem, ABC):
+
+    fixed: np.array = NotImplemented
+    free: np.array = NotImplemented
+    u: np.array = NotImplemented
+    f: np.array = NotImplemented
 
     def __init__(self, nelx, nely, volfrac, penal, rmin):
         super().__init__()
@@ -24,7 +29,6 @@ class Top88(Problem):
         self.penal = penal
         self.rmin = rmin
         self.n = self.nely * self.nelx
-        self.m = 1
         self.xmin = np.zeros(self.n, dtype=float)
         self.xmax = np.ones(self.n, dtype=float)
         self.x0 = self.volfrac * np.ones(self.n, dtype=float)
@@ -32,7 +36,6 @@ class Top88(Problem):
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
-        self.name = 'Top88'
 
         # FE: Build the index vectors for the for coo matrix format
         self.KE = self.lk()
@@ -76,58 +79,31 @@ class Top88(Problem):
         self.Hs = self.H.sum(1)
 
         # BC's and support
-        dofs = np.arange(2 * (self.nelx + 1) * (self.nely + 1))
-        self.fixed = np.union1d(dofs[0:2 * (self.nely + 1):2], np.array([2 * (self.nelx + 1) * (self.nely + 1) - 1]))
-        self.free = np.setdiff1d(dofs, self.fixed)
+        self.dofs = np.arange(2 * (self.nelx + 1) * (self.nely + 1))
 
-        # Solution and RHS vectors
-        self.f = np.zeros((self.ndof, 1))
-        self.u = np.zeros((self.ndof, 1))
-
-        # Set load
-        self.f[1, 0] = -1
 
     def g(self, x_k):
-        g_j = np.empty(self.m + 1)
+        ...
 
-        # Filter design variables
-        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
+    def dg(self, x_k):
+        ...
+
+    def fea_assembly(self, x):
 
         # Setup and solve FE problem
-        sK = ((self.KE.flatten()[np.newaxis]).T * (self.Eps + xPhys ** self.penal * (1 - self.Eps))).flatten(order='F')
+        sK = ((self.KE.flatten()[np.newaxis]).T * (self.Eps + x ** self.penal * (1 - self.Eps))).flatten(order='F')
         K = coo_matrix((sK, (self.iK, self.jK)), shape=(self.ndof, self.ndof)).tocsc()
 
         # Remove constrained dofs from matrix
         K = self.deleterowcol(K, self.fixed, self.fixed).tocoo()
+        return K
 
-        # Solve system
+    @staticmethod
+    def fea_solve(K, f):
         K = cvxopt.spmatrix(K.data, K.row.astype(int), K.col.astype(int))
-        B = cvxopt.matrix(self.f[self.free, 0])
+        B = cvxopt.matrix(f)
         cvxopt.cholmod.linsolve(K, B)
-        self.u[self.free, 0] = np.array(B)[:, 0]
-
-        # Objective and volume constraint
-        self.ce[:] = (np.dot(self.u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
-                      self.u[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
-        g_j[0] = ((self.Eps + xPhys ** self.penal * (1 - self.Eps)) * self.ce).sum()
-        g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
-        return g_j
-
-    def dg(self, x_k):
-        dg_j = np.empty((self.m + 1, self.n))
-
-        # Filter design variable sensitivities
-        # TODO unfortunately we filter twice (both in g and dg), can we circumvent this?
-        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
-
-        dg_j[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (1 - self.Eps)) * self.ce
-        dg_j[1, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
-
-        # Sensitivity filtering
-        dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
-        dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
-
-        return dg_j
+        return np.array(B)
 
     @staticmethod
     def lk():

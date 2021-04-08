@@ -1,9 +1,8 @@
-import pytest
 import numpy as np
 import logging
-from Problems.Top88 import Top88
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA
+from Problems.topology_optimization_benchmark.Mbb_beam import MBBBeam
+from sao.approximations.taylor import Taylor1
+from sao.approximations.intervening import MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
@@ -28,10 +27,10 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4):
+def test_mbb(nelx=40, nely=20, volfrac=0.4, penal=3, rmin=2):
 
     # Instantiate problem
-    prob = Top88(nelx, nely, volfrac, penal, rmin)
+    prob = MBBBeam(nelx, nely, volfrac, penal, rmin)
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
@@ -45,7 +44,7 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4):
     solves = 0
 
     # Optimization loop
-    while itte < 10:
+    while itte < 100:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -70,4 +69,4 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4):
 
 
 if __name__ == "__main__":
-    test_top88()
+    test_mbb()
