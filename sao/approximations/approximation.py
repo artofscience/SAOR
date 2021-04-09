@@ -43,7 +43,7 @@ class Approximation(ABC):
             assert self.ddfddy.shape == (self.m + 1, self.n), msg
 
             if self.force_convex:
-                self.ddfddy = self.enforce_convexity(self.ddfddy)
+                self.ddfddy = self.enforce_convexity(self.ddfddy.copy())
 
         return self
 
