@@ -67,6 +67,7 @@ class SphericalTaylor2(Taylor2):
 
         return self
 
+    # TODO: dont use curvature when y-yold1 < 1e-3
     def get_curvature(self):
         dot = np.dot(self.dfdy, (self.yold1-self.y)) if len(self.y.shape) == 1 else np.einsum('ij,ji->i', self.dfdy, (self.yold1-self.y))
         c_j = 2 * (self.fold1 - self.f - dot) / sum((self.yold1 - self.y) ** 2)
