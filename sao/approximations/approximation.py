@@ -43,12 +43,14 @@ class Approximation(ABC):
             assert self.ddfddy.shape == (self.m + 1, self.n), msg
 
             if self.force_convex:
-                self.enforce_convexity()
+                self.ddfddy = self.enforce_convexity(self.ddfddy)
 
         return self
 
-    def enforce_convexity(self):
-        self.ddfddy[self.ddfddy < 0] = 0
+    @staticmethod
+    def enforce_convexity(matrix):
+        matrix[matrix < 0] = 0
+        return matrix
 
     @abstractmethod
     def g(self, y):

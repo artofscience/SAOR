@@ -61,7 +61,7 @@ class SphericalTaylor2(Taylor2):
             assert self.ddfddy.shape == (self.m + 1, self.n), msg
 
             if self.force_convex:
-                self.enforce_convexity()
+                self.ddfddy = self.enforce_convexity(self.ddfddy)
         else:
             self.ddfddy = np.zeros_like(self.dfdy)
 
@@ -69,7 +69,9 @@ class SphericalTaylor2(Taylor2):
 
     # TODO: Fix shape of ddfddy
     def get_curvature(self):
-        return 2 * (self.fold1 - self.f - np.dot(self.dfdy, (self.yold1 - self.y))) / sum((self.yold1 - self.y) ** 2)
+        dot = np.dot(self.dfdy, (self.yold1-self.y)) if len(self.y.shape) == 1 else np.einsum('ij,ji->i', self.dfdy, (self.yold1-self.y))
+        c_j = 2 * (self.fold1 - self.f - dot) / sum((self.yold1 - self.y) ** 2)
+        return np.broadcast_to(c_j, (self.y.shape[0], c_j.shape[0])).T
 
 
 class NonSphericalTaylor2(Taylor2):
@@ -107,7 +109,7 @@ class NonSphericalTaylor2(Taylor2):
             assert self.ddfddy.shape == (self.m + 1, self.n), msg
 
             if self.force_convex:
-                self.enforce_convexity()
+                self.enforce_convexity(self.ddfddy)
 
         return self
 

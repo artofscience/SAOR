@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
-from sao.intervening_vars.intervening import ConLin
+from sao.intervening_vars.intervening import Linear, ConLin
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point_x import InteriorPointX as ipx
