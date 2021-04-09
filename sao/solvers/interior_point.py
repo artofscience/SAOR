@@ -20,8 +20,8 @@ class InteriorPoint(PrimalDual, ABC):
     def __init__(self, problem, **kwargs):
         super().__init__(problem, **kwargs)
 
-        self.epsimin = kwargs.get('epsimin', 1e-4)
-        self.iteramax = kwargs.get('iteramax', 50)
+        self.epsimin = kwargs.get('epsimin', 1e-6)
+        self.iteramax = kwargs.get('iteramax', 20)
         self.iterinmax = kwargs.get('iterinmax', 20)
         self.alphab = kwargs.get('alphab', -1.01)
         self.epsifac = kwargs.get('epsifac', 0.9)
@@ -55,11 +55,11 @@ class InteriorPoint(PrimalDual, ABC):
         ...
 
     def get_step_size(self):
-        temp = [self.alphab * self.dw[1:][i] / a for i, a in enumerate(self.w[1:])]
-        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
-        temp.append(-self.alphab * self.dw[0] / (self.beta - self.w[0]))
+        temp = [self.alphab * self.dw[1:][i] / a for i, a in enumerate(self.w[1:])]         # stepxx
+        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))                    # stepalpha
+        temp.append(-self.alphab * self.dw[0] / (self.beta - self.w[0]))                    # stepbeta
         temp.append(np.array([1]))
-        self.step = 1 / np.max(np.hstack(temp))
+        self.step = 1.0 / np.maximum.reduce(np.hstack(temp))
 
     def update(self):
 
@@ -594,7 +594,7 @@ class InteriorPointXYZ(InteriorPointXY):
         super().__init__(problem, **kwargs)
 
         # self.c = kwargs.get('c', 1000 * np.ones(self.m))
-        self.a0 = kwargs.get('a0', 1)
+        self.a0 = kwargs.get('a0', 1.)
         self.d = kwargs.get('d', np.zeros(self.m))
         self.a = kwargs.get('a', np.zeros(self.m))
 

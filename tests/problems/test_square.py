@@ -33,7 +33,7 @@ def test_square_Svanberg(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -57,7 +57,6 @@ def test_square_Svanberg(n):
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-
         itte += 1
 
     logger.info('Alles goed!')
@@ -148,7 +147,7 @@ def test_square_ipxyz(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -180,8 +179,8 @@ def test_square_ipxyz(n):
 
 if __name__ == "__main__":
     test_square_Svanberg(20)
-    # test_square_ipx(10)
-    # test_square_ipxy(10)
+    # test_square_ipx(20)
+    # test_square_ipxy(20)
     test_square_ipxyz(20)
     # test_square_dummy(10)
 
