@@ -38,7 +38,7 @@ class MBBEigenvalue(Top88):
         # print(f"eigenvalues found: {self.eigvals}")
         # Calculate responses
         g_j = np.empty(2)
-        g_j[0] = sum(1/self.eigvals)
+        g_j[0] = sum(1/self.eigvals)/10
         g_j[1] = sum(self.xPhys[:]) / (self.volfrac * self.n) - 1
         return g_j
 
@@ -59,6 +59,7 @@ class MBBEigenvalue(Top88):
 
         # Sensitivity filtering
         dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
+        dg_j[0, :] *= 0.1
         dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
 
         return dg_j

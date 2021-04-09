@@ -24,6 +24,7 @@ class Top88(Problem, ABC):
         self.Eps = 1e-9 # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
+        self.nel = nelx*nely
         self.volfrac = volfrac
         self.ndof = 2 * (self.nelx + 1) * (self.nely + 1)
         self.penal = penal
