@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1
-from sao.intervening_vars import PolyFit
+from sao.intervening_vars.intervening import PolyFit
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed

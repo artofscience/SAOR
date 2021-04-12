@@ -1,8 +1,8 @@
 import numpy as np
 import logging
 from Problems.Top88 import Top88
-from sao.approximations.taylor import Taylor1
-from sao.intervening_vars import MMA
+from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
+from sao.intervening_vars.intervening import MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -33,7 +33,7 @@ def test_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate solver
