@@ -33,7 +33,7 @@ def test_square_Svanberg(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=SphericalTaylor2(),
+    subprob = Subproblem(intervening=ConLin(), approximation=NonSphericalTaylor2(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
