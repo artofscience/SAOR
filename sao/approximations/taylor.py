@@ -24,11 +24,13 @@ class Taylor2(Taylor1):
         return super().ddg(y, dy, ddy) + (self.ddfddy*(y-self.y).T)*ddy + self.ddfddy*dy**2
 
 
-# Multi-point Spherical Taylor expansion approximation by: https://link.springer.com/article/10.1007/s00158-006-0070-6
+# Multi-point Spherical Taylor expansion: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class SphericalTaylor2(Taylor2):
     def __init__(self):
         super().__init__()
-        self.x, self.xold1, self.f, self.fold1, self.dxdy, self.yold1 = None, None, None, None, None, None
+        self.x, self.xold1 = None, None
+        self.f, self.fold1 = None, None
+        self.dxdy, self.yold1 = None, None
 
     def update(self, x, y, f, df, dxdy, **kwargs):
         self.xold1 = self.x
@@ -75,6 +77,7 @@ class SphericalTaylor2(Taylor2):
         return np.broadcast_to(c_j, (self.y.shape[0], c_j.shape[0])).T
 
 
+# Multi-point NonSpherical Taylor expansion: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class NonSphericalTaylor2(Taylor2):
     def __init__(self):
         super().__init__()
@@ -98,26 +101,35 @@ class NonSphericalTaylor2(Taylor2):
         self.m = len(self.f) - 1
         self.n = len(self.x)
 
-        # Calculate 2nd-order part and check dfdy for its dimensions
+        # Calculate 2nd-order part
         ddf = kwargs.get('ddf', None)
         if ddf is not None:
             ddxddy = kwargs.get('ddxddy', None)
             self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
+
+        # Check dfdy for its dimensions
         msg = (f'Expect sensitivity of size {self.m+1}x{self.n}: '
                f'Received {self.dfdy.shape}.')
         assert self.dfdy.shape == (self.m + 1, self.n), msg
 
-        # If iter > 0, approximate curvature by forcing the curve to satisfy the gradient at xold1
+        # Calculate curvature
         if self.xold1 is not None:
+            # For numerical stability, only do finite differences when |y_i - yold1_i| > 1e-4
             diff = abs(self.yold1 - self.y)
             if len(self.y.shape) == 1:
                 self.idx = np.asarray(np.where(diff > 1e-4))[0, :]
             else:
                 self.idx = np.argwhere(np.all(diff > 1e-4, axis=1))[:, 0]
+
+            # Adjust the curvature @X^(k) by satisfying dg/dx @X^(k-1)
             self.ddfddy[:, self.idx] = self.get_curvature()
+
+            # Check ddfddy for its dimensions
             msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
                    f"Received: {self.ddfddy.shape}.")
             assert self.ddfddy.shape == (self.m + 1, self.n), msg
+
+            # Enforce convexity of responses
             if self.force_convex:
                 self.ddfddy = self.enforce_convexity(self.ddfddy.copy())
         else:

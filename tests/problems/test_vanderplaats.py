@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
-from sao.approximations.taylor import Taylor1
-from sao.intervening_vars import MMA
+from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
+from sao.intervening_vars.intervening import MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -31,8 +31,6 @@ def test_vanderplaats(N):
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    # subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -54,7 +52,7 @@ def test_vanderplaats(N):
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
             'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
-                itte, f[0], f[1], f[2], f[3]))
+                itte, f[0], f[1], f[1 + N], f[-1]))
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -74,4 +72,4 @@ def test_vanderplaats(N):
 
 
 if __name__ == "__main__":
-    test_vanderplaats(200)
+    test_vanderplaats(50)

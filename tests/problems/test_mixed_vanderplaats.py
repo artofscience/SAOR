@@ -130,7 +130,7 @@ def test_mixed_vanderplaats(N):
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
             'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
-                itte, f[0], f[1], f[2], f[3]))
+                itte, f[0], f[1], f[1 + N], f[-1]))
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
