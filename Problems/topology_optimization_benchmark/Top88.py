@@ -3,7 +3,7 @@
 # A 165 LINE TOPOLOGY OPTIMIZATION CODE BY NIELS AAGE AND VILLADS EGEDE JOHANSEN, JANUARY 2013
 from __future__ import division
 import numpy as np
-from scipy.sparse import coo_matrix
+from scipy.sparse import coo_matrix, diags
 from matplotlib import colors
 import matplotlib.pyplot as plt
 import cvxopt
@@ -19,11 +19,12 @@ class Top88(Problem, ABC):
     u: np.array = NotImplemented
     f: np.array = NotImplemented
 
-    def __init__(self, nelx, nely, volfrac, penal, rmin):
+    def __init__(self, nelx, nely, volfrac=0.5, penal=3.0, rmin=2.0):
         super().__init__()
         self.Eps = 1e-9 # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
+        self.nel = nelx*nely
         self.volfrac = volfrac
         self.ndof = 2 * (self.nelx + 1) * (self.nely + 1)
         self.penal = penal
@@ -38,7 +39,7 @@ class Top88(Problem, ABC):
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
 
         # FE: Build the index vectors for the for coo matrix format
-        self.KE = self.lk()
+        self.KE = self.element_matrix_stiffness()
         self.edofMat = np.zeros((self.nelx * self.nely, 8), dtype=int)
         for elx in range(self.nelx):
             for ely in range(self.nely):
@@ -49,8 +50,8 @@ class Top88(Problem, ABC):
                     [2 * n1 + 2, 2 * n1 + 3, 2 * n2 + 2, 2 * n2 + 3, 2 * n2, 2 * n2 + 1, 2 * n1, 2 * n1 + 1])
 
         # Construct the index pointers for the coo format
-        self.iK = np.kron(self.edofMat, np.ones((8, 1))).flatten()
-        self.jK = np.kron(self.edofMat, np.ones((1, 8))).flatten()
+        self.iK = np.kron(self.edofMat, np.ones((8, 1), dtype=int)).flatten()
+        self.jK = np.kron(self.edofMat, np.ones((1, 8), dtype=int)).flatten()
 
         # Filter: Build (and assemble) the index + data vectors for the coo matrix format
         nfilter = int(self.nelx * self.nely * ((2 * (np.ceil(rmin) - 1) + 1) ** 2))
@@ -88,25 +89,39 @@ class Top88(Problem, ABC):
     def dg(self, x_k):
         ...
 
-    def fea_assembly(self, x):
+    def assemble_K(self, x, interpolation="simp"):
+        if interpolation.lower() == 'simp':
+            x_scale = (self.Eps + x ** self.penal * (1 - self.Eps))
+        elif interpolation.lower() == 'simplin':
+            x_scale = (self.Eps + (0.1 * x + 0.9 * (x ** self.penal)) * (1 - self.Eps))
+        else:
+            raise RuntimeError(f"Option {interpolation} not known as a material interpolation scheme")
 
         # Setup and solve FE problem
-        sK = ((self.KE.flatten()[np.newaxis]).T * (self.Eps + x ** self.penal * (1 - self.Eps))).flatten(order='F')
+        sK = ((self.KE.flatten()[np.newaxis]).T * x_scale).flatten(order='F')
         K = coo_matrix((sK, (self.iK, self.jK)), shape=(self.ndof, self.ndof)).tocsc()
-
+        # FIXME: Here coo is converted to csc
         # Remove constrained dofs from matrix
-        K = self.deleterowcol(K, self.fixed, self.fixed).tocoo()
+        K = self.deleterowcol(K, self.fixed, self.fixed)  # FIXME: Here it is (was) converted back to coo?
         return K
 
+    def assemble_M(self, x, rho=1.0):
+        x_scale = self.Eps + (1 - self.Eps) * x
+        sM = np.kron(x_scale, np.ones(8)*rho/4)
+        xdiag = np.zeros(self.ndof)
+        np.add.at(xdiag, self.edofMat.flatten(), sM)  # Assemble the diagonal
+        return diags(xdiag[self.free])
+
     @staticmethod
-    def fea_solve(K, f):
-        K = cvxopt.spmatrix(K.data, K.row.astype(int), K.col.astype(int))
+    def linear_solve(K, f):
+        Kcoo = K.tocoo()
+        K = cvxopt.spmatrix(Kcoo.data, Kcoo.row.astype(int), Kcoo.col.astype(int))
         B = cvxopt.matrix(f)
         cvxopt.cholmod.linsolve(K, B)
         return np.array(B)
 
     @staticmethod
-    def lk():
+    def element_matrix_stiffness():   # FIXME Give this function a proper name please :)
         """Element stiffness matrix"""
         E = 1
         nu = 0.3

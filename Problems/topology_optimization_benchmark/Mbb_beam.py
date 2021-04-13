@@ -18,32 +18,30 @@ class MBBBeam(Top88):
         # Set load
         self.f[1, 0] = -1
 
+        self.xPhys = None
+
     def g(self, x_k):
 
         g_j = np.empty(self.m + 1)
 
         # Filter design variables
-        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
+        self.xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
 
-        K = self.fea_assembly(xPhys)
-        self.u[self.free, :] = self.fea_solve(K, self.f[self.free, :])
+        K = self.assemble_K(self.xPhys)
+        self.u[self.free, :] = self.linear_solve(K, self.f[self.free, :])
 
         # Objective and volume constraint
         self.ce[:] = (np.dot(self.u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
                       self.u[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
 
-        g_j[0] = ((self.Eps + xPhys ** self.penal * (1 - self.Eps)) * self.ce).sum()
-        g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
+        g_j[0] = ((self.Eps + self.xPhys ** self.penal * (1 - self.Eps)) * self.ce).sum()
+        g_j[1] = sum(self.xPhys[:]) / (self.volfrac * self.n) - 1
         return g_j
 
     def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
-        # Filter design variable sensitivities
-        # TODO unfortunately we filter twice (both in g and dg), can we circumvent this?
-        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
-
-        dg_j[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (1 - self.Eps)) * self.ce
+        dg_j[0, :] = (-self.penal * self.xPhys ** (self.penal - 1) * (1 - self.Eps)) * self.ce
         dg_j[1, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
 
         # Sensitivity filtering
