@@ -27,10 +27,10 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def test_bracket(nelx=100, nely=20, volfrac=0.2, penal=3, rmin=2):
+def test_bracket(nelx=200, nely=50, volfrac=0.8, penal=3, rmin=2):
 
     # Instantiate problem
-    prob = LBracket(nelx, nely, volfrac, penal, rmin)
+    prob = LBracket(nelx, nely, volfrac, penal, rmin, max_stress=1)
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
@@ -44,7 +44,7 @@ def test_bracket(nelx=100, nely=20, volfrac=0.2, penal=3, rmin=2):
     solves = 0
 
     # Optimization loop
-    while itte < 100:
+    while itte < 1000:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)

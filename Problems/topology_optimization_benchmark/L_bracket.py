@@ -3,11 +3,12 @@ import numpy as np
 
 
 class LBracket(Top88):
-    def __init__(self, nelx, nely, volfrac, penal, rmin, max_stress=300):
+    def __init__(self, nelx, nely, volfrac, penal, rmin, max_stress=10):
         super().__init__(nelx, nely, volfrac, penal, rmin)
         self.max_stress = max_stress
         self.name = 'LBracket'
         self.m = 1
+        self.P = 10
 
         self.fixed = np.union1d(self.dofs[0:2 * (self.nely + 1):2], np.array([self.ndof - 1]))
         self.free = np.setdiff1d(self.dofs, self.fixed)
@@ -15,7 +16,8 @@ class LBracket(Top88):
         # Solution and RHS vectors
         self.f = np.zeros((self.ndof, 1))
         self.u = np.zeros((self.ndof, 1))
-        self.stress = np.zeros(self.nel)
+        self.stress = np.zeros(self.n)
+
 
         # Set load
         self.f[1, 0] = -1
@@ -42,23 +44,26 @@ class LBracket(Top88):
         # Filter design variables
         xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
 
-        K = self.fea_assembly(xPhys)
-        self.u[self.free, :] = self.fea_solve(K, self.f[self.free, :])
+        self.K = self.assemble_K(xPhys)
+        self.u[self.free, :] = self.linear_solve(self.K, self.f[self.free, :])
 
-        elemental_strain = self.B.dot(self.u.flatten()[self.edofMat].transpose())
-        elemental_strain[2, :] *= 2  # voigt notation
+        self.elemental_strain = self.B.dot(self.u.flatten()[self.edofMat].transpose())
+        self.elemental_strain[2, :] *= 2  # voigt notation
 
-        elemental_stress = self.D.dot(elemental_strain).transpose()
-        stress_vm = np.sqrt((elemental_stress.dot(self.V) * elemental_stress).sum(1))
+        self.elemental_stress = self.D.dot(self.elemental_strain).transpose()
 
-        self.stress[:] = xPhys * stress_vm.flatten()
+        self.stress_vm0 = (self.elemental_stress.dot(self.V) * self.elemental_stress).sum(1)
+        self.stress_vm = np.sqrt(self.stress_vm0)
 
-        P = 10
-        gi = xPhys * (stress_vm / self.max_stress - 1)
-        giP = (gi + 1)**P
-        giPP = (1/self.n * np.sum(giP))**(1/P)
+        # self.stress[:] = xPhys * self.stress_vm.flatten()
+        self.gi = (self.stress_vm / self.max_stress) - 1
+        self.gi_scaled = xPhys * self.gi
+        self.giplus = self.gi_scaled + 1
+        self.giP = self.giplus**self.P
+        self.gisum = (1/self.n) * np.sum(self.giP)
+        giPP = self.gisum**(1/self.P)
         g_j[1] = giPP - 1
-        g_j[0] = sum(xPhys[:]) / self.n
+        g_j[0] = 100 * sum(xPhys[:]) / self.n
         return g_j
 
     def dg(self, x_k):
@@ -68,12 +73,47 @@ class LBracket(Top88):
         # TODO unfortunately we filter twice (both in g and dg), can we circumvent this?
         xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
 
-        dg_j[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (1 - self.Eps)) * self.ce
-        dg_j[0, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
+        dgdgi_scaled = (1/self.n) * self.gisum**(1/self.P - 1) * self.giplus**(self.P - 1)
+        dgidstress = dgdgi_scaled[:, np.newaxis] * xPhys[:, np.newaxis] * (self.stress_vm0**(-0.5)/self.max_stress)[:, np.newaxis] * self.elemental_stress.dot(self.V)
+        dgdsstrainmat = np.einsum('jk,kl->jl', dgidstress, self.D)
+        dgdsstrainmat[:, 2] *= 2
+        dgdue = np.einsum('ij,jl->il', dgdsstrainmat, self.B)
+        y = np.zeros(self.ndof)
+        for i in range(0, self.n):
+            y[self.edofMat[i, :]] += dgdue[i, :]
+
+        lag = np.zeros((self.ndof,1))
+        lag[self.free,:] = self.linear_solve(self.K, y[self.free])
+        ce = (np.dot(self.u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
+                      lag[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
+
+        bro = (-self.penal * xPhys ** (self.penal - 1) * (1 - self.Eps)) * ce
+
+        dg_j[1,:] = bro
+        dg_j[1,:] += (dgdgi_scaled * self.gi)
+
+        dg_j[0, :] = 100 * np.ones(self.n) / (self.n)
 
         # Sensitivity filtering
         dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
         dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
 
         return dg_j
+
+
+if __name__ == "__main__":
+    prob = LBracket(8, 3, 0.6, 3, 2)
+    x = np.random.rand(prob.n)*1.0
+    g0 = prob.g(x)
+    dg_an = prob.dg(x)
+
+    dx = 1e-4
+    dg_fd = np.zeros_like(dg_an)
+    for i in range(prob.n):
+        x0 = x[i]
+        x[i] += dx
+        gp = prob.g(x)
+        x[i] = x0
+        dg_fd[:, i] = (gp - g0) / dx
+        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i]/dg_fd[:, i] - 1.0}")
 

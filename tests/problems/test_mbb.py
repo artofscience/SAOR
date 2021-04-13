@@ -27,7 +27,7 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def test_mbb(nelx=40, nely=20, volfrac=0.4, penal=3, rmin=2):
+def test_mbb(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate problem
     prob = MBBBeam(nelx, nely, volfrac, penal, rmin)

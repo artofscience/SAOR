@@ -24,7 +24,6 @@ class Top88(Problem, ABC):
         self.Eps = 1e-9 # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
-        self.nel = nelx*nely
         self.volfrac = volfrac
         self.ndof = 2 * (self.nelx + 1) * (self.nely + 1)
         self.penal = penal
@@ -79,6 +78,12 @@ class Top88(Problem, ABC):
         self.H = coo_matrix((sH, (iH, jH)), shape=(self.nelx * self.nely, self.nelx * self.nely)).tocsc()
         self.Hs = self.H.sum(1)
 
+        a = np.reshape(np.arange(0,self.n),(self.nelx,self.nely)).T
+        b = a[0:self.rmin,4*self.rmin:]
+        c = a[-self.rmin:, :-4*self.rmin]
+        d = a[self.rmin:-4*self.rmin, -self.rmin:]
+        padel = np.unique(np.concatenate((b.flatten(), c.flatten(), d.flatten())))
+        self.Hs[padel] = np.max(self.Hs)
         # BC's and support
         self.dofs = np.arange(2 * (self.nelx + 1) * (self.nely + 1))
 
@@ -89,7 +94,7 @@ class Top88(Problem, ABC):
     def dg(self, x_k):
         ...
 
-    def assemble_K(self, x, interpolation="simp"):
+    def assemble_K(self, x, add=None, interpolation="simp"):
         if interpolation.lower() == 'simp':
             x_scale = (self.Eps + x ** self.penal * (1 - self.Eps))
         elif interpolation.lower() == 'simplin':

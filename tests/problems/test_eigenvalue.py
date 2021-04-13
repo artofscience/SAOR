@@ -27,7 +27,7 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def test_eigenvalue(nelx=100, nely=20):
+def test_eigenvalue(nelx=200, nely=40):
 
     # Instantiate problem
     prob = MBBEigenvalue(nelx, nely)
