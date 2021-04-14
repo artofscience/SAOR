@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import logging
 from Problems.square import Square
-from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2, GBMMA1
 from sao.intervening_vars.intervening import Linear, ConLin
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
@@ -33,7 +33,7 @@ def test_square_Svanberg(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=NonSphericalTaylor2(),
+    subprob = Subproblem(intervening=ConLin(), approximation=GBMMA1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -178,8 +178,8 @@ def test_square_ipxyz(n):
 
 
 if __name__ == "__main__":
-    test_square_Svanberg(10)
-    # test_square_ipx(10)
-    test_square_ipxy(10)
-    test_square_ipxyz(10)
+    test_square_Svanberg(5)
+    # test_square_ipx(5)
+    # test_square_ipxy(5)
+    test_square_ipxyz(5)
 

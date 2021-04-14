@@ -26,7 +26,7 @@ class Taylor2(Taylor1):
 
 # Multi-point Spherical Taylor expansion of Eq. 16: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class SphericalTaylor2(Taylor2):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
         self.x, self.xold1 = None, None
         self.f, self.fold1 = None, None
@@ -79,8 +79,8 @@ class SphericalTaylor2(Taylor2):
 
 # Multi-point NonSpherical Taylor expansion of Eq. 23: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class NonSphericalTaylor2(Taylor2):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.x, self.xold1 = None, None
         self.f, self.fold1 = None, None
         self.dfold1, self.dxdy, self.yold1, self.idx = None, None, None, None
@@ -145,3 +145,48 @@ class NonSphericalTaylor2(Taylor2):
             c_ji = (self.dfold1[:, self.idx] * self.dxdy(self.xold1)[:, self.idx] - self.dfdy[:, self.idx]) / \
                    (self.yold1[self.idx, :] - self.y[self.idx, :]).T
         return c_ji
+
+
+# GBMMA1 is a multi-point Taylor1 expansion of Eq. 15: https://link.springer.com/article/10.1007/s00158-002-0238-7
+class GBMMA1(Taylor1):
+    def __init__(self):
+        super().__init__()
+        self.x, self.xold1 = None, None
+        self.df, self.dfold1 = None, None
+
+    def update(self, x, y, f, df, dxdy, **kwargs):
+        self.xold1 = self.x
+        self.x = x
+        self.f = f
+        self.dfold1 = self.df
+        self.df = df
+        self.y = y(x).T
+
+        # GBMMA1 satisfies gradient @X^(k-1)
+        if self.xold1 is not None:
+            self.dfdy = self.dfold1 * dxdy(self.xold1)
+        else:
+            self.dfdy = df * dxdy(x)
+
+        # 2nd-order part
+        ddf = kwargs.get('ddf', None)
+        if ddf is not None:
+            ddxddy = kwargs.get('ddxddy', None)
+            self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
+
+        self.m = len(self.f) - 1
+        self.n = len(self.y)
+
+        msg = (f'Expect sensitivity of size {self.m + 1}x{self.n}: '
+               f'Received {self.dfdy.shape}.')
+        assert self.dfdy.shape == (self.m + 1, self.n), msg
+
+        if self.ddfddy is not None:
+            msg = (f"Expected ddf size: {self.m + 1}x{self.n}: "
+                   f"Received: {self.ddfddy.shape}.")
+            assert self.ddfddy.shape == (self.m + 1, self.n), msg
+
+            if self.force_convex:
+                self.ddfddy = self.enforce_convexity(self.ddfddy.copy())
+
+        return self
