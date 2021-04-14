@@ -55,7 +55,7 @@ class Stress(MBBBeam):
         self.stress_vm0 = (self.elemental_stress.dot(self.V) * self.elemental_stress).sum(1)
         self.stress_vm = np.sqrt(self.stress_vm0)
 
-        # self.stress[:] = xPhys * self.stress_vm.flatten()
+        self.stress[:] = xPhys * self.stress_vm.flatten()
         self.gi = (self.stress_vm / self.max_stress) - 1
         self.gi_scaled = xPhys * self.gi
         self.giplus = self.gi_scaled + 1
