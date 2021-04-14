@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from Problems.topology_optimization_benchmark.Top88 import Top88
+from Problems.topology_optimization_benchmark.mbbbeam import Top88
 from sao.approximations.taylor import Taylor1
 from sao.approximations.intervening import Linear
 from sao.move_limits.ml_intervening import MoveLimitIntervening

@@ -1,16 +1,13 @@
-from .Top88 import Top88
+from .mbbbeam import MBBBeam
 import numpy as np
 from scipy.sparse import coo_matrix
 
 
-class Inverter(Top88):
-    def __init__(self, nelx, nely, volfrac, penal, rmin, kin=0.01, kout=0.001):
+class Mechanism(MBBBeam):
+    def __init__(self, nelx, nely, volfrac, penal, rmin, kin=0.01, kout=0.01):
         super().__init__(nelx, nely, volfrac, penal, rmin)
         self.name = 'Inverter'
         self.m = 1
-
-        self.din = 2 * (nely + 1) - 1
-        self.dout = 1
 
         istiff = np.array([self.din, self.dout])
         jstiff = np.array([self.din, self.dout])
@@ -18,9 +15,11 @@ class Inverter(Top88):
         self.iK = np.concatenate((self.iK, istiff))
         self.jK = np.concatenate((self.jK, jstiff))
 
-        self.fixed = np.union1d(self.dofs[0:2*(nely+1):2],
-                                self.dofs[-nely:-1])
-        self.free = np.setdiff1d(self.dofs, self.fixed)
+        # self.fixed = np.union1d(self.dofs[0:2*(nely+1):2],
+        #                         self.dofs[-nely:-1])
+        # self.free = np.setdiff1d(self.dofs, self.fixed)
+
+
 
         # Solution and RHS vectors
         self.f = np.zeros((self.ndof, 2))
@@ -32,14 +31,23 @@ class Inverter(Top88):
 
         self.xPhys = None
 
-    def g(self, x_k):
+    def g(self, x):
         g_j = np.empty(self.m + 1)
 
         # Filter design variables
-        self.xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
+        self.xPhys = np.asarray(self.H * x[np.newaxis].T / self.Hs)[:, 0]
 
         # add additional springs
-        K = self.assemble_K(self.xPhys)
+
+        x_scale = (self.Eps + self.xPhys ** self.penal * (1 - self.Eps))
+
+        # Setup and solve FE problem
+        sK = ((self.KE.flatten()[np.newaxis]).T * x_scale).flatten(order='F')
+        sK = np.concatenate((sK, self.sstiff))
+        K = coo_matrix((sK, (self.iK, self.jK)), shape=(self.ndof, self.ndof)).tocsc()
+        # FIXME: Here coo is converted to csc
+        # Remove constrained dofs from matrix
+        K = self.deleterowcol(K, self.fixed, self.fixed)  # FIXME: Here it is (was) converted back to coo?
 
         self.u[self.free, :] = self.linear_solve(K, self.f[self.free, :])
         u = self.u[:, 0]
@@ -65,3 +73,21 @@ class Inverter(Top88):
         dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
 
         return dg_j
+
+if __name__ == "__main__":
+    prob = Mechanism(20, 10, 0.3, 3, 2)
+    x = np.random.rand(prob.n)*1.0
+    g0 = prob.g(x)
+    dg_an = prob.dg(x)
+
+    dx = 1e-4
+    dg_fd = np.zeros_like(dg_an)
+    for i in range(prob.n):
+        x0 = x[i]
+        x[i] += dx
+        gp = prob.g(x)
+        x[i] = x0
+        dg_fd[:, i] = (gp - g0) / dx
+        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i]/dg_fd[:, i] - 1.0}")
+
+

@@ -1,17 +1,14 @@
-from .Top88 import Top88
+from .mbbbeam import MBBBeam
 import numpy as np
 
 
-class LBracket(Top88):
+class Stress(MBBBeam):
     def __init__(self, nelx, nely, volfrac, penal, rmin, max_stress=10):
         super().__init__(nelx, nely, volfrac, penal, rmin)
         self.max_stress = max_stress
-        self.name = 'LBracket'
-        self.m = 1
-        self.P = 10
-
-        self.fixed = np.union1d(self.dofs[0:2 * (self.nely + 1):2], np.array([self.ndof - 1]))
-        self.free = np.setdiff1d(self.dofs, self.fixed)
+        self.name = 'Stress'
+        self.P = 6
+        self.iter = 1
 
         # Solution and RHS vectors
         self.f = np.zeros((self.ndof, 1))
@@ -20,7 +17,7 @@ class LBracket(Top88):
 
 
         # Set load
-        self.f[1, 0] = -1
+        self.f[self.dout, 0] = -1
 
         self.B = 0.5 * np.array(
             [[-1, 0, 1, 0, 1, 0, -1, 0],
@@ -37,12 +34,15 @@ class LBracket(Top88):
                            [-0.5, 1, 0],
                            [0, 0, 3]])
 
-    def g(self, x_k):
+        self.iter = False
+        self.factor = 0
+
+    def g(self, x):
 
         g_j = np.empty(self.m + 1)
 
         # Filter design variables
-        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
+        xPhys = np.asarray(self.H * x[np.newaxis].T / self.Hs)[:, 0]
 
         self.K = self.assemble_K(xPhys)
         self.u[self.free, :] = self.linear_solve(self.K, self.f[self.free, :])
@@ -63,7 +63,11 @@ class LBracket(Top88):
         self.gisum = (1/self.n) * np.sum(self.giP)
         giPP = self.gisum**(1/self.P)
         g_j[1] = giPP - 1
-        g_j[0] = 100 * sum(xPhys[:]) / self.n
+        if self.iter == False:
+            self.factor = sum(xPhys[:]) / self.n
+            self.iter = True
+
+        g_j[0] = 100 * (sum(xPhys[:]) / self.n)/self.factor
         return g_j
 
     def dg(self, x_k):
@@ -92,7 +96,7 @@ class LBracket(Top88):
         dg_j[1,:] = bro
         dg_j[1,:] += (dgdgi_scaled * self.gi)
 
-        dg_j[0, :] = 100 * np.ones(self.n) / (self.n)
+        dg_j[0, :] = 100 * (np.ones(self.n) / (self.n))/self.factor
 
         # Sensitivity filtering
         dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
@@ -102,7 +106,7 @@ class LBracket(Top88):
 
 
 if __name__ == "__main__":
-    prob = LBracket(8, 3, 0.6, 3, 2)
+    prob = Stress(8, 3, 0.6, 3, 2)
     x = np.random.rand(prob.n)*1.0
     g0 = prob.g(x)
     dg_an = prob.dg(x)
