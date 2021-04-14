@@ -71,7 +71,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     print(solves)
 
 
-def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1):
+def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1.0):
 
     # Instantiate problem
     prob = Stress(nelx, nely, volfrac, penal, rmin, max_stress=max_stress)
@@ -88,14 +88,14 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1):
     solves = 0
 
     # Optimization loop
-    while itte < 1000:
+    while itte < 200:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
 
         # Print current iteration and x_k
-        vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
+        vis = prob.visualize(x_k, itte, vis)
         logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
 
@@ -193,8 +193,10 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
     logger.info('Optimization loop converged!')
     print(solves)
 
+
+
 if __name__ == "__main__":
-    # test_compliance(nelx=100, nely=200,volfrac=0.2)
-    test_stress(nelx=400, nely=100, max_stress=1)
-    # test_mechanism(nelx=200,nely=100,kin=0.005,kout=0.001,volfrac=0.3)
+    # test_compliance()
+    test_stress(nelx=200, nely=50, max_stress=0.8, volfrac=0.9)
+    # test_mechanism(nelx=100, nely=200, kin=0.001, kout=0.001, volfrac=0.3)
     # test_eigenvalue()

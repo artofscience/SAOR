@@ -11,6 +11,7 @@ import cvxopt.cholmod
 from sao.problems.problem import Problem
 from abc import ABC
 
+
 ## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
 class MBBBeam(Problem, ABC):
 

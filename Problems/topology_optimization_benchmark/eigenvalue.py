@@ -21,7 +21,7 @@ class Eigenvalue(MBBBeam):
         K = self.assemble_K(xPhys, interpolation='simplin')
         M = self.assemble_M(xPhys, rho=self.rho)
         # Add a point mass
-        M.data[0,0] += 5.0
+        M.data[0, 0] += 5.0
         # M.data[0, 1] += 0.5
 
         Kinv = splu(K)
