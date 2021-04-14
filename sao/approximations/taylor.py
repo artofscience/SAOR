@@ -24,7 +24,7 @@ class Taylor2(Taylor1):
         return super().ddg(y, dy, ddy) + (self.ddfddy*(y-self.y).T)*ddy + self.ddfddy*dy**2
 
 
-# Multi-point Spherical Taylor expansion: https://link.springer.com/article/10.1007/s00158-006-0070-6
+# Multi-point Spherical Taylor expansion of Eq. 16: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class SphericalTaylor2(Taylor2):
     def __init__(self):
         super().__init__()
@@ -77,7 +77,7 @@ class SphericalTaylor2(Taylor2):
         return np.broadcast_to(c_j, (self.y.shape[0], c_j.shape[0])).T
 
 
-# Multi-point NonSpherical Taylor expansion: https://link.springer.com/article/10.1007/s00158-006-0070-6
+# Multi-point NonSpherical Taylor expansion of Eq. 23: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class NonSphericalTaylor2(Taylor2):
     def __init__(self):
         super().__init__()
@@ -121,7 +121,7 @@ class NonSphericalTaylor2(Taylor2):
             else:
                 self.idx = np.argwhere(np.all(diff > 1e-4, axis=1))[:, 0]
 
-            # Adjust the curvature @X^(k) by satisfying dg/dx @X^(k-1)
+            # Adjust the curvature @X^(k) by satisfying dg_j/dx_i @X^(k-1)
             self.ddfddy[:, self.idx] = self.get_curvature()
 
             # Check ddfddy for its dimensions
