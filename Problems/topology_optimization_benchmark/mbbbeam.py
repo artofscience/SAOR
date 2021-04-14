@@ -12,10 +12,8 @@ from sao.problems.problem import Problem
 from abc import ABC
 
 ## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
-class Top88(Problem, ABC):
+class MBBBeam(Problem, ABC):
 
-    fixed: np.array = NotImplemented
-    free: np.array = NotImplemented
     u: np.array = NotImplemented
     f: np.array = NotImplemented
 
@@ -24,7 +22,6 @@ class Top88(Problem, ABC):
         self.Eps = 1e-9 # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
-        self.nel = nelx*nely
         self.volfrac = volfrac
         self.ndof = 2 * (self.nelx + 1) * (self.nely + 1)
         self.penal = penal
@@ -34,9 +31,12 @@ class Top88(Problem, ABC):
         self.xmax = np.ones(self.n, dtype=float)
         self.x0 = self.volfrac * np.ones(self.n, dtype=float)
         self.xold = self.xmin.copy()
+        self.m = 1
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
+        self.din = 2 * (nely + 1) - 1 - self.rmin*4
+        self.dout = 1 + self.rmin*4
 
         # FE: Build the index vectors for the for coo matrix format
         self.KE = self.element_matrix_stiffness()
@@ -79,9 +79,17 @@ class Top88(Problem, ABC):
         self.H = coo_matrix((sH, (iH, jH)), shape=(self.nelx * self.nely, self.nelx * self.nely)).tocsc()
         self.Hs = self.H.sum(1)
 
+        a = np.reshape(np.arange(0,self.n),(self.nelx,self.nely)).T
+        b = a[0:self.rmin,:]
+        c = a[-self.rmin:, :-self.rmin]
+        d = a[self.rmin:-self.rmin, -self.rmin:]
+        padel = np.unique(np.concatenate((b.flatten(), c.flatten(), d.flatten())))
+        self.Hs[padel] = np.max(self.Hs)
         # BC's and support
         self.dofs = np.arange(2 * (self.nelx + 1) * (self.nely + 1))
 
+        self.fixed = np.union1d(self.dofs[0:2 * (self.nely + 1):2], np.array([self.ndof - 1]))
+        self.free = np.setdiff1d(self.dofs, self.fixed)
 
     def g(self, x_k):
         ...
@@ -89,7 +97,7 @@ class Top88(Problem, ABC):
     def dg(self, x_k):
         ...
 
-    def assemble_K(self, x, interpolation="simp"):
+    def assemble_K(self, x, add=None, interpolation="simp"):
         if interpolation.lower() == 'simp':
             x_scale = (self.Eps + x ** self.penal * (1 - self.Eps))
         elif interpolation.lower() == 'simplin':
