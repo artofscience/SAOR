@@ -41,7 +41,7 @@ class Linear(Intervening):
     def dxdy(self, x):
         return np.ones_like(x)
 
-    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(y) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
         return np.zeros_like(x)
 
@@ -56,11 +56,11 @@ class Reciprocal(Intervening):
     def ddyddx(self, x):
         return 2 / (x ** 3)
 
-    # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
+    # Define chain rule term: y = T_inv(x) --> x = T(y) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
         return - x**2
 
-    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(y) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
         return 2 * x**3
 
@@ -92,19 +92,42 @@ class ConLin(Intervening):
         ddyddx[~self.positive] = self.rec.ddyddx(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return ddyddx
 
-    # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
+    # Define chain rule term: y = T_inv(x) --> x = T(y) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
         dxdy = np.zeros_like(self.positive, dtype=float)
         dxdy[self.positive] = self.lin.dxdy(np.broadcast_to(x, self.positive.shape)[self.positive])
         dxdy[~self.positive] = self.rec.dxdy(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return dxdy
 
-    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(y) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
         ddxddy = np.zeros_like(self.positive, dtype=float)
         ddxddy[self.positive] = self.lin.ddxddy(np.broadcast_to(x, self.positive.shape)[self.positive])
         ddxddy[~self.positive] = self.rec.ddxddy(np.broadcast_to(x, self.positive.shape)[~self.positive])
         return ddxddy
+
+
+# TODO: Add conditions for -p- to ensure validity of approximation
+class Exponential(Intervening):
+    def __init__(self, p):
+        self.p = p
+
+    def y(self, x):
+        return x ** self.p
+
+    def dydx(self, x):
+        return self.p * x ** (self.p - 1)
+
+    def ddyddx(self, x):
+        return self.p * (self.p - 1) * x ** (self.p - 2)
+
+    # Define chain rule term: y = T_inv(x) --> x = T(y) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
+    def dxdy(self, x):
+        return (1/self.p) * x ** (1 - self.p)
+
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    def ddxddy(self, x):
+        return 1/self.p * (1/self.p - 1) * x ** (1 - 2*self.p)
 
 
 class MMA(Intervening):
