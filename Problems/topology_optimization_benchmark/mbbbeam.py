@@ -29,7 +29,7 @@ class MBBBeam(Problem, ABC):
         self.n = self.nely * self.nelx
         self.xmin = np.zeros(self.n, dtype=float)
         self.xmax = np.ones(self.n, dtype=float)
-        self.x0 = self.volfrac * np.ones(self.n, dtype=float)
+        self.x0 = np.random.rand(self.n) # np.ones(self.n, dtype=float)
         self.xold = self.xmin.copy()
         self.m = 1
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
@@ -173,6 +173,27 @@ class MBBBeam(Problem, ABC):
             im = vis[2]
             fig = vis[0]
             im.set_array(-xPhys.reshape((self.nelx, self.nely)).T)
+            plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            fig.canvas.draw()
+            return vis
+
+    def visualize_field(self, x_k, max, iteration, vis):
+        """Function to visualize current design"""
+        if iteration == 0:
+            plt.ion()
+            fig, ax = plt.subplots()
+            plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            ax.set_ylabel('nely', fontsize=16)
+            ax.set_xlabel('nelx', fontsize=16)
+            im = ax.imshow(x_k.reshape((self.nelx, self.nely)).T, cmap='jet',
+                           interpolation='none', norm=colors.Normalize(vmin=0, vmax=max))
+            fig.show()
+            vis = [fig, ax, im]
+            return vis
+        else:
+            im = vis[2]
+            fig = vis[0]
+            im.set_array(x_k.reshape((self.nelx, self.nely)).T)
             plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
             fig.canvas.draw()
             return vis
