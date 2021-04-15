@@ -27,7 +27,7 @@ class Taylor2(Taylor1):
 # Multi-point Spherical Taylor expansion of Eq. 16: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class SphericalTaylor2(Taylor2):
     def __init__(self, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.x, self.xold1 = None, None
         self.f, self.fold1 = None, None
         self.dxdy, self.yold1 = None, None
