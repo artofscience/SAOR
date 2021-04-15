@@ -10,6 +10,7 @@ from sao.solvers.interior_point_x import InteriorPointX as ipx
 from sao.solvers.interior_point_xy import InteriorPointXY as ipxy
 from sao.solvers.interior_point_xyz import InteriorPointXYZ as ipxyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+from sao.util.plotter import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -57,6 +58,9 @@ def test_square_Svanberg(n):
         # Print current iteration and x_k
         logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
             itte, np.array2string(x_k[0:2]), f[0], f[1]))
+
+        # Live plot
+        plotter.plot([f[0], f[1]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)

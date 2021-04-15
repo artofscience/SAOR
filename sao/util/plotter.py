@@ -2,7 +2,7 @@ import colorsys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
-import os
+import pathlib
 
 
 class Plot:
@@ -36,7 +36,7 @@ class Plot:
             self.fig[idx].canvas.draw()
             self.fig[idx].canvas.flush_events()
         self.iter += 1
-        if path is not None:
+        if self.path is not None:
             self.save_fig()
         plt.show()
 
