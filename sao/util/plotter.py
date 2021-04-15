@@ -6,7 +6,7 @@ import os
 
 
 class Plot:
-    def __init__(self, names, **kwargs):
+    def __init__(self, names, path=None, **kwargs):
         self.names = names
         plt.ion()
         self.fig = []
@@ -23,9 +23,7 @@ class Plot:
             ax.grid(True)
             ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             self.lines[idx], = ax.plot([], [], marker='.', color=self.cols[idx], label=name)
-        self.save_figures = kwargs.get('save_figures', False)
-        if self.save_figures:
-            self.my_path = os.path.abspath(__file__)        # absolute path
+        self.path = pathlib.Path(path) if path is not None else None
         self.iter = 0
 
     def plot(self, y_values, **kwargs):
@@ -38,10 +36,12 @@ class Plot:
             self.fig[idx].canvas.draw()
             self.fig[idx].canvas.flush_events()
         self.iter += 1
+        if path is not None:
+            self.save_fig()
         plt.show()
 
     def save_fig(self):
         for idx, fig in enumerate(self.fig):
             plt.figure(fig.number)
-            path = os.getcwd()
-            plt.savefig(os.path.dirname(path) + '/{}.png'.format(self.names[idx]))
+            path = self.path.joinpath(f'{self.names[idx]}.png')
+            plt.savefig(path)
