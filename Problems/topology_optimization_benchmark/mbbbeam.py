@@ -29,14 +29,14 @@ class MBBBeam(Problem, ABC):
         self.n = self.nely * self.nelx
         self.xmin = np.zeros(self.n, dtype=float)
         self.xmax = np.ones(self.n, dtype=float)
-        self.x0 = np.random.rand(self.n) # np.ones(self.n, dtype=float)
+        self.x0 = np.random.rand(self.n)
         self.xold = self.xmin.copy()
         self.m = 1
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
-        self.din = 2 * (nely + 1) - 1 - self.rmin*4
-        self.dout = 1 + self.rmin*4
+        self.din = 2 * (nely + 1) - 1
+        self.dout = 1
 
         # FE: Build the index vectors for the for coo matrix format
         self.KE = self.element_matrix_stiffness()
@@ -79,10 +79,10 @@ class MBBBeam(Problem, ABC):
         self.H = coo_matrix((sH, (iH, jH)), shape=(self.nelx * self.nely, self.nelx * self.nely)).tocsc()
         self.Hs = self.H.sum(1)
 
-        a = np.reshape(np.arange(0,self.n),(self.nelx,self.nely)).T
-        b = a[0:self.rmin,:]
-        c = a[-self.rmin:, :-self.rmin]
-        d = a[self.rmin:-self.rmin, -self.rmin:]
+        a = np.reshape(np.arange(0, self.n), (self.nelx, self.nely)).T
+        b = a[0:self.rmin, 2 * self.rmin:]
+        c = a[-self.rmin:, 2 * self.rmin:-2 * self.rmin]
+        d = a[:-2 * self.rmin, -self.rmin:]
         padel = np.unique(np.concatenate((b.flatten(), c.flatten(), d.flatten())))
         self.Hs[padel] = np.max(self.Hs)
         # BC's and support
