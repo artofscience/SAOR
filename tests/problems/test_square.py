@@ -40,7 +40,11 @@ def test_square_Svanberg(n):
     itte = 0
     x_k = prob.x0.copy()
 
+    # Instantiate solver
     solver = SvanbergIP(prob.n, 1)
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
 
     # Optimization loop
     while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
