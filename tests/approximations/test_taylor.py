@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_vars.intervening import ConLin
+from sao.intervening_vars.intervening import Linear, ConLin
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -22,8 +22,10 @@ def test_taylor1(n, h):
 
     logger.info("Testing 1st-order Taylor expansion with y=x")
     prob = Square(n)
+    inter = Linear()
+    inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
     taylor1 = Taylor1()
-    taylor1.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
+    taylor1.update(prob.x0, inter.y, prob.g(prob.x0), prob.dg(prob.x0), inter.dxdy)
 
     # Check validity of Taylor1 expansion at expansion point X^(k)
     assert taylor1.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
@@ -41,8 +43,10 @@ def test_taylor1(n, h):
 def test_taylor2(n, h):
     logger.info("Testing 2nd-order Taylor expansion with y=x")
     prob = Square(n)
+    inter = Linear()
+    inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
     taylor2 = Taylor2()
-    taylor2.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
+    taylor2.update(prob.x0, inter.y, prob.g(prob.x0), prob.dg(prob.x0), inter.dxdy, ddf=prob.ddg(prob.x0), ddxddy=inter.ddxddy)
 
     # Check validity of Taylor2 expansion at expansion point X^(k)
     assert taylor2.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
@@ -66,7 +70,7 @@ def test_taylor1_intervening(n, h):
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
     dfdy = prob.dg(prob.x0) * inter.dxdy(prob.x0)
     taylor1 = Taylor1()
-    taylor1.update(inter.y(prob.x0).T, prob.g(prob.x0), dfdy)
+    taylor1.update(prob.x0, inter.y, prob.g(prob.x0), prob.dg(prob.x0), inter.dxdy)
 
     # Check validity of Taylor expansion at expansion point X^(k)
     assert taylor1.g(inter.y(prob.x0).T) == pytest.approx(prob.g(prob.x0), rel=1e-4)
@@ -90,7 +94,7 @@ def test_taylor2_intervening(n, h):
     dfdy = prob.dg(prob.x0) * inter.dxdy(prob.x0)
     ddfddy = prob.ddg(prob.x0) * (inter.dxdy(prob.x0)) ** 2 + prob.dg(prob.x0) * (inter.ddxddy(prob.x0))
     taylor2 = Taylor2(force_convex=False)
-    taylor2.update(inter.y(prob.x0).T, prob.g(prob.x0), dfdy, ddfddy)
+    taylor2.update(prob.x0, inter.y, prob.g(prob.x0), prob.dg(prob.x0), inter.dxdy, ddf=prob.ddg(prob.x0), ddxddy=inter.ddxddy)
 
     # Check validity of Taylor expansion at expansion point X^(k)
     assert taylor2.g(inter.y(prob.x0).T) == pytest.approx(prob.g(prob.x0), rel=1e-4)
