@@ -7,8 +7,7 @@ from sao.intervening_vars.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.util.plotter import Plot
-from sao.util.plotter2 import Plot2
+from sao.util.plotter import Plot, Plot2
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ def test_poly():
     prob = Li2015Fig4()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=NonSphericalTaylor2(force_convex=False),
+    subprob = Subproblem(intervening=ConLin(), approximation=SphericalTaylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -41,7 +40,7 @@ def test_poly():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate plotter
-    # plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
     plotter2 = Plot2(prob)
 
     # Optimization loop
@@ -55,7 +54,7 @@ def test_poly():
         # Print & plot g_j and x_i at current iteration
         logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}'.format(
             itte, np.array2string(x_k[:]), f[0], f[1], f[2]))
-        # plotter.plot([f[0], f[1]])
+        plotter.plot([f[0], f[1], f[2]])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)

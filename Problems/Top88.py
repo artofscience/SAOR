@@ -181,9 +181,10 @@ class Top88(Problem):
             vis = [fig, ax, im]
             return vis
         else:
-            im = vis[2]
             fig = vis[0]
+            ax = vis[1]
+            im = vis[2]
             im.set_array(-xPhys.reshape((self.nelx, self.nely)).T)
-            plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            ax.set_title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
             fig.canvas.draw()
             return vis

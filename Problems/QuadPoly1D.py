@@ -2,13 +2,13 @@
 import numpy as np
 
 
-class Xquadpoly1D:
+class QuadPoly1D:
     def __init__(self):
         self.n = 1
         self.m = 1
         self.xmin = np.array([1.5])
         self.xmax = np.array([12.])
-        self.x0  = np.array([6.9])
+        self.x0  = np.array([11.])      # 6.9 or 11.5
 
     def g(self, x):
         g_j = np.empty(self.m + 1)

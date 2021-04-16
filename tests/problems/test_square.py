@@ -10,8 +10,7 @@ from sao.solvers.interior_point_x import InteriorPointX as ipx
 from sao.solvers.interior_point_xy import InteriorPointXY as ipxy
 from sao.solvers.interior_point_xyz import InteriorPointXYZ as ipxyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.util.plotter import Plot
-from sao.util.plotter2 import Plot2
+from sao.util.plotter import Plot, Plot2
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

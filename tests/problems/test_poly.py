@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import logging
-from Problems.X_quadpoly_1D import Xquadpoly1D
+from Problems.QuadPoly1D import QuadPoly1D
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_vars.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
@@ -10,8 +10,7 @@ from sao.solvers.interior_point_x import InteriorPointX as ipx
 from sao.solvers.interior_point_xy import InteriorPointXY as ipxy
 from sao.solvers.interior_point_xyz import InteriorPointXYZ as ipxyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.util.plotter import Plot
-from sao.util.plotter2 import Plot2
+from sao.util.plotter import Plot, Plot2
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -30,10 +29,10 @@ def test_poly():
     logger.info("Solving test_square using Ipopt Svanberg")
 
     # Instantiate problem
-    prob = Xquadpoly1D()
+    prob = QuadPoly1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=SphericalTaylor2(force_convex=False),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -44,7 +43,7 @@ def test_poly():
     solver = SvanbergIP(prob.n, 1)
 
     # Instantiate plotter
-    # plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective'], path=".")
     plotter2 = Plot2(prob)
 
     # Optimization loop
@@ -57,7 +56,7 @@ def test_poly():
 
         # Print & plot g_j and x_i at current iteration
         logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}'.format(itte, np.array2string(x_k[0]), f[0]))
-        # plotter.plot([f[0], f[1]])
+        plotter.plot([f[0]])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -75,5 +74,3 @@ def test_poly():
 
 if __name__ == "__main__":
     test_poly()
-
-
