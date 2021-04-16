@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
+from sao.intervening_vars.intervening import Linear, Reciprocal, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -30,7 +30,7 @@ def test_square_Svanberg(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design

@@ -48,8 +48,8 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective'], path=".")
-    plotter2 = Plot2(prob)
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 50))
 
     # Optimization loop
     while itte < 100:
@@ -203,7 +203,7 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    # test_compliance(nelx=100, nely=50,volfrac=0.3)
+    test_compliance(nelx=20, nely=10, volfrac=0.3)
     test_stress(nelx=200, nely=50, max_stress=1)
-    # test_mechanism(nelx=200,nely=100,kin=0.0005,kout=0.0005,volfrac=0.3)
+    test_mechanism(nelx=200, nely=100, kin=0.0005, kout=0.0005, volfrac=0.3)
     test_eigenvalue()
