@@ -5,10 +5,11 @@ from Problems.topology_optimization_benchmark.stress import Stress
 from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
 from sao.approximations.taylor import Taylor1
-from sao.approximations.intervening import MMA
+from sao.intervening_vars.intervening import MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
+from sao.util.plotter import Plot, Plot2
 # from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
@@ -46,6 +47,10 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     vis = None
     solves = 0
 
+    # Instantiate plotter
+    plotter = Plot(['objective'], path=".")
+    plotter2 = Plot2(prob)
+
     # Optimization loop
     while itte < 100:
 
@@ -57,9 +62,13 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         vis = prob.visualize(x_k, itte, vis)
         logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
+
+        # Plot current approximation
+        plotter2.plot_approx(x_k, f, prob, subprob)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
