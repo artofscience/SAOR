@@ -58,11 +58,11 @@ class Reciprocal(Intervening):
 
     # Define chain rule term: y = T_inv(x) --> x = T(y) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
-        return - x**2
+        return - x ** 2
 
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(y) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
-        return 2 * x**3
+        return 2 * x ** 3
 
 
 class ConLin(Intervening):

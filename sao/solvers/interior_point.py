@@ -20,8 +20,8 @@ class InteriorPoint(PrimalDual, ABC):
     def __init__(self, problem, **kwargs):
         super().__init__(problem, **kwargs)
 
-        self.epsimin = kwargs.get('epsimin', 1e-4)
-        self.iteramax = kwargs.get('iteramax', 50)
+        self.epsimin = kwargs.get('epsimin', 1e-6)
+        self.iteramax = kwargs.get('iteramax', 20)
         self.iterinmax = kwargs.get('iterinmax', 20)
         self.alphab = kwargs.get('alphab', -1.01)
         self.epsifac = kwargs.get('epsifac', 0.9)
@@ -55,34 +55,30 @@ class InteriorPoint(PrimalDual, ABC):
         ...
 
     def get_step_size(self):
-        temp = [self.alphab * self.dw[1:][i] / a for i, a in enumerate(self.w[1:])]
-        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
-        temp.append(-self.alphab * self.dw[0] / (self.beta - self.w[0]))
+        temp = [self.alphab * self.dw[1:][i] / a for i, a in enumerate(self.w[1:])]         # stepxx
+        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))                    # stepalpha
+        temp.append(-self.alphab * self.dw[0] / (self.beta - self.w[0]))                    # stepbeta
         temp.append(np.array([1]))
-        self.step = 1 / np.max(([np.max(i) for i in temp]))
+        self.step = 1.0 / np.maximum.reduce(np.hstack(temp))
 
     def update(self):
 
         # iterate until convergence
+        self.itera = 0
         while self.epsi > self.epsimin:
             self.iter += 1
-            print("iter: %2d" % self.iter, ", ",
-                  "solves: %2d" % self.iterin, ", ",
-                  "obj: %.2e" % self.g(self.w[0])[0], ", ",
-                  "x:", ["{:+.2f}".format(i) for i in self.w[0][1:3]], ", ",
-                  "lam:", ["{:+.2f}".format(i) for i in self.w[3]], ", ",
-                  "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
 
             # Calculate the initial residual, its norm and maximum value
             # This indicates how far we are from the global optimum for THIS epsi
             self.get_residual()
-            rnorm = np.linalg.norm([np.linalg.norm(i) for i in self.r])
-            rmax = np.max([np.max(np.abs(i)) for i in self.r])
+            rnorm = np.linalg.norm(np.hstack(self.r))
+            rmax = np.max(np.abs(np.hstack(self.r)))
 
-            self.iterin = 0
-            while rmax > self.epsifac*self.epsi and self.iterin < self.iterinmax:
+            ittt = 0
+            while rmax > self.epsifac * self.epsi and ittt < self.iterinmax:
+                ittt = ittt + 1
+                self.itera += 1
                 self.iterin += 1
-                self.iterout += 1
 
                 """
                 Get the Newton direction
@@ -96,29 +92,35 @@ class InteriorPoint(PrimalDual, ABC):
                     self.wold[count] = value
 
                 # Initialize the counter for the line search
-                self.itera = 0
-                rnew = 2*rnorm
+                rnew = 2 * rnorm
 
                 # Line search in the Newton direction dw
-                while rnew > rnorm and self.itera < self.iteramax:
-                    self.itera += 1
+                itto = 0
+                while rnew > rnorm and itto < self.iteramax:
+                    itto = itto + 1
 
                     # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
                     for count, value in enumerate(self.dw):
                         self.w[count] = self.wold[count] + self.step * value
 
                     self.get_residual()
-                    rnew = np.linalg.norm([np.linalg.norm(i) for i in self.r])
+                    rnew = np.linalg.norm(np.hstack(self.r))
                     self.step *= 0.5
 
                 rnorm = 1.0 * rnew
-                rmax = np.max([np.max(np.abs(i)) for i in self.r])
+                rmax = np.max(np.abs(np.hstack(self.r)))
                 self.step *= 2
 
             self.epsi *= self.epsired
 
-        return self.w[0]
+            # print("iter: %2d" % self.iter, ", ",
+            #       "solves: %2d" % itera, ", ",
+            #       "obj: %.2e" % self.g(self.w[0])[0], ", ",
+            #       "x:", ["{:+.2f}".format(i) for i in self.w[0][1:3]], ", ",
+            #       "lam:", ["{:+.2f}".format(i) for i in self.w[3]], ", ",
+            #       "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
 
+        return self.w[0]
 
 """
 This is a primal-dual interior-point approach (without artificial variables)
@@ -210,10 +212,10 @@ class InteriorPointX(InteriorPoint):
         Note however that a < x < b must hold. For variables where this does not hold one should use
         w.x = (a + b)/2
         """
-        #FIXME: implement correct initialization
+        # FIXME: implement correct initialization
         self.w = [self.x0,  # x
-                  np.maximum(1/(self.x0 - self.alpha), 1),  # xsi
-                  np.maximum(1/(self.beta - self.x0), 1),  # eta
+                  np.maximum(1 / (self.x0 - self.alpha), 1),  # xsi
+                  np.maximum(1 / (self.beta - self.x0), 1),  # eta
                   np.ones(self.m),  # lam
                   np.ones(self.m)]  # s
 
@@ -229,8 +231,8 @@ class InteriorPointX(InteriorPoint):
         r(lam)      = gi[x] - ri + si
         r(s)        = lam * si - e
         """
-
-        self.r[0] = self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]) - self.w[1] + self.w[2]
+        dg = self.dg(self.w[0])
+        self.r[0] = dg[0] + self.w[3].dot(dg[1:]) - self.w[1] + self.w[2]
         self.r[1] = self.w[1] * (self.w[0] - self.alpha) - self.epsi
         self.r[2] = self.w[2] * (self.beta - self.w[0]) - self.epsi
         self.r[3] = self.g(self.w[0])[1:] + self.w[4]
@@ -246,35 +248,33 @@ class InteriorPointX(InteriorPoint):
 
         # delta_lambda
         delta_lambda = g[1:] + self.epsi / self.w[3]
-        delta_x = dg[0] + self.w[3].dot(dg[1:]) - self.epsi/a + self.epsi/b
+        delta_x = dg[0] + self.w[3].dot(dg[1:]) - self.epsi / a + self.epsi / b
 
-        diag_lambda = self.w[4]/self.w[3]  # s./lam
-        diag_x = ddg[0] + self.w[3].dot(ddg[1:]) + self.w[1]/a + self.w[2]/b
+        diag_lambda = self.w[4] / self.w[3]  # s./lam
+        diag_x = ddg[0] + self.w[3].dot(ddg[1:]) + self.w[1] / a + self.w[2] / b
 
-        # # FIXME: implement dense solvers and CG
-        # if self.m > self.n:
-        #     dldl = delta_lambda/diag_lambda
-        #     B = -delta_x - dldl.dot(dg[1:])
-        #     A = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambda) * dg[1:])
-        #
-        #     # solve for dx
-        #     self.dw[0][:] = np.linalg.solve(A, B)  # n x n
-        #     self.dw[3][:] = dg[1:].dot(self.dw[0])/diag_lambda + dldl  # calculate dlam[dx]
-        #
-        # else:
-        dxdx = delta_x/diag_x
-        B = delta_lambda - dxdx.dot(dg[1:].transpose())
-        A = diags(diag_lambda) + dg[1:].dot(diags(1/diag_x) * dg[1:].transpose())  # calculate dx[lam]
+        if self.m > self.n:
+            dldl = delta_lambda/diag_lambda
+            B = -delta_x - dldl.dot(dg[1:])
+            A = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambda) * dg[1:])
 
-        # solve for dlam
-        self.dw[3] = np.linalg.solve(A, B)  # m x m
-        self.dw[0] = -dxdx - (self.dw[3].dot(dg[1:]))/diag_x
+            # solve for dx
+            self.dw[0][:] = np.linalg.solve(A, B)  # n x n
+            self.dw[3][:] = dg[1:].dot(self.dw[0])/diag_lambda + dldl  # calculate dlam[dx]
+
+        else:
+            dxdx = delta_x / diag_x
+            B = delta_lambda - dxdx.dot(dg[1:].transpose())
+            A = diags(diag_lambda) + np.einsum("ki,i,ji->kj", dg[1:], 1/diag_x, dg[1:])
+
+            # solve for dlam
+            self.dw[3] = np.linalg.solve(A, B)  # m x m
+            self.dw[0] = -dxdx - (self.dw[3].dot(dg[1:])) / diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
-        self.dw[1] = -self.w[1] + self.epsi/a - (self.w[1] * self.dw[0])/a
-        self.dw[2] = -self.w[2] + self.epsi/b + (self.w[2] * self.dw[0])/b
-        self.dw[4] = -self.w[4] + self.epsi/self.w[3] - (self.w[4] * self.dw[3])/self.w[3]
-
+        self.dw[1] = -self.w[1] + self.epsi / a - (self.w[1] * self.dw[0]) / a
+        self.dw[2] = -self.w[2] + self.epsi / b + (self.w[2] * self.dw[0]) / b
+        self.dw[4] = -self.w[4] + self.epsi / self.w[3] - (self.w[4] * self.dw[3]) / self.w[3]
 
 """
 This is an addition to pdip, which extends problem P
@@ -377,12 +377,13 @@ Here dxsi, deta and ds can be eliminated without severe computational effort.
 
 Subsequently we are left with a reduced system in terms of dx and dlam
 """
-class InteriorPointXY(InteriorPointX):
 
+
+class InteriorPointXY(InteriorPointX):
     def __init__(self, problem, **kwargs):
         super().__init__(problem, **kwargs)
 
-        self.c = kwargs.get('c', 1000*np.ones(self.m))
+        self.c = kwargs.get('c', 1000 * np.ones(self.m))
 
         """
         Svanberg's implementation uses w.x = (a + b)/2.
@@ -391,16 +392,15 @@ class InteriorPointXY(InteriorPointX):
         Note however that a < x < b must hold. For variables where this does not hold one should use
         w.x = (a + b)/2
         """
-        #FIXME: implement correct initialization
-        self.w.append(np.ones(self.m)) # y
-        self.w.append(np.maximum(self.c/2, 1)) # mu
+        # FIXME: implement correct initialization
+        self.w.append(np.ones(self.m))  # y
+        self.w.append(np.maximum(self.c / 2, 1))  # mu
 
         self.r = deepcopy(self.w)
         self.dw = deepcopy(self.w)
         self.wold = deepcopy(self.w)
 
     def get_residual(self):
-
         """
         r(x)        = psi / dx - xsi + eta = dg/dx[x] obj + lam' * dg/dx[x] constraints - xsi + eta
         r(xsi)      = xsi * (x - a) - e
@@ -412,9 +412,9 @@ class InteriorPointXY(InteriorPointX):
         r(mu)       = mu*y - e
         """
         super().get_residual()
-        self.r[3] -= self.w[5] #relam
-        self.r[5] = self.c - self.w[6] - self.w[3]  #rey
-        self.r[6] = self.w[6] * self.w[5] - self.epsi  #remu
+        self.r[3] -= self.w[5]  # relam
+        self.r[5] = self.c - self.w[6] - self.w[3]  # rey
+        self.r[6] = self.w[6] * self.w[5] - self.epsi  # remu
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -426,15 +426,15 @@ class InteriorPointXY(InteriorPointX):
 
         # delta_lambda
         delta_lambda = g[1:] - self.w[5] + self.epsi / self.w[3]
-        delta_x = dg[0] + self.w[3].dot(dg[1:]) - self.epsi/a + self.epsi/b
-        delta_y = self.c - self.w[3] - self.epsi/self.w[5]
+        delta_x = dg[0] + self.w[3].dot(dg[1:]) - self.epsi / a + self.epsi / b
+        delta_y = self.c - self.w[3] - self.epsi / self.w[5]
 
-        diag_lambda = self.w[4]/self.w[3]  # s./lam
-        diag_x = ddg[0] + self.w[3].dot(ddg[1:]) + self.w[1]/a + self.w[2]/b
-        diag_y = self.w[6]/self.w[5]
+        diag_lambda = self.w[4] / self.w[3]  # s./lam
+        diag_x = ddg[0] + self.w[3].dot(ddg[1:]) + self.w[1] / a + self.w[2] / b
+        diag_y = self.w[6] / self.w[5]
 
-        diag_lambday = diag_lambda + 1/diag_y
-        delta_lambday = delta_lambda + delta_y/diag_y
+        diag_lambday = diag_lambda + 1 / diag_y
+        delta_lambday = delta_lambda + delta_y / diag_y
 
         # #FIXME: the m > n needs to be checked
         # if self.m > self.n:
@@ -452,23 +452,20 @@ class InteriorPointXY(InteriorPointX):
         #     self.dw[3][:] = (delta_lambday + self.dw[0].dot(dg[1:]) + self.dw[7]*self.a)/diag_lambday
         #
         # else:
-        dxdx = delta_x/diag_x
+        dxdx = delta_x / diag_x
         Blam = delta_lambday - dxdx.dot(dg[1:].transpose())
-        Alam = diags(diag_lambday) + dg[1:].dot(diags(1/diag_x) * dg[1:].transpose())  # calculate dx[lam]
+        Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1/diag_x, dg[1:])  # calculate dx[lam]
 
         # solve for dlam
-        self.dw[3] = np.linalg.solve(Alam, Blam)
-        self.dw[0] = -dxdx - (self.dw[3].dot(dg[1:]))/diag_x
+        self.dw[3][:] = np.linalg.solve(Alam, Blam)
+        self.dw[0] = -dxdx - (self.dw[3].dot(dg[1:])) / diag_x
 
         # get dxsi[dx], deta[dx] and ds[dlam]
-        self.dw[1] = -self.w[1] + self.epsi/a - (self.w[1] * self.dw[0])/a
-        self.dw[2] = -self.w[2] + self.epsi/b + (self.w[2] * self.dw[0])/b
-        self.dw[4] = -self.w[4] + self.epsi/self.w[3] - (self.w[4] * self.dw[3])/self.w[3]
-        self.dw[5] = (self.dw[3] - delta_y)/diag_y
-        self.dw[6] = -self.w[6] + self.epsi/self.w[5] - (self.w[6] * self.dw[5])/self.w[5]
-        # print(self.dw[1])
-        # print("y:", self.w[5], "z:", self.w[7])
-
+        self.dw[1] = -self.w[1] + self.epsi / a - (self.w[1] * self.dw[0]) / a
+        self.dw[2] = -self.w[2] + self.epsi / b + (self.w[2] * self.dw[0]) / b
+        self.dw[4] = -self.w[4] + self.epsi / self.w[3] - (self.w[4] * self.dw[3]) / self.w[3]
+        self.dw[5] = (self.dw[3] - delta_y) / diag_y
+        self.dw[6] = -self.w[6] + self.epsi / self.w[5] - (self.w[6] * self.dw[5]) / self.w[5]
 
 """
 This is an addition to pdip, which extends problem P
@@ -597,7 +594,7 @@ class InteriorPointXYZ(InteriorPointXY):
         super().__init__(problem, **kwargs)
 
         # self.c = kwargs.get('c', 1000 * np.ones(self.m))
-        self.a0 = kwargs.get('a0', 1)
+        self.a0 = kwargs.get('a0', 1.)
         self.d = kwargs.get('d', np.zeros(self.m))
         self.a = kwargs.get('a', np.zeros(self.m))
 
@@ -629,8 +626,8 @@ class InteriorPointXYZ(InteriorPointXY):
         r(z)        = a0 - zeta - lam.a
         r(zeta)     = z*zeta - e
         """
-
-        self.r[3] -= self.w[7] * self.a # relam
+        super().get_residual()
+        self.r[3] -= self.w[7] * self.a  # relam
         self.r[5] += self.d * self.w[5]  # rey
         self.r[7] = self.a0 - self.w[8] - self.w[3].dot(self.a)  # rez
         self.r[8] = self.w[7] * self.w[8] - self.epsi  # rezet
@@ -665,11 +662,11 @@ class InteriorPointXYZ(InteriorPointXY):
             az = self.w[8] / self.w[7] + - (self.a / diag_lambday).dot(self.a)
 
             # solve for dx
-            X = np.linalg.solve(np.block([[Ax, ax], [ax.transpose(), az]]),
-                                np.block([[Bx], [-delta_z + - (delta_lambday / diag_lambday).dot(self.a)]]))  # n x n
-            self.dw[0][:] = X[:-1]
-            self.dw[7][:] = X[-1]
-            self.dw[3][:] = (delta_lambday + self.dw[0].dot(dg[1:]) + self.dw[7] * self.a) / diag_lambday
+            X = np.linalg.solve(np.block([[Ax, ax[np.newaxis, :].transpose()], [ax[np.newaxis,:], az]]),
+                                np.block([[Bx[:,np.newaxis]], [-delta_z - (delta_lambday / diag_lambday).dot(self.a)]])).flatten() # n x n
+            self.dw[0] = X[:-1]
+            self.dw[7] = X[-1]
+            self.dw[3] = (delta_lambday + dg[1:].dot(self.dw[0]) + self.dw[7] * self.a) / diag_lambday
 
         else:
             dxdx = delta_x / diag_x
@@ -689,6 +686,3 @@ class InteriorPointXYZ(InteriorPointXY):
         self.dw[5] = (self.dw[3] - delta_y) / diag_y
         self.dw[6] = -self.w[6] + self.epsi / self.w[5] - (self.w[6] * self.dw[5]) / self.w[5]
         self.dw[8] = -self.w[8] + self.epsi / self.w[7] - (self.w[8] * self.dw[7]) / self.w[7]
-        # print(self.dw[1])
-        # print("y:", self.w[5], "z:", self.w[7])
-

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
+
 class GBOpt(ABC):
     """
     Gradient-based optimizer.
