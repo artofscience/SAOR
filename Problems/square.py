@@ -19,11 +19,33 @@ class Square(Problem):
         self.n = n
         self.m = 1
 
+        # Allocated vector for the response and derivatives, subsequent
+        # interations can reuse the storage.
+        self._g = None
+        self._dg = None
+        self._ddg = None
+
     def g(self, x):
-        return np.array([np.dot(x, x), 1-np.sum(x)])
+        if self._g is None:
+            self._g = np.array([np.dot(x, x), 1-np.sum(x)])
+        else:
+            self._g[0] = np.dot(x, x)
+            self._g[1] = 1 - np.sum(x)
+        return self._g
 
     def dg(self, x):
-        return np.array([2*x, -np.ones_like(x)])
+        if self._dg is None:
+            self._dg = np.array([2*x, -np.ones_like(x)])
+        else:
+            self._dg[0] = 2*x
+            self._dg[1] = -1
+        return self._dg
 
     def ddg(self, x):
-        return np.array([2*np.ones_like(x), np.zeros_like(x)])
+        if self._ddg is None:
+            self._ddg = np.array([2*np.ones_like(x), np.zeros_like(x)])
+        else:
+            self._ddg[0] = 2
+            self._ddg[1] = 0
+        return self._ddg
+

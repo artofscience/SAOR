@@ -2,14 +2,15 @@ import pytest
 import numpy as np
 import logging
 from Problems.square import Square
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.approximations.intervening import Linear, ConLin, MMA
+from sao.approximations.taylor import Taylor1
+from sao.approximations.intervening import ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointX as ipx
 from sao.solvers.interior_point import InteriorPointXY as ipxy
 from sao.solvers.interior_point import InteriorPointXYZ as ipxyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -23,8 +24,6 @@ logger.addHandler(stream_handler)
 
 np.set_printoptions(precision=4)
 
-
-@pytest.mark.parametrize('n', [10])
 def test_square_Svanberg(n):
     logger.info("Solving test_square using Ipopt Svanberg")
 
@@ -139,7 +138,6 @@ def test_square_ipxy(n):
     logger.info('Alles goed!')
 
 
-@pytest.mark.parametrize('n', [10])
 def test_square_ipxyz(n):
     logger.info("Solving test_square using Ipopt xyz")
 
