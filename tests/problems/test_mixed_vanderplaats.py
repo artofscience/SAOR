@@ -4,7 +4,7 @@ import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1
 from sao.intervening_vars.intervening import Linear, ConLin, ReciSquared, ReciCubed
-from sao.move_limits.ml_intervening import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP

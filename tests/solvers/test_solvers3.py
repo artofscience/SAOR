@@ -4,7 +4,7 @@ import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_vars.intervening import Linear, Reciprocal, ConLin, MMA
-from sao.move_limits.ml_intervening import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointXYZ as ipxyz
 

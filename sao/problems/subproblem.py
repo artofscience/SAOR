@@ -1,7 +1,7 @@
 from sao.problems.problem import Problem
 from sao.intervening_vars.intervening import Linear
 from sao.approximations.taylor import Taylor1
-from sao.move_limits.ml_intervening import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimitIntervening
 
 
 class Subproblem(Problem):

@@ -4,7 +4,7 @@ import logging
 from Problems.square import Square
 from sao.approximations.taylor import Taylor1
 from sao.intervening_vars.intervening import PolyFit
-from sao.move_limits.ml_intervening import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP

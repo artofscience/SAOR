@@ -6,7 +6,7 @@ from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
 from sao.approximations.taylor import Taylor1
 from sao.intervening_vars.intervening import Linear, ConLin, MMA
-from sao.move_limits.ml_intervening import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimit1
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.util.plotter import Plot, Plot2
@@ -189,7 +189,7 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -200,7 +200,7 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
+    # plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
     plotter2_flag = False
 
     # Optimization loop
@@ -220,8 +220,8 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob)
+        # if plotter2_flag:
+        #     plotter2.plot_approx(x_k, f, prob, subprob)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -237,4 +237,4 @@ if __name__ == "__main__":
     # test_compliance(nelx=100, nely=50, volfrac=0.3)
     # test_stress(nelx=50, nely=20, max_stress=1)
     # test_mechanism(nelx=50, nely=20, kin=0.0005, kout=0.0005, volfrac=0.3)
-    test_eigenvalue(nelx=50, nely=20, volfrac=0.6, penal=3, rmin=3)
+    test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3)
