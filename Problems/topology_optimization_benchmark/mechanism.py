@@ -74,6 +74,7 @@ class Mechanism(MBBBeam):
 
         return dg_j
 
+
 if __name__ == "__main__":
     prob = Mechanism(20, 10, 0.3, 3, 2)
     x = np.random.rand(prob.n)*1.0

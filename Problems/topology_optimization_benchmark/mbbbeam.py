@@ -12,7 +12,6 @@ from sao.problems.problem import Problem
 from abc import ABC
 
 
-## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
 class MBBBeam(Problem, ABC):
 
     u: np.array = NotImplemented
@@ -193,9 +192,10 @@ class MBBBeam(Problem, ABC):
             vis = [fig, ax, im]
             return vis
         else:
-            im = vis[2]
             fig = vis[0]
+            ax = vis[1]
+            im = vis[2]
             im.set_array(x_k.reshape((self.nelx, self.nely)).T)
-            plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            ax.set_title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
             fig.canvas.draw()
             return vis

@@ -5,7 +5,7 @@ from Problems.topology_optimization_benchmark.stress import Stress
 from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
 from sao.approximations.taylor import Taylor1
-from sao.intervening_vars.intervening import MMA
+from sao.intervening_vars.intervening import Linear, ConLin, MMA
 from sao.move_limits.ml_intervening import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
@@ -49,7 +49,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 50))
+    # plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 1000))
 
     # Optimization loop
     while itte < 100:
@@ -68,7 +68,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        plotter2.plot_approx(x_k, f, prob, subprob)
+        # plotter2.plot_approx(x_k, f, prob, subprob)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -81,6 +81,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
+
     # Instantiate problem
     prob = Stress(nelx, nely, volfrac, penal, rmin, max_stress=max_stress)
     assert prob.n == nelx * nely
@@ -95,6 +96,11 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
     vis = None
     solves = 0
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
+    plotter2_flag = True
+
     # Optimization loop
     while itte < 1000:
 
@@ -106,9 +112,14 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
         vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
         logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
+
+        # Plot current approximation
+        if plotter2_flag:
+            plotter2.plot_approx(x_k, f, prob, subprob)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -120,7 +131,7 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
     print(solves)
 
 
-def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3,kin=0.01, kout=0.01):
+def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, kout=0.01):
 
     # Instantiate problem
     prob = Mechanism(nelx, nely, volfrac, penal, rmin, kin=kin, kout=kout)
@@ -136,6 +147,11 @@ def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3,kin=0.01, kou
     vis = None
     solves = 0
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
+    plotter2_flag = True
+
     # Optimization loop
     while itte < 100:
 
@@ -147,9 +163,14 @@ def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3,kin=0.01, kou
         vis = prob.visualize(x_k, itte, vis)
         logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
+
+        # Plot current approximation
+        if plotter2_flag:
+            plotter2.plot_approx(x_k, f, prob, subprob)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -168,7 +189,7 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -176,6 +197,11 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
     x_k = prob.x0.copy()
     vis = None
     solves = 0
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
+    plotter2_flag = False
 
     # Optimization loop
     while itte < 100:
@@ -188,9 +214,14 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
         vis = prob.visualize(x_k, itte, vis)
         logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
+
+        # Plot current approximation
+        if plotter2_flag:
+            plotter2.plot_approx(x_k, f, prob, subprob)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -203,7 +234,7 @@ def test_eigenvalue(nelx=200, nely=50, volfrac=0.6, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    test_compliance(nelx=20, nely=10, volfrac=0.3)
-    test_stress(nelx=200, nely=50, max_stress=1)
-    test_mechanism(nelx=200, nely=100, kin=0.0005, kout=0.0005, volfrac=0.3)
-    test_eigenvalue()
+    # test_compliance(nelx=100, nely=50, volfrac=0.3)
+    # test_stress(nelx=50, nely=20, max_stress=1)
+    # test_mechanism(nelx=50, nely=20, kin=0.0005, kout=0.0005, volfrac=0.3)
+    test_eigenvalue(nelx=50, nely=20, volfrac=0.6, penal=3, rmin=3)
