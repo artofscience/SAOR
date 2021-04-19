@@ -61,7 +61,7 @@ class Plot2:
                 self.fig_idx[j, i] = plt.gcf().number
 
     # This function plots all g_j - x_i, for j = 0, 1, ..., m & i = 0, 1, ..., n-1
-    def plot_approx(self, x_k, f, prob, subprob):
+    def plot_approx(self, x_k, f, prob, subprob, itte):
 
         # Initialize plotting arrays for g_j(x_curr) and g_j_tilde(x_curr)
         prob_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
@@ -104,11 +104,11 @@ class Plot2:
                 if self.iter % 2 == 1:
                     exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'b',
                                           label='$g_{}$'.format({j}) + '$^{(}$' +
-                                                '$^{}$'.format({self.iter}) + '$^{)}$')
+                                                '$^{}$'.format({itte}) + '$^{)}$')
                 else:
                     exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'r',
                                           label='$g_{}$'.format({j}) + '$^{(}$' +
-                                                '$^{}$'.format({self.iter}) + '$^{)}$')
+                                                '$^{}$'.format({itte}) + '$^{)}$')
 
                 # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
                 if subprob.inter.__class__.__name__ == 'MMA':
@@ -124,19 +124,19 @@ class Plot2:
                 if self.iter % 2 == 1:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'b--',
                                             label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
-                                                  '$^{}$'.format({self.iter}) + '$^{)}$')
+                                                  '$^{}$'.format({itte}) + '$^{)}$')
                     exp_point = plt.plot(x_k[i], f[j],
                                          label='$X_{}$'.format({i + 1}) +
-                                               '$^{(}$' + '$^{}$'.format({self.iter}) + '$^{)}$' +
+                                               '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='o', markersize=9)
                 else:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'r--',
                                             label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
-                                                  '$^{}$'.format({self.iter}) + '$^{)}$')
+                                                  '$^{}$'.format({itte}) + '$^{)}$')
                     exp_point = plt.plot(x_k[i], f[j],
                                          label='$X_{}$'.format({i + 1}) +
-                                               '$^{(}$' + '$^{}$'.format({self.iter}) + '$^{)}$' +
+                                               '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='s', markersize=9)
 
@@ -153,7 +153,7 @@ class Plot2:
                 ax.set(xlabel='$x_{}$'.format({i + 1}), ylabel='$g_{}$'.format({j}),
                        xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
                        ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)),
-                       title='%s: {},  $iter = {}$'.format(subprob.approx.__class__.__name__, self.iter) % prob.__class__.__name__)
+                       title='%s: {},  $iter = {}$'.format(subprob.approx.__class__.__name__, itte) % prob.__class__.__name__)
 
                 # FontSize for title, xlabel and ylabel set to 20
                 for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
