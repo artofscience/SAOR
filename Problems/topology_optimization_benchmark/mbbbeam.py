@@ -29,7 +29,7 @@ class MBBBeam(Problem, ABC):
         self.n = self.nely * self.nelx
         self.xmin = np.zeros(self.n, dtype=float)
         self.xmax = np.ones(self.n, dtype=float)
-        self.x0 = np.random.rand(self.n)
+        self.x0 = 0.5 * np.ones(self.n)     # np.random.rand(self.n)
         self.xold = self.xmin.copy()
         self.m = 1
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach

@@ -4,7 +4,7 @@ from Problems.topology_optimization_benchmark.compliance import Compliance
 from Problems.topology_optimization_benchmark.stress import Stress
 from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
-from sao.approximations.taylor import Taylor1
+from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_vars.intervening import Linear, ConLin, MMA
 from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimit1
 from sao.problems.subproblem import Subproblem
@@ -38,8 +38,10 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    # subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
+    #                      ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -55,7 +57,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
     # Optimization loop
-    while itte < 100:
+    while itte < 250:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -91,8 +93,10 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    # subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
+    #                      ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -143,8 +147,10 @@ def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, ko
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
+    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
+                         ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -159,7 +165,7 @@ def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, ko
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 100:
+    while itte < 250:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -195,8 +201,10 @@ def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=SphericalTaylor2(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    # subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
+    #                      ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -211,7 +219,7 @@ def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 50))
 
     # Optimization loop
-    while itte < 100:
+    while itte < 250:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -241,7 +249,7 @@ def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    test_compliance(nelx=100, nely=50, volfrac=0.3)                             # 50, 20
-    test_stress(nelx=100, nely=50, max_stress=1)                                 # 50, 20
+    # test_compliance(nelx=100, nely=50, volfrac=0.3)                              # 50, 20
+    # test_stress(nelx=100, nely=50, max_stress=1)                                 # 50, 20
     test_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)      # 50, 20
-    test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)             # 50, 20
+    # test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)             # 50, 20

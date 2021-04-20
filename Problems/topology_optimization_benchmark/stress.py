@@ -67,7 +67,7 @@ class Stress(MBBBeam):
             self.factor = sum(xPhys[:]) / self.n
             self.iter = True
 
-        g_j[0] = 100 * (sum(xPhys[:]) / self.n)/self.factor
+        g_j[0] = 100 * (sum(xPhys[:]) / self.n) / self.factor
         return g_j
 
     def dg(self, x_k):

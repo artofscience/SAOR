@@ -84,7 +84,7 @@ class NonSphericalTaylor2(Taylor2):
         self.x, self.xold1 = None, None
         self.f, self.fold1 = None, None
         self.dfold1, self.dxdy, self.yold1, self.idx = None, None, None, None
-        self.epsi = 1e-3
+        self.epsi = 1e-2
 
     def update(self, x, y, f, df, dxdy, **kwargs):
         self.xold1 = self.x
