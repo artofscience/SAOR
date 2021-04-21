@@ -93,10 +93,10 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    # subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
+    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
+    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
+                         ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -250,6 +250,6 @@ def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
 if __name__ == "__main__":
     # test_compliance(nelx=100, nely=50, volfrac=0.3)                              # 50, 20
-    # test_stress(nelx=100, nely=50, max_stress=1)                                 # 50, 20
-    test_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)      # 50, 20
+    test_stress(nelx=100, nely=50, max_stress=1)                                 # 50, 20
+    # test_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)      # 50, 20
     # test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)             # 50, 20

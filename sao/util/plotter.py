@@ -6,7 +6,16 @@ import pathlib
 
 
 class Plot:
+    """
+    This class is used to generate the real-time convergence plots of an optimization loop.
+    """
     def __init__(self, names, path=None, **kwargs):
+        """
+
+        :param names: A list of strings for the names of the responses you want to plot (i.e. objective, constr_1, etc.)
+        :param path: The path were you want these plots to be saved. If no path is given, the plots are not saved.
+        :param kwargs:
+        """
         self.names = names
         plt.ion()
         self.fig = []
@@ -27,6 +36,13 @@ class Plot:
         self.iter = 0
 
     def plot(self, y_values, **kwargs):
+        """
+        This function plots the convergence of whatever you give it as the optimization runs.
+
+        :param y_values: The response function values you want to plot.
+        :param kwargs:
+        :return:
+        """
         for idx, yi in enumerate(y_values):
             ax = self.fig[idx].gca()
             self.lines[idx].set_xdata(np.append(self.lines[idx].get_xdata(), np.ones_like(yi)*self.iter))
@@ -48,7 +64,20 @@ class Plot:
 
 
 class Plot2:
+    """
+    This class is used to generate the pair plots of specific {g_j - x_i}. On the same graph, exact plots of
+    {g_j - x_i} and approximate plots of {g_j_tilde - x_i} are shown in order to asses the quality of the generated
+    approximation. Since all approximations must be separable (for the solver to be efficient), the exact plots show
+    the best function approximation one can achieve with such (separable) analytical Taylor-like expansions. Also,
+    by studying such plots, one can get a better understanding as to what intervening variables would be beneficial.
+    """
     def __init__(self, prob, **kwargs):
+        """
+
+        :param prob: From the prob object you need to extract the bounds for the variables.
+        :param kwargs: From the kwargs you get which pairs of {g_j - x_i} you want to plot. If none are given, all
+                       possible combinations are plotted, that is n*(m+1) plots.
+        """
         self.iter = 0
         self.x = np.linspace(prob.xmin, prob.xmax, 50).T
         self.resp = kwargs.get('responses', np.arange(0, prob.m + 1))
@@ -60,8 +89,17 @@ class Plot2:
                 self.fig.append(plt.subplots(1, 1)[0])
                 self.fig_idx[j, i] = plt.gcf().number
 
-    # This function plots all g_j - x_i, for j = 0, 1, ..., m & i = 0, 1, ..., n-1
     def plot_approx(self, x_k, f, prob, subprob, itte):
+        """
+        This function plots (some of) the {g_j - x_i}, for j in responses & i in variables.
+
+        :param x_k: The current design.
+        :param f: The current response values.
+        :param prob: This object is used to evaluate the exact responses, i.e. prob.g.
+        :param subprob: This object is used to get several useful data for the plots, e.g. n, m, g, inter, etc.
+        :param itte: Current iteration number to show on the title of the plots.
+        :return:
+        """
 
         # Initialize plotting arrays for g_j(x_curr) and g_j_tilde(x_curr)
         prob_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
@@ -70,7 +108,7 @@ class Plot2:
         # For all design vars x_i
         for i in self.vars:
 
-            # Make x_curr = x_k so that all design vars remain ejual to x_k apart from the one you sweep
+            # Make x_curr = x_k so that all design vars remain equal to x_k apart from the one you sweep
             x_curr = x_k.copy()
 
             # Sweep design variable x_curr[i, 1], while keeping all others ejual to the approx.x_k

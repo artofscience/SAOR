@@ -24,8 +24,11 @@ class Taylor2(Taylor1):
         return super().ddg(y, dy, ddy) + (self.ddfddy*(y-self.y).T)*ddy + self.ddfddy*dy**2
 
 
-# Multi-point Spherical Taylor expansion of Eq. 16: https://link.springer.com/article/10.1007/s00158-006-0070-6
 class SphericalTaylor2(Taylor2):
+    """
+    This is the multi-point Spherical Taylor expansion of Eq. 16 in the following paper
+    https://link.springer.com/article/10.1007/s00158-006-0070-6 .
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.x, self.xold1 = None, None
@@ -77,8 +80,12 @@ class SphericalTaylor2(Taylor2):
         return np.broadcast_to(c_j, (self.y.shape[0], c_j.shape[0])).T
 
 
-# Multi-point NonSpherical Taylor expansion of Eq. 23: https://link.springer.com/article/10.1007/s00158-006-0070-6
+
 class NonSphericalTaylor2(Taylor2):
+    """
+    This is the multi-point NonSpherical Taylor expansion of Eq. 23 of the following paper
+    https://link.springer.com/article/10.1007/s00158-006-0070-6 .
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.x, self.xold1 = None, None
