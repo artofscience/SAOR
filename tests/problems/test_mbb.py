@@ -32,6 +32,7 @@ logger.addHandler(stream_handler)
 
 
 def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
+    logger.info("Solving compliance minimization subject to volume constraint")
 
     # Instantiate problem
     prob = Compliance(nelx, nely, volfrac, penal, rmin)
@@ -87,6 +88,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
+    logger.info("Solving volume minimization subject to aggregated stress constraint")
 
     # Instantiate problem
     prob = Stress(nelx, nely, volfrac, penal, rmin, max_stress=max_stress)
@@ -141,6 +143,7 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
 
 
 def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, kout=0.01):
+    logger.info("Solving displacement minimization subject to volume constraint")
 
     # Instantiate problem
     prob = Mechanism(nelx, nely, volfrac, penal, rmin, kin=kin, kout=kout)
@@ -195,6 +198,7 @@ def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, ko
 
 
 def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
+    logger.info("Solving eigenfrequency maximization subject to volume constraint")
 
     # Instantiate problem
     prob = Eigenvalue(nelx, nely, volfrac, penal, rmin)
@@ -249,7 +253,7 @@ def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    # test_compliance(nelx=100, nely=50, volfrac=0.3)                              # 50, 20
-    test_stress(nelx=100, nely=50, max_stress=1)                                 # 50, 20
-    # test_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)      # 50, 20
-    # test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)             # 50, 20
+    test_compliance(nelx=100, nely=50, volfrac=0.3)                              # use nelx=50, nely=20 for plotter2
+    # test_stress(nelx=100, nely=50, max_stress=1)                                 # use nelx=50, nely=20 for plotter2
+    # test_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)      # use nelx=50, nely=20 for plotter2
+    # test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)             # use nelx=50, nely=20 for plotter2

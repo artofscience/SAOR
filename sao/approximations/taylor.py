@@ -59,15 +59,17 @@ class SphericalTaylor2(Taylor2):
         assert self.dfdy.shape == (self.m + 1, self.n), msg
 
         # If iter > 0, approximate curvature by forcing the curve to pass through xold1
-        if self.xold1 is not None:
-            self.ddfddy = self.get_curvature()
-            msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
-                   f"Received: {self.ddfddy.shape}.")
-            assert self.ddfddy.shape == (self.m + 1, self.n), msg
-            if self.force_convex:
-                self.ddfddy = self.enforce_convexity(self.ddfddy.copy())
-        else:
+        if self.xold1 is None:
             self.ddfddy = np.zeros_like(self.dfdy)
+        else:
+            self.ddfddy = self.get_curvature()
+        msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
+               f"Received: {self.ddfddy.shape}.")
+        assert self.ddfddy.shape == (self.m + 1, self.n), msg
+
+        if self.force_convex:
+            self.enforce_convexity()
+
         return self
 
     # Calculate Eq. 16 for any intervening variable y(x)
@@ -120,8 +122,10 @@ class NonSphericalTaylor2(Taylor2):
                f'Received {self.dfdy.shape}.')
         assert self.dfdy.shape == (self.m + 1, self.n), msg
 
-        # Calculate curvature
-        if self.xold1 is not None:
+        # Calculate curvature: if iter > 0, approximate curvature by forcing the curve to satisfy dfold1
+        if self.xold1 is None:
+            self.ddfddy = np.zeros_like(self.dfdy)
+        else:
             # For numerical stability, only do finite differences when |y_i - yold1_i| > self.epsi
             diff = abs(self.yold1 - self.y)
             if len(self.y.shape) == 1:
@@ -132,16 +136,13 @@ class NonSphericalTaylor2(Taylor2):
             # Adjust the curvature @X^(k) by satisfying dg_j/dx_i @X^(k-1)
             self.ddfddy[:, self.idx] = self.get_curvature()
 
-            # Check ddfddy for its dimensions
-            msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
-                   f"Received: {self.ddfddy.shape}.")
-            assert self.ddfddy.shape == (self.m + 1, self.n), msg
+        msg = (f"Expected ddf size: {self.m + 1}x{self.n}: "
+               f"Received: {self.ddfddy.shape}.")
+        assert self.ddfddy.shape == (self.m + 1, self.n), msg
 
-            # Enforce convexity of responses
-            if self.force_convex:
-                self.ddfddy = self.enforce_convexity(self.ddfddy.copy())
-        else:
-            self.ddfddy = np.zeros_like(self.dfdy)
+        if self.force_convex:
+            self.enforce_convexity()
+
         return self
 
     # Calculate Eq. 23 for any intervening variable y(x)

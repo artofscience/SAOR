@@ -29,7 +29,7 @@ def test_poly():
     prob = QuadPoly1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=Linear(), approximation=SphericalTaylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -40,8 +40,10 @@ def test_poly():
     solver = SvanbergIP(prob.n, 1)
 
     # Instantiate plotter
-    plotter = Plot(['objective'], path=".")
-    plotter2 = Plot2(prob)
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2_flag = True
+    if plotter2_flag:
+        plotter2 = Plot2(prob)
 
     # Optimization loop
     while itte < 50:
@@ -53,13 +55,14 @@ def test_poly():
 
         # Print & plot g_j and x_i at current iteration
         logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}'.format(itte, np.array2string(x_k[0]), f[0]))
-        plotter.plot([f[0]])
+        plotter.plot([f[0], f[1]])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
 
         # Plot current approximation
-        plotter2.plot_approx(x_k, f, prob, subprob)
+        if plotter2_flag:
+            plotter2.plot_approx(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)

@@ -4,8 +4,9 @@ import numpy as np
 
 class QuadPoly1D:
     """
-    This class is a single variable polynomial function that is used as a problem to validate multi-point Taylor-like
-    expansions. It has a convex and a concave part, as well as 2 local minima.
+    This class is a 1D problem with a polynomial objective function and a polynomial constraint that is used to validate
+    multi-point Taylor-like expansions. Both functions have a convex and a concave part. Moreover, the objective has 2
+    local minima.
     """
     def __init__(self):
         self.n = 1
