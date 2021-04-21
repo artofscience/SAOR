@@ -13,12 +13,14 @@ class Approximation(ABC):
         self.force_convex = kwargs.get('force_convex', True)
 
     def update(self, x, y, f, df, dxdy, **kwargs):
-        """ Puts in data from the original problem. Once per design iteration.
+        """
 
-        :param y:
-        :param f:
-        :param dfdy:
-        :param ddfddy:
+        :param x: Current design
+        :param y: A method that returns the intervening variables at the current design, i.e. y(x)
+        :param f: A vector of size [m+1] that holds the response values at the current design -x-
+        :param df: A matrix of size [m+1, n] that holds the sensitivity values at the current design -x-
+        :param dxdy: A method that returns the derivative of the inverse intervening variable function, i.e. dx/dy(y(x))
+        :param kwargs: Optionally get the 2nd-order sensitivity array
         :return:
         """
         self.y = y(x).T
