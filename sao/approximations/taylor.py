@@ -33,6 +33,7 @@ class SphericalTaylor2(Taylor2):
         super().__init__(**kwargs)
         self.x, self.xold1 = None, None
         self.f, self.fold1 = None, None
+        self.df, self.dfold1 = None, None
         self.dxdy, self.yold1 = None, None
 
     def update(self, x, y, f, df, dxdy, **kwargs):
@@ -40,6 +41,8 @@ class SphericalTaylor2(Taylor2):
         self.x = x
         self.fold1 = self.f
         self.f = f
+        self.dfold1 = self.df   # for NonSphericalTaylor2
+        self.df = df            # for NonSphericalTaylor2
         self.y = y(x).T
         self.dfdy = df * dxdy(x)
         self.dxdy = dxdy
@@ -92,7 +95,9 @@ class NonSphericalTaylor2(Taylor2):
         super().__init__(**kwargs)
         self.x, self.xold1 = None, None
         self.f, self.fold1 = None, None
-        self.dfold1, self.dxdy, self.yold1, self.idx = None, None, None, None
+        self.df, self.dfold1 = None, None
+        self.dxdy, self.yold1 = None, None
+        self.idx = None
         self.epsi = 1e-2
 
     def update(self, x, y, f, df, dxdy, **kwargs):
