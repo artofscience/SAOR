@@ -220,7 +220,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 50))
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(9, prob.n, 60))
 
     # Optimization loop
     while itte < 250:
