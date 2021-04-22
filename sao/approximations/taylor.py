@@ -26,23 +26,35 @@ class Taylor2(Taylor1):
 
 class SphericalTaylor2(Taylor2):
     """
-    This is the multi-point Spherical Taylor expansion of Eq. 16 in the following paper
+    This is the Spherical 2nd-order Taylor expansion of Eq. 16 of the following paper:
     https://link.springer.com/article/10.1007/s00158-006-0070-6 .
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.x, self.xold1 = None, None
-        self.f, self.fold1 = None, None
-        self.df, self.dfold1 = None, None
+        self.fold1 = None
+        self.dfold1 = None
         self.dxdy, self.yold1 = None, None
 
     def update(self, x, y, f, df, dxdy, **kwargs):
+        """
+        This method updates the approximation instance for multi-point (approximate) 2nd-order Taylor expansions.
+
+        :param x: Current design
+        :param y: A method that returns the intervening variables at the current design, i.e. y(x)
+        :param f: A vector of size [m+1] that holds the response values at the current design -x-
+        :param df: A matrix of size [m+1, n] that holds the sensitivity values at the current design -x-
+        :param dxdy: A method that returns the derivative of the inverse intervening variable function, i.e. dx/dy(y(x))
+        :param kwargs: Optionally get the 2nd-order sensitivity array
+        :return: self: For method cascading
+        """
+
         self.xold1 = self.x
         self.x = x
         self.fold1 = self.f
         self.f = f
-        self.dfold1 = self.df   # for NonSphericalTaylor2
-        self.df = df            # for NonSphericalTaylor2
+        self.dfold1 = self.df       # for NonSphericalTaylor2
+        self.df = df                # for NonSphericalTaylor2
         self.y = y(x).T
         self.dfdy = df * dxdy(x)
         self.dxdy = dxdy
@@ -57,105 +69,66 @@ class SphericalTaylor2(Taylor2):
         if ddf is not None:
             ddxddy = kwargs.get('ddxddy', None)
             self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
-        msg = (f'Expect sensitivity of size {self.m+1}x{self.n}: '
-               f'Received {self.dfdy.shape}.')
-        assert self.dfdy.shape == (self.m + 1, self.n), msg
 
-        # If iter > 0, approximate curvature by forcing the curve to pass through xold1
+        # If iter > 0, approximate curvature by using previous point information
         if self.xold1 is None:
             self.ddfddy = np.zeros_like(self.dfdy)
         else:
-            self.ddfddy[:] = self.get_curvature()
-        msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
-               f"Received: {self.ddfddy.shape}.")
-        assert self.ddfddy.shape == (self.m + 1, self.n), msg
+            self.set_curvature()
+
+        # Check size of dfdy and (optionally) ddfddy
+        self.check_sensitivity_sizes()
 
         if self.force_convex:
             self.enforce_convexity()
 
         return self
 
-    # Calculate Eq. 16 for any intervening variable y(x)
-    def get_curvature(self):
+    def set_curvature(self):
+        """
+        Approximate curvature by forcing the curve to pass through xold1, see Eq. 16.
+
+        :return: self: For method cascading
+        """
         if len(self.y.shape) == 1:
             dot_prod = np.dot(self.dfdy, (self.yold1 - self.y))
         else:
             dot_prod = np.einsum('ij,ji->i', self.dfdy, (self.yold1 - self.y))
         c_j = 2 * (self.fold1 - self.f - dot_prod) / sum((self.yold1 - self.y) ** 2)
-        return np.broadcast_to(c_j, (self.y.shape[0], c_j.shape[0])).T
+        self.ddfddy[:] = np.broadcast_to(c_j, (self.y.shape[0], c_j.shape[0])).T
+
+        return self
 
 
 
-class NonSphericalTaylor2(Taylor2):
+class NonSphericalTaylor2(SphericalTaylor2):
     """
-    This is the multi-point NonSpherical Taylor expansion of Eq. 23 of the following paper
+    This is the NonSpherical 2nd-order Taylor expansion of Eq. 23 of the following paper:
     https://link.springer.com/article/10.1007/s00158-006-0070-6 .
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.x, self.xold1 = None, None
-        self.f, self.fold1 = None, None
-        self.df, self.dfold1 = None, None
-        self.dxdy, self.yold1 = None, None
         self.idx = None
         self.epsi = 1e-2
 
-    def update(self, x, y, f, df, dxdy, **kwargs):
-        self.xold1 = self.x
-        self.x = x
-        self.fold1 = self.f
-        self.f = f
-        self.dfold1 = self.df
-        self.df = df
-        self.y = y(x).T
-        self.dfdy = df * dxdy(x)
-        self.dxdy = dxdy
-        if self.xold1 is not None:
-            self.yold1 = y(self.xold1).T
+    def set_curvature(self):
+        """
+        Approximate curvature by forcing the curve to pass through xold1, see Eq. 23.
 
-        self.m = len(self.f) - 1
-        self.n = len(self.x)
+        :return: self: For method cascading
+        """
 
-        # Calculate 2nd-order part
-        ddf = kwargs.get('ddf', None)
-        if ddf is not None:
-            ddxddy = kwargs.get('ddxddy', None)
-            self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
-
-        # Check dfdy for its dimensions
-        msg = (f'Expect sensitivity of size {self.m+1}x{self.n}: '
-               f'Received {self.dfdy.shape}.')
-        assert self.dfdy.shape == (self.m + 1, self.n), msg
-
-        # Calculate curvature: if iter > 0, approximate curvature by forcing the curve to satisfy dfold1
-        if self.xold1 is None:
-            self.ddfddy = np.zeros_like(self.dfdy)
+        # For numerical stability, only do finite differences when |y_i - yold1_i| > self.epsi
+        diff = abs(self.yold1 - self.y)
+        if len(self.y.shape) == 1:
+            self.idx = np.asarray(np.where(diff > self.epsi))[0, :]
         else:
-            # For numerical stability, only do finite differences when |y_i - yold1_i| > self.epsi
-            diff = abs(self.yold1 - self.y)
-            if len(self.y.shape) == 1:
-                self.idx = np.asarray(np.where(diff > self.epsi))[0, :]
-            else:
-                self.idx = np.argwhere(np.all(diff > self.epsi, axis=1))[:, 0]
-
-            # Adjust the curvature @X^(k) by satisfying dg_j/dx_i @X^(k-1)
-            self.ddfddy[:, self.idx] = self.get_curvature()
-
-        msg = (f"Expected ddf size: {self.m + 1}x{self.n}: "
-               f"Received: {self.ddfddy.shape}.")
-        assert self.ddfddy.shape == (self.m + 1, self.n), msg
-
-        if self.force_convex:
-            self.enforce_convexity()
+            self.idx = np.argwhere(np.all(diff > self.epsi, axis=1))[:, 0]
+        if len(self.y.shape) == 1:
+            self.ddfddy[:, self.idx] = (self.dfold1[:, self.idx] * self.dxdy(self.xold1)[self.idx] - self.dfdy[:, self.idx]) / \
+                                       (self.yold1[self.idx] - self.y[self.idx])
+        else:
+            self.ddfddy[:, self.idx] = (self.dfold1[:, self.idx] * self.dxdy(self.xold1)[:, self.idx] - self.dfdy[:, self.idx]) / \
+                                       (self.yold1[self.idx, :] - self.y[self.idx, :]).T
 
         return self
-
-    # Calculate Eq. 23 for any intervening variable y(x)
-    def get_curvature(self):
-        if len(self.y.shape) == 1:
-            c_ji = (self.dfold1[:, self.idx] * self.dxdy(self.xold1)[self.idx] - self.dfdy[:, self.idx]) / \
-                   (self.yold1[self.idx] - self.y[self.idx])
-        else:
-            c_ji = (self.dfold1[:, self.idx] * self.dxdy(self.xold1)[:, self.idx] - self.dfdy[:, self.idx]) / \
-                   (self.yold1[self.idx, :] - self.y[self.idx, :]).T
-        return c_ji

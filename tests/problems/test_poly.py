@@ -23,13 +23,13 @@ np.set_printoptions(precision=4)
 
 
 def test_poly():
-    logger.info("Solving test_square using Ipopt Svanberg")
+    logger.info("Solving test_poly using Ipopt Svanberg")
 
     # Instantiate problem
     prob = QuadPoly1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=Linear(), approximation=SphericalTaylor2(force_convex=True),
+    subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(force_convex=False),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -37,7 +37,7 @@ def test_poly():
     x_k = prob.x0.copy()
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, 1)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")

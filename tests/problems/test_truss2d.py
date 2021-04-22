@@ -22,8 +22,8 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def test_poly():
-    logger.info("Solving test_square using Ipopt Svanberg")
+def test_truss2d():
+    logger.info("Solving test_truss2d using Ipopt Svanberg")
 
     # Instantiate problem
     prob = Li2015Fig4()
@@ -41,7 +41,9 @@ def test_poly():
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
-    plotter2 = Plot2(prob)
+    plotter2_flag = True
+    if plotter2_flag:
+        plotter2 = Plot2(prob)
 
     # Optimization loop
     while itte < 50:
@@ -60,7 +62,8 @@ def test_poly():
         subprob.build(x_k, f, df, ddf)
 
         # Plot current approximation
-        plotter2.plot_approx(x_k, f, prob, subprob)
+        if plotter2_flag:
+            plotter2.plot_approx(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
@@ -71,6 +74,6 @@ def test_poly():
 
 
 if __name__ == "__main__":
-    test_poly()
+    test_truss2d()
 
 

@@ -14,6 +14,7 @@ class Approximation(ABC):
 
     def update(self, x, y, f, df, dxdy, **kwargs):
         """
+        This method updates the approximation instance.
 
         :param x: Current design
         :param y: A method that returns the intervening variables at the current design, i.e. y(x)
@@ -21,21 +22,31 @@ class Approximation(ABC):
         :param df: A matrix of size [m+1, n] that holds the sensitivity values at the current design -x-
         :param dxdy: A method that returns the derivative of the inverse intervening variable function, i.e. dx/dy(y(x))
         :param kwargs: Optionally get the 2nd-order sensitivity array
-        :return:
+        :return: self: For method cascading
         """
+
         self.y = y(x).T
         self.f, self.dfdy = f, df * dxdy(x)
+        self.m = len(self.f) - 1
+        self.n = len(self.y)
 
-        # 2nd-order part
+        # Calculate 2nd-order part
         ddf = kwargs.get('ddf', None)
         if ddf is not None:
             ddxddy = kwargs.get('ddxddy', None)
             self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
 
-        self.m = len(self.f) - 1
-        self.n = len(self.y)
+        # Check size of dfdy and (optionally) ddfddy
+        self.check_sensitivity_sizes()
 
-        msg = (f'Expect sensitivity of size {self.m+1}x{self.n}: '
+        # Enforce convexity on ddfddy
+        if (self.ddfddy is not None) and self.force_convex:
+            self.enforce_convexity()
+
+        return self
+
+    def check_sensitivity_sizes(self):
+        msg = (f'Expect sensitivity of size {self.m + 1}x{self.n}: '
                f'Received {self.dfdy.shape}.')
         assert self.dfdy.shape == (self.m + 1, self.n), msg
 
@@ -44,14 +55,8 @@ class Approximation(ABC):
                    f"Received: {self.ddfddy.shape}.")
             assert self.ddfddy.shape == (self.m + 1, self.n), msg
 
-            if self.force_convex:
-                self.enforce_convexity()
-
-        return self
-
     def enforce_convexity(self):
-        # self.ddfddy.setflags(write=1)
-        self.ddfddy[self.ddfddy < 0] = 0            # becomes read-only after the 1st iteration. Why?
+        self.ddfddy[self.ddfddy < 0] = 0
 
     @abstractmethod
     def g(self, y):
