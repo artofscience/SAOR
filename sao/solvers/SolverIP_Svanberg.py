@@ -169,7 +169,7 @@ class SvanbergIP:
             # Decrease epsilon with factor 10
             epsi *= 0.1
 
-        print(itera)
+        # print(itera)
         return x, y, z, lam, xsi, eta, mu, zet, s
 
     ## Calculates the residual of the relaxed KKT conditions

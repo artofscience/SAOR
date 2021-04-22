@@ -39,7 +39,7 @@ class Approximation(ABC):
         # Check size of dfdy and (optionally) ddfddy
         self.check_sensitivity_sizes()
 
-        # Enforce convexity on ddfddy
+        # Enforce convexity on ddfddy, currently done by ddfddy[ddfddy < 0] = 0
         if (self.ddfddy is not None) and self.force_convex:
             self.enforce_convexity()
 
