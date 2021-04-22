@@ -50,8 +50,8 @@ class Approximation(ABC):
         return self
 
     def enforce_convexity(self):
-        self.ddfddy[self.ddfddy < 0] = 0
-        return self.ddfddy
+        # self.ddfddy.setflags(write=1)
+        self.ddfddy[self.ddfddy < 0] = 0            # becomes read-only after the 1st iteration. Why?
 
     @abstractmethod
     def g(self, y):

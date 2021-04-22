@@ -62,7 +62,7 @@ class SphericalTaylor2(Taylor2):
         if self.xold1 is None:
             self.ddfddy = np.zeros_like(self.dfdy)
         else:
-            self.ddfddy = self.get_curvature()
+            self.ddfddy[:] = self.get_curvature()
         msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
                f"Received: {self.ddfddy.shape}.")
         assert self.ddfddy.shape == (self.m + 1, self.n), msg

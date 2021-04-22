@@ -29,7 +29,7 @@ def test_poly():
     prob = QuadPoly1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=Linear(), approximation=SphericalTaylor2(force_convex=False),
+    subprob = Subproblem(intervening=Linear(), approximation=SphericalTaylor2(force_convex=True),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
