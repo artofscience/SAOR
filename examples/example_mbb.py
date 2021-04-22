@@ -31,7 +31,7 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
+def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     logger.info("Solving compliance minimization subject to volume constraint")
 
     # Instantiate problem
@@ -51,7 +51,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
+    plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -87,7 +87,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     print(solves)
 
 
-def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
+def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
     logger.info("Solving volume minimization subject to aggregated stress constraint")
 
     # Instantiate problem
@@ -142,7 +142,7 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
     print(solves)
 
 
-def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, kout=0.01):
+def example_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, kout=0.01):
     logger.info("Solving displacement minimization subject to volume constraint")
 
     # Instantiate problem
@@ -197,7 +197,7 @@ def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, ko
     print(solves)
 
 
-def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
+def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     logger.info("Solving eigenfrequency maximization subject to volume constraint")
 
     # Instantiate problem
@@ -253,7 +253,7 @@ def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    test_compliance(nelx=100, nely=50, volfrac=0.3)                              # use nelx=50, nely=20 for plotter2
-    # test_stress(nelx=100, nely=50, max_stress=1)                                 # use nelx=50, nely=20 for plotter2
-    # test_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)      # use nelx=50, nely=20 for plotter2
-    # test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)             # use nelx=50, nely=20 for plotter2
+    example_compliance(nelx=100, nely=50, volfrac=0.3)                              # use nelx=50, nely=20 for plotter2
+    # example_stress(nelx=100, nely=50, max_stress=1)                               # use nelx=50, nely=20 for plotter2
+    # example_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)    # use nelx=50, nely=20 for plotter2
+    # example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)           # use nelx=50, nely=20 for plotter2
