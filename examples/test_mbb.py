@@ -51,7 +51,7 @@ def test_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -107,7 +107,7 @@ def test_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -162,7 +162,7 @@ def test_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, ko
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -217,7 +217,7 @@ def test_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 50))

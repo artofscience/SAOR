@@ -40,7 +40,7 @@ def test_truss2d():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path="../tests/problems")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
