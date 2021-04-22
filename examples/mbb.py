@@ -107,7 +107,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
+    plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -162,7 +162,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01,
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
+    plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -205,9 +205,9 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=SphericalTaylor2(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    # subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
+    # subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
     #                      ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
@@ -217,7 +217,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     solves = 0
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path="../tests/problems")
+    plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 50))
@@ -253,7 +253,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    example_compliance(nelx=100, nely=50, volfrac=0.3)                              # use nelx=50, nely=20 for plotter2
+    # example_compliance(nelx=100, nely=50, volfrac=0.3)                            # use nelx=50, nely=20 for plotter2
     # example_stress(nelx=100, nely=50, max_stress=1)                               # use nelx=50, nely=20 for plotter2
     # example_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)    # use nelx=50, nely=20 for plotter2
-    # example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)           # use nelx=50, nely=20 for plotter2
+    example_eigenvalue(nelx=50, nely=20, volfrac=0.6, penal=3, rmin=3)           # use nelx=50, nely=20 for plotter2

@@ -10,6 +10,7 @@ import cvxopt
 import cvxopt.cholmod
 from sao.problems.problem import Problem
 from abc import ABC
+import matplotlib.patheffects as PathEffects                    # Use an outline when dark text is on dark background
 
 
 class MBBBeam(Problem, ABC):
@@ -19,7 +20,7 @@ class MBBBeam(Problem, ABC):
 
     def __init__(self, nelx, nely, volfrac=0.5, penal=3.0, rmin=2.0):
         super().__init__()
-        self.Eps = 1e-9 # ratio of Emin/Emax
+        self.Eps = 1e-9      # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
         self.volfrac = volfrac
@@ -85,6 +86,7 @@ class MBBBeam(Problem, ABC):
         d = a[:-2 * self.rmin, -self.rmin:]
         padel = np.unique(np.concatenate((b.flatten(), c.flatten(), d.flatten())))
         self.Hs[padel] = np.max(self.Hs)
+
         # BC's and support
         self.dofs = np.arange(2 * (self.nelx + 1) * (self.nely + 1))
 
@@ -168,6 +170,25 @@ class MBBBeam(Problem, ABC):
                            interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
             fig.show()
             vis = [fig, ax, im]
+
+            # # Plot the indices of xPhys
+            # fig, ax = plt.subplots()
+            # plt.title('xPhys indices', fontsize=16)
+            # ax.set_ylabel('nely', fontsize=16)
+            # ax.set_xlabel('nelx', fontsize=16)
+            # values = np.arange(0, len(xPhys)).reshape((self.nelx, self.nely)).T
+            # ax.imshow(values, cmap=plt.cm.Blues, interpolation='none')
+            # ax.set_xticks(np.arange(0, self.nelx, 1))
+            # ax.set_yticks(np.arange(0, self.nely, 1))
+            # ax.set_xticks(np.arange(-.5, self.nelx+0.5, 1), minor=True)
+            # ax.set_yticks(np.arange(-.5, self.nely+0.5, 1), minor=True)
+            # ax.grid(which='minor', color='k', linestyle='-', linewidth=1)
+            # for i in range(0, self.nelx, 3):
+            #     for j in range(0, self.nely, 3):
+            #         c = values[j, i]
+            #         text = ax.text(i, j, str(c), va='center', ha='center', color='black')
+            #         text.set_path_effects([PathEffects.withStroke(linewidth=1.2, foreground='w')])
+
             return vis
         else:
             fig = vis[0]
