@@ -33,7 +33,7 @@ def test_mixed_top88(nelx=180, nely=60, volfrac=0.4, penal=3, rmin=5.4, ft=1):
                 1: np.array([1])}
 
     # Instantiate a mixed approximation scheme
-    subprob_map = {(0, 0): Subproblem(intervening=PolyFit2(),
+    subprob_map = {(0, 0): Subproblem(intervening=MMA(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),

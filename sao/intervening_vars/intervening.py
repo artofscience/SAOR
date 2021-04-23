@@ -131,17 +131,16 @@ class Exponential(Intervening):
 
 
 class MMA(Intervening):
-
     def __init__(self, xmin, xmax, **kwargs):
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
         self.positive = None
         self.asyinit = kwargs.get('asyinit', 0.5)
-        self.asyincr = kwargs.get('asyincr', 1.1)
+        self.asyincr = kwargs.get('asyincr', 1.2)              # was 1.1 here, whereas in modular code was 1.2
         self.asydecr = kwargs.get('asydecr', 0.7)
         self.asybound = kwargs.get('asydecr', 10.0)
-        self.albefa = kwargs.get('asydecr', 0.1)               # limit the max change of vars wrt asymptotes
+        self.albefa = kwargs.get('asydecr', 0.1)               # move limit of vars wrt asymptotes (i.e. alpha, beta)
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
 
@@ -181,10 +180,8 @@ class MMA(Intervening):
             uppmax = self.x + self.asybound * self.dx
 
             # if given asymptotes cross boundaries put them to their max/min values (redundant?)
-            self.low = np.maximum(self.low, lowmin)
-            self.low = np.minimum(self.low, lowmax)
-            self.upp = np.minimum(self.upp, uppmax)
-            self.upp = np.maximum(self.upp, uppmin)
+            self.low = np.clip(self.low, lowmin, lowmax)
+            self.upp = np.clip(self.upp, uppmin, uppmax)
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
@@ -194,8 +191,8 @@ class MMA(Intervening):
 
     def dydx(self, x):
         dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to((-1 / (x - self.low)**2), self.positive.shape)[~self.positive]
+        dydx[self.positive] = np.broadcast_to((1 / (self.upp - x) ** 2), self.positive.shape)[self.positive]
+        dydx[~self.positive] = np.broadcast_to((-1 / (x - self.low) ** 2), self.positive.shape)[~self.positive]
         return dydx
 
     def ddyddx(self, x):
@@ -226,40 +223,40 @@ class MMA(Intervening):
 
 class ReciSquared(Intervening):
     def y(self, x):
-        return 1 / x**2
+        return 1 / x ** 2
 
     def dydx(self, x):
-        return -2 / (x ** 3)
+        return -2 / x ** 3
 
     def ddyddx(self, x):
-        return 6 / (x ** 4)
+        return 6 / x ** 4
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
-        return - 0.5 * x**3
+        return - 0.5 * x ** 3
 
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
-        return 3/4 * x**5
+        return 3/4 * x ** 5
 
 
 class ReciCubed(Intervening):
     def y(self, x):
-        return 1 / x**3
+        return 1 / x ** 3
 
     def dydx(self, x):
-        return -3 / (x ** 4)
+        return -3 / x ** 4
 
     def ddyddx(self, x):
-        return 12 / (x ** 5)
+        return 12 / x ** 5
 
     # Define chain rule term: y = T_inv(x) --> x = T(x) --> dT/dy = dx/dy  (see ReferenceFiles/TaylorExpansion.pdf)
     def dxdy(self, x):
-        return - 1/3 * x**4
+        return - 1/3 * x ** 4
 
     # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
-        return 3/9 * x**7
+        return 3/9 * x ** 7
 
 
 class MMASquared(MMA):

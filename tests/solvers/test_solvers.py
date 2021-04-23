@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import logging
-from Problems.square import Square
+from Problems.Square import Square
 from sao.solvers.interior_point import InteriorPointX as ip_x
 from sao.solvers.interior_point import InteriorPointXY as ip_xy
 from sao.solvers.interior_point import InteriorPointXYZ as ip_xyz

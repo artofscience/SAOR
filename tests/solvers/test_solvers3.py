@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import logging
-from Problems.square import Square
+from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_vars.intervening import Linear, Reciprocal, ConLin, MMA
 from sao.move_limits.move_limit import MoveLimitIntervening

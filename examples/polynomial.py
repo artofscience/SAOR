@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 import logging
 from Problems.QuadPoly1D import QuadPoly1D

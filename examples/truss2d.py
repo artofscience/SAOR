@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 import logging
 from Problems.Li2015_Fig4 import Li2015Fig4
