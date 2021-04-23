@@ -326,5 +326,5 @@ if __name__ == "__main__":
     # example_compliance(nelx=100, nely=50, volfrac=0.3)                            # use nelx=50, nely=20 for plotter2
     # example_stress(nelx=100, nely=50, max_stress=1)                               # use nelx=50, nely=20 for plotter2
     # example_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)    # use nelx=50, nely=20 for plotter2
-    # example_eigenvalue(nelx=50, nely=20, volfrac=0.6, penal=3, rmin=3)           # use nelx=50, nely=20 for plotter2
-    example_compliance_mixed(nelx=100, nely=50, volfrac=0.3)                      # use nelx=50, nely=20 for plotter2
+    example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)           # use nelx=50, nely=20 for plotter2
+    # example_compliance_mixed(nelx=100, nely=50, volfrac=0.3)                      # use nelx=50, nely=20 for plotter2
