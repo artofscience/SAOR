@@ -32,7 +32,7 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
+def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3.0):
     logger.info("Solving compliance minimization subject to volume constraint")
 
     # Instantiate problem
@@ -40,10 +40,10 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    # subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
+    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
+                         ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -56,7 +56,6 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
-
 
     # Optimization loop
     while itte < 250:
@@ -243,7 +242,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
         if plotter2_flag:
             plotter2.plot_approx(x_k, f, prob, subprob, itte)
 
-        solver = ipopt(subprob, x0=x_k)
+        solver = ipopt(subprob)
         x_k = solver.update()
         solves += solver.itera
 
@@ -290,7 +289,6 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
-
     # Optimization loop
     while itte < 250:
 
@@ -323,7 +321,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    # example_compliance(nelx=100, nely=50, volfrac=0.3)                            # use nelx=50, nely=20 for plotter2
+    # example_compliance(nelx=100, nely=50, volfrac=0.3, rmin=3)                    # use nelx=50, nely=20 for plotter2
     # example_stress(nelx=100, nely=50, max_stress=1)                               # use nelx=50, nely=20 for plotter2
     # example_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)    # use nelx=50, nely=20 for plotter2
     example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)           # use nelx=50, nely=20 for plotter2

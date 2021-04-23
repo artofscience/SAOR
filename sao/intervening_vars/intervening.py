@@ -125,7 +125,7 @@ class Exponential(Intervening):
     def dxdy(self, x):
         return (1/self.p) * x ** (1 - self.p)
 
-    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(x) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
+    # Define chain rule 2nd-order term: y = T_inv(x) --> x = T(y) --> d^2T/dy^2 = d^2x/dy^2  (see TaylorExpansion.pdf)
     def ddxddy(self, x):
         return 1/self.p * (1/self.p - 1) * x ** (1 - 2*self.p)
 
@@ -140,7 +140,7 @@ class MMA(Intervening):
         self.asyincr = kwargs.get('asyincr', 1.2)              # was 1.1 here, whereas in modular code was 1.2
         self.asydecr = kwargs.get('asydecr', 0.7)
         self.asybound = kwargs.get('asydecr', 10.0)
-        self.albefa = kwargs.get('asydecr', 0.1)               # move limit of vars wrt asymptotes (i.e. alpha, beta)
+        self.albefa = kwargs.get('albefa', 0.1)                # move limit of vars wrt asymptotes (i.e. alpha, beta)
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
 

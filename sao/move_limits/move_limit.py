@@ -68,9 +68,11 @@ class MoveLimit1(MoveLimitStrategy):
         self.beta = xmax + 0
         self.move_limit = move_limit
         self.x, self.xold1, self.xold2 = None, None, None
-        self.ml_init = kwargs.get('asyinit', 0.5)
-        self.ml_incr = kwargs.get('asyincr', 1.1)
-        self.ml_decr = kwargs.get('asydecr', 0.7)
+        self.ml_init = kwargs.get('ml_init', 0.5)
+        self.ml_incr = kwargs.get('ml_incr', 1.2)
+        self.ml_decr = kwargs.get('ml_decr', 0.7)
+        self.ml_bound = kwargs.get('ml_bound', 10.0)
+        self.ml_albefa = kwargs.get('ml_albefa', 0.1)
         self.factor = self.ml_init * np.ones(len(xmin))
 
     def update(self, x, **kwargs):
@@ -89,11 +91,24 @@ class MoveLimit1(MoveLimitStrategy):
             self.factor[zzz < 0] = self.ml_decr
 
             # update lower and upper bounds
-            zzl2 = self.x - self.factor * (self.xold1 - self.alpha)
-            zzu2 = self.x + self.factor * (self.beta - self.xold1)
+            lower = self.x - self.factor * (self.xold1 - self.alpha)
+            upper = self.x + self.factor * (self.beta - self.xold1)
+
+            zzl2 = lower + self.ml_albefa * (self.x - lower)
+            zzu2 = upper - self.ml_albefa * (upper - self.x)
+
+            # check max bounds
+            zzl2_min = self.x - self.ml_bound * self.dx
+            zzl2_max = self.x - 1 / (self.ml_bound ** 2) * self.dx
+            zzu2_min = self.x + 1 / (self.ml_bound ** 2) * self.dx
+            zzu2_max = self.x + self.ml_bound * self.dx
+
+            # clip bounds
+            zzl2 = np.clip(zzl2, zzl2_min, zzl2_max)
+            zzu2 = np.clip(zzu2, zzu2_min, zzu2_max)
 
             self.alpha = np.maximum.reduce([zzl1, zzl2, self.xmin])  # gets the max for each row of (zzl1, zzl2, xmin)
-            self.beta = np.minimum.reduce([zzu1, zzu2, self.xmax])  # gets the min for each row of (zzu1, zzu2, xmax)
+            self.beta = np.minimum.reduce([zzu1, zzu2, self.xmax])   # gets the min for each row of (zzu1, zzu2, xmax)
         else:
             self.alpha = np.maximum.reduce([zzl1, self.xmin])
             self.beta = np.minimum.reduce([zzu1, self.xmax])

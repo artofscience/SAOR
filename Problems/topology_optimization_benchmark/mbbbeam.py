@@ -18,7 +18,7 @@ class MBBBeam(Problem, ABC):
     u: np.array = NotImplemented
     f: np.array = NotImplemented
 
-    def __init__(self, nelx, nely, volfrac=0.5, penal=3.0, rmin=2.0):
+    def __init__(self, nelx, nely, volfrac=0.5, penal=3.0, rmin=2):
         super().__init__()
         self.Eps = 1e-9      # ratio of Emin/Emax
         self.nelx = nelx
