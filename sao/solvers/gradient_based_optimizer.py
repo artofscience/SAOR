@@ -8,17 +8,27 @@ class GBOpt(ABC):
     """
 
     def __init__(self, problem, **kwargs):
-        self.n = problem.n
-        self.m = problem.m
+        self.problem = problem
 
-        self.g = problem.g
-        self.dg = problem.dg
-        self.ddg = problem.ddg
-
-        self.alpha = problem.alpha
-        self.beta = problem.beta
+        self.n, self.m = self.problem.n, self.problem.m
+        self.alpha, self.beta = self.problem.alpha, self.problem.beta
 
         self.x0 = kwargs.get('x0', 0.5*(self.alpha + self.beta))
+
+    def g(self, x):
+        return self.problem.g(x)
+
+    def dg(self, x):
+        return self.problem.dg(x)
+
+    def ddg(self, x):
+        return self.problem.ddg(x)
+
+    def g_dg(self, x):
+        return self.problem.g_dg(x)
+
+    def g_dg_ddg(self, x):
+        return self.problem.g_dg_ddg(x)
 
     @abstractmethod
     def update(self):

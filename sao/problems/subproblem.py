@@ -34,6 +34,22 @@ class Subproblem(Problem):
     def ddg(self, x):
         return self.approx.ddg(self.inter.y(x).T, self.inter.dydx(x), self.inter.ddyddx(x))
 
+    def g_dg(self, x):
+        # save repeatedly used computations
+        y = self.inter.y(x).T
+        dydx = self.inter.dydx(x)
+        return self.approx.g(y), self.approx.dg(y, dydx)
+
+    def g_dg_ddg(self, x):
+        # save repeatedly used computations
+        y = self.inter.y(x).T
+        dydx = self.inter.dydx(x)
+
+        g = self.approx.g(y)
+        dg = self.approx.dg(y, dydx)
+        ddg = self.approx.ddg(y, dydx, self.inter.ddyddx(x))
+        return g, dg, ddg
+
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
     Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [(m+1) x n]
