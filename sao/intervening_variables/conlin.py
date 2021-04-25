@@ -26,30 +26,35 @@ class ConLin(Intervening):
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
-        y[self.positive] = self.lin.y(np.broadcast_to(x, self.positive.shape)[self.positive])
-        y[~self.positive] = self.rec.y(np.broadcast_to(x, self.positive.shape)[~self.positive])
+        for (row, positive) in enumerate(self.positive):
+            y[row, positive] = self.lin.y(x[positive])
+            y[row, ~positive] = self.rec.y(x[~positive])
         return y
 
     def dydx(self, x):
         dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = self.lin.dydx(np.broadcast_to(x, self.positive.shape)[self.positive])
-        dydx[~self.positive] = self.rec.dydx(np.broadcast_to(x, self.positive.shape)[~self.positive])
+        for (row, positive) in enumerate(self.positive):
+            dydx[row, positive] = self.lin.dydx(x[positive])
+            dydx[row, ~positive] = self.rec.dydx(x[~positive])
         return dydx
 
     def ddyddx(self, x):
         ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = self.lin.ddyddx(np.broadcast_to(x, self.positive.shape)[self.positive])
-        ddyddx[~self.positive] = self.rec.ddyddx(np.broadcast_to(x, self.positive.shape)[~self.positive])
+        for (row, positive) in enumerate(self.positive):
+            ddyddx[row, positive] = self.lin.ddyddx(x[positive])
+            ddyddx[row, ~positive] = self.rec.ddyddx(x[~positive])
         return ddyddx
 
     def dxdy(self, x):
         dxdy = np.zeros_like(self.positive, dtype=float)
-        dxdy[self.positive] = self.lin.dxdy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        dxdy[~self.positive] = self.rec.dxdy(np.broadcast_to(x, self.positive.shape)[~self.positive])
+        for (row, positive) in enumerate(self.positive):
+            dxdy[row, positive] = self.lin.dxdy(x[positive])
+            dxdy[row, ~positive] = self.rec.dxdy(x[~positive])
         return dxdy
 
     def ddxddy(self, x):
         ddxddy = np.zeros_like(self.positive, dtype=float)
-        ddxddy[self.positive] = self.lin.ddxddy(np.broadcast_to(x, self.positive.shape)[self.positive])
-        ddxddy[~self.positive] = self.rec.ddxddy(np.broadcast_to(x, self.positive.shape)[~self.positive])
+        for (row, positive) in enumerate(self.positive):
+            ddxddy[row, positive] = self.lin.ddxddy(x[positive])
+            ddxddy[row, ~positive] = self.rec.ddxddy(x[~positive])
         return ddxddy
