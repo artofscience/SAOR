@@ -3,7 +3,8 @@ import numpy as np
 import logging
 from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
-from sao.intervening_variables.intervening import Linear, ConLin
+from sao.intervening_variables import ConLin
+from sao.intervening_variables import Linear
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

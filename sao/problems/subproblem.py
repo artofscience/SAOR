@@ -1,5 +1,5 @@
 from sao.problems.problem import Problem
-from sao.intervening_variables.intervening import Linear
+from sao.intervening_variables import Linear
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.move_limit import MoveLimitIntervening
 
