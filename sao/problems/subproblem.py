@@ -1,5 +1,5 @@
 from sao.problems.problem import Problem
-from sao.intervening_vars.intervening import Linear
+from sao.intervening_variables.intervening import Linear
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.move_limit import MoveLimitIntervening
 
@@ -55,18 +55,18 @@ class Subproblem(Problem):
     Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [(m+1) x n]
     y = [(m+1) x n] or [n], depending on the intervening variables used (see ReferenceFiles/TaylorExpansion.pdf)
     x = [n]
-        
+
           |   resp [1, 2, 3]  |     resp [4, 5]
-    -------------------------------------------------         
+    -------------------------------------------------
     0-N   |  Taylor1 + MMA    |  Taylor1 + Conlin
-    -------------------------------------------------    
+    -------------------------------------------------
     N-N+2 |  Taylor1 + linear |  Taylor1 + reciprocal
-    
-    
+
+
     P = [P1, P2]
         [P3, P4]
-        
+
     Q = [0, 0 ]
         [0, Q4]
-    
+
     '''

@@ -2,7 +2,7 @@ import pytest
 import logging
 import numpy as np
 from Problems.Square import Square
-from sao.intervening_vars.intervening import Linear, Reciprocal, ConLin, MMA
+from sao.intervening_variables.intervening import Linear, Reciprocal, ConLin, MMA
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
