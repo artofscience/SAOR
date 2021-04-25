@@ -231,22 +231,20 @@ class InteriorPointX(InteriorPoint):
         r(lam)      = gi[x] - ri + si
         r(s)        = lam * si - e
         """
-
-        g = self.g(self.w[0])
         dg = self.dg(self.w[0])
-
         self.r[0] = dg[0] + self.w[3].dot(dg[1:]) - self.w[1] + self.w[2]
         self.r[1] = self.w[1] * (self.w[0] - self.alpha) - self.epsi
         self.r[2] = self.w[2] * (self.beta - self.w[0]) - self.epsi
-        self.r[3] = g[1:] + self.w[4]
+        self.r[3] = self.g(self.w[0])[1:] + self.w[4]
         self.r[4] = self.w[3] * self.w[4] - self.epsi
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
         a = self.w[0] - self.alpha
         b = self.beta - self.w[0]
-
-        g, dg, ddg = self.g_dg_ddg(self.w[0])
+        g = self.g(self.w[0])
+        dg = self.dg(self.w[0])
+        ddg = self.ddg(self.w[0])
 
         # delta_lambda
         delta_lambda = g[1:] + self.epsi / self.w[3]
@@ -422,8 +420,9 @@ class InteriorPointXY(InteriorPointX):
         # Some calculations to omit repetitive calculations later on
         a = self.w[0] - self.alpha
         b = self.beta - self.w[0]
-
-        g, dg, ddg = self.g_dg_ddg(self.w[0])
+        g = self.g(self.w[0])
+        dg = self.dg(self.w[0])
+        ddg = self.ddg(self.w[0])
 
         # delta_lambda
         delta_lambda = g[1:] - self.w[5] + self.epsi / self.w[3]
@@ -638,7 +637,9 @@ class InteriorPointXYZ(InteriorPointXY):
         # Some calculations to omit repetitive calculations later on
         a = self.w[0] - self.alpha
         b = self.beta - self.w[0]
-        g, dg, ddg = self.g_dg_ddg(self.w[0])
+        g = self.g(self.w[0])
+        dg = self.dg(self.w[0])
+        ddg = self.ddg(self.w[0])
 
         # delta_lambda
         delta_lambda = g[1:] - self.a * self.w[7] - self.w[5] + self.epsi / self.w[3]
