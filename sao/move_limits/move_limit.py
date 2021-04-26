@@ -9,11 +9,13 @@ class MoveLimitStrategy(ABC):
     """
     def __init__(self, xmin=-math.inf, xmax=math.inf, **kwargs):
         """
-        Description.
-        :param xmin:
-        :param xmax:
+        This is the constructor of the abstract move limit strategy class.
+
+        :param xmin: A problem's lower bound constraints with xmin.shape = [n]
+        :param xmax: A problem's upper bound constraints with xmax.shape = [n]
         :param kwargs:
         """
+
         self.xmin = xmin
         self.xmax = xmax
 
@@ -36,6 +38,14 @@ class MoveLimitIntervening(MoveLimitStrategy):
         self.move_limit = move_limit
 
     def update(self, x, **kwargs):
+        """
+        This method updates the allowable move limits from the current point.
+
+        :param x: Design variable vector of size [n]
+        :param kwargs: the inter.get_move_limit() is passed as a keyword argument in order to compute the maximum
+                       variable change allowed by the intervening variables.
+        :return: self.alpha, self.beta: lower and upper move-limits respectively
+        """
 
         # limit change with the move limit
         zzl1 = x - self.move_limit * self.dx
@@ -55,10 +65,12 @@ class MoveLimitIntervening(MoveLimitStrategy):
         return self.alpha, self.beta
 
 
-class MoveLimit1(MoveLimitStrategy):
+class MoveLimitMMA(MoveLimitStrategy):
     """
-    This is a move limit strategy for the case of Taylor-like approximations wrt intervening variables.
-    These intervening variables impose move limits on the allowable change of the design variables at each iteration.
+    This is an adaptive move limit strategy extracted from the MMA algorithm.
+    Oscillatory behaviour (wrt each variable) is detected as the optimization runs,
+    and the allowable step-size for that variable is adjusted accordingly.
+    This move-limit strategy can be applied to any intervening variable selected.
     """
 
     def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1, **kwargs):
@@ -76,6 +88,16 @@ class MoveLimit1(MoveLimitStrategy):
         self.factor = self.ml_init * np.ones(len(xmin))
 
     def update(self, x, **kwargs):
+        """
+        This method updates the allowable move limits from the current point.
+        It has a similar structure to the asymptote update rule given by:
+        http://www.ingveh.ulg.ac.be/uploads/education/meca-0027-1/MMA_DCAMM_1998.pdf
+
+        :param x: Design variable vector of size [n]
+        :param kwargs:
+        :return: self.alpha, self.beta: lower and upper move limits respectively
+        """
+
         self.xold2 = self.xold1
         self.xold1 = self.x
         self.x = x

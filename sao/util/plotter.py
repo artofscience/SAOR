@@ -9,6 +9,7 @@ class Plot:
     """
     This class is used to generate the real-time convergence plots of an optimization loop.
     """
+
     def __init__(self, names, path=None, **kwargs):
         """
 

@@ -5,8 +5,8 @@ from Problems.topology_optimization_benchmark.stress import Stress
 from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
 from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
-from sao.intervening_vars.intervening import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimit1
+from sao.intervening_variables import Linear, ConLin, MMA
+from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
@@ -43,7 +43,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3.0):
     # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
     #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -98,7 +98,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
     # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
     #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
-                         ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -153,7 +153,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01,
     # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
     #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
-                         ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -208,7 +208,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
     #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimit1(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -271,8 +271,8 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
                                                               xmax=prob.xmax[var_set[0]])),
                    (1, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimit1(xmin=prob.xmin[var_set[0]],
-                                                    xmax=prob.xmax[var_set[0]]))}
+                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
+                                                      xmax=prob.xmax[var_set[0]]))}
 
     # Instantiate a mixed scheme
     subprob = Mixed(subprob_map, var_set, resp_set)

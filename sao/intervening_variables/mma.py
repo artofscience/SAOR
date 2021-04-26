@@ -4,10 +4,17 @@ from .intervening import Intervening
 
 
 class MMA(Intervening):
-    """The MMA intervening variables.
+    """The MMA algorithm, given by: http://www.ingveh.ulg.ac.be/uploads/education/meca-0027-1/MMA_DCAMM_1998.pdf
 
-    TODO: add references and short description
+    Includes the following set of mixed intervening variables:
+        y_i = 1 / (U_i - x_i)     ,  if dg_j/dx_i >= 0
+        y_i = 1 / (x_i - L_i)     ,  if dg_j/dx_i < 0
+
+    where,
+        U_i := Upper asymptote (acts as an upper move-limit & adjusts the approximation's convexity)
+        L_i := Lower asymptote (acts as a lower move-limit & adjusts the approximation's convexity)
     """
+
     def __init__(self, xmin, xmax, **kwargs):
         self.x = None
         self.xold1, self.xold2 = None, None
@@ -107,8 +114,11 @@ class MMA(Intervening):
 class MMASquared(MMA):
     """A variant of the MMA intervening variables.
 
-    TODO: update documentation, what is different wrt MMA?
+    Includes the following set of mixed intervening variables:
+        y_i = 1 / (U_i - x_i) ** 2     ,  if dg_j/dx_i >= 0
+        y_i = 1 / (x_i - L_i) ** 2     ,  if dg_j/dx_i < 0
     """
+
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
         y[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]

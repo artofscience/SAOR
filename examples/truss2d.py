@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from Problems.Li2015_Fig4 import Li2015Fig4
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
-from sao.intervening_vars.intervening import Linear, ConLin, MMA
+from sao.intervening_variables import Linear, ConLin, MMA
 from sao.move_limits.move_limit import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
