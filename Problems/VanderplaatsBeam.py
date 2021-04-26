@@ -25,8 +25,8 @@ class Vanderplaats(Problem):
         self.x0[self.N:] = 40.      # initial -h-
 
         # Variable bounds
-        self.xmin = np.ones(self.n, dtype=float) * 1e-1  # self.xmin
-        self.xmax = np.ones(self.n, dtype=float) * 1e2  # self.xmax
+        self.xmin = np.ones(self.n, dtype=float) * 1e-1         # self.xmin
+        self.xmax = np.ones(self.n, dtype=float) * 1e2          # self.xmax
 
         # Parameters
         self.sig_max = 14e3  # Stress limit
@@ -99,7 +99,7 @@ class Vanderplaats(Problem):
 
             # Geometric constraint sensitivities
             dg[1 + self.N + i, i] = -20
-            dg[1 + self.N + i, self.N + i] = 1
+            dg[1 + self.N + i, self.N + i] = 1.
 
             # Left displacement
             y = (self.P * self.S ** 2) / (2 * self.E * I) * (
@@ -132,7 +132,7 @@ class Vanderplaats(Problem):
             if iteration == 0:
                 plt.ion()
                 fig, (ax1, ax2) = plt.subplots(2, 1)
-                fig.suptitle('Vanderplaats beam of {} elements'.format(self.N), fontsize=20)
+                fig.suptitle('iter = {}'.format(iteration), fontsize=20)
                 ax1.set_ylabel('h [cm]', fontsize=16)
                 ax2.set_ylabel('b [cm]', fontsize=16)
                 ax2.set_xlabel('L [cm]', fontsize=16)
@@ -153,6 +153,7 @@ class Vanderplaats(Problem):
                 vis = [fig, ax1, ax2, ims1, ims2]
                 return vis
             else:
+                vis[0].suptitle('iter = {}'.format(iteration), fontsize=20)
                 ims1 = vis[3]
                 ims2 = vis[4]
                 fig = vis[0]

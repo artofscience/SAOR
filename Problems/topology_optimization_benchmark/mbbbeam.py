@@ -3,41 +3,44 @@
 # A 165 LINE TOPOLOGY OPTIMIZATION CODE BY NIELS AAGE AND VILLADS EGEDE JOHANSEN, JANUARY 2013
 from __future__ import division
 import numpy as np
-from scipy.sparse import coo_matrix
+from scipy.sparse import coo_matrix, diags
 from matplotlib import colors
 import matplotlib.pyplot as plt
 import cvxopt
 import cvxopt.cholmod
 from sao.problems.problem import Problem
+from abc import ABC
+import matplotlib.patheffects as PathEffects                    # Use an outline when dark text is on dark background
 
 
-## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
-class Top88(Problem):
+class MBBBeam(Problem, ABC):
 
-    def __init__(self, nelx, nely, volfrac, penal, rmin, ft):
+    u: np.array = NotImplemented
+    f: np.array = NotImplemented
+
+    def __init__(self, nelx, nely, volfrac=0.5, penal=3.0, rmin=2):
         super().__init__()
-        self.Emin = 1e-9
-        self.Emax = 1.0
+        self.Eps = 1e-9      # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
         self.volfrac = volfrac
         self.ndof = 2 * (self.nelx + 1) * (self.nely + 1)
         self.penal = penal
         self.rmin = rmin
-        self.ft = ft
         self.n = self.nely * self.nelx
-        self.m = 1
-        self.xmin = 1e-3 * np.ones(self.n, dtype=float)
+        self.xmin = np.zeros(self.n, dtype=float)
         self.xmax = np.ones(self.n, dtype=float)
-        self.x0 = self.volfrac * np.ones(self.n, dtype=float)
+        self.x0 = 0.5 * np.ones(self.n)     # np.random.rand(self.n)
         self.xold = self.xmin.copy()
+        self.m = 1
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
         self.ce = np.ones((self.nely * self.nelx), dtype=float)
-        self.name = 'Top88'
+        self.din = 2 * (nely + 1) - 1
+        self.dout = 1
 
         # FE: Build the index vectors for the for coo matrix format
-        self.KE = self.lk()
+        self.KE = self.element_matrix_stiffness()
         self.edofMat = np.zeros((self.nelx * self.nely, 8), dtype=int)
         for elx in range(self.nelx):
             for ely in range(self.nely):
@@ -48,8 +51,8 @@ class Top88(Problem):
                     [2 * n1 + 2, 2 * n1 + 3, 2 * n2 + 2, 2 * n2 + 3, 2 * n2, 2 * n2 + 1, 2 * n1, 2 * n1 + 1])
 
         # Construct the index pointers for the coo format
-        self.iK = np.kron(self.edofMat, np.ones((8, 1))).flatten()
-        self.jK = np.kron(self.edofMat, np.ones((1, 8))).flatten()
+        self.iK = np.kron(self.edofMat, np.ones((8, 1), dtype=int)).flatten()
+        self.jK = np.kron(self.edofMat, np.ones((1, 8), dtype=int)).flatten()
 
         # Filter: Build (and assemble) the index + data vectors for the coo matrix format
         nfilter = int(self.nelx * self.nely * ((2 * (np.ceil(rmin) - 1) + 1) ** 2))
@@ -77,70 +80,58 @@ class Top88(Problem):
         self.H = coo_matrix((sH, (iH, jH)), shape=(self.nelx * self.nely, self.nelx * self.nely)).tocsc()
         self.Hs = self.H.sum(1)
 
+        a = np.reshape(np.arange(0, self.n), (self.nelx, self.nely)).T
+        b = a[0:self.rmin, 2 * self.rmin:]
+        c = a[-self.rmin:, 2 * self.rmin:-2 * self.rmin]
+        d = a[:-2 * self.rmin, -self.rmin:]
+        padel = np.unique(np.concatenate((b.flatten(), c.flatten(), d.flatten())))
+        self.Hs[padel] = np.max(self.Hs)
+
         # BC's and support
-        dofs = np.arange(2 * (self.nelx + 1) * (self.nely + 1))
-        self.fixed = np.union1d(dofs[0:2 * (self.nely + 1):2], np.array([2 * (self.nelx + 1) * (self.nely + 1) - 1]))
-        self.free = np.setdiff1d(dofs, self.fixed)
+        self.dofs = np.arange(2 * (self.nelx + 1) * (self.nely + 1))
 
-        # Solution and RHS vectors
-        self.f = np.zeros((self.ndof, 1))
-        self.u = np.zeros((self.ndof, 1))
-
-        # Set load
-        self.f[1, 0] = -1
+        self.fixed = np.union1d(self.dofs[0:2 * (self.nely + 1):2], np.array([self.ndof - 1]))
+        self.free = np.setdiff1d(self.dofs, self.fixed)
 
     def g(self, x_k):
-        g_j = np.empty(self.m + 1)
-
-        # Filter design variables
-        if self.ft == 0:
-            xPhys = x_k.copy()
-        elif self.ft == 1:
-            xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
-
-        # Setup and solve FE problem
-        sK = ((self.KE.flatten()[np.newaxis]).T * (self.Emin + xPhys ** self.penal * (self.Emax - self.Emin))).flatten(order='F')
-        K = coo_matrix((sK, (self.iK, self.jK)), shape=(self.ndof, self.ndof)).tocsc()
-
-        # Remove constrained dofs from matrix
-        K = self.deleterowcol(K, self.fixed, self.fixed).tocoo()
-
-        # Solve system
-        K = cvxopt.spmatrix(K.data, K.row.astype(int), K.col.astype(int))
-        B = cvxopt.matrix(self.f[self.free, 0])
-        cvxopt.cholmod.linsolve(K, B)
-        self.u[self.free, 0] = np.array(B)[:, 0]
-
-        # Objective and volume constraint
-        self.ce[:] = (np.dot(self.u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
-                      self.u[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
-        g_j[0] = ((self.Emin + xPhys ** self.penal * (self.Emax - self.Emin)) * self.ce).sum()
-        g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
-        return g_j
+        ...
 
     def dg(self, x_k):
-        dg_j = np.empty((self.m + 1, self.n))
+        ...
 
-        # Filter design variables
-        if self.ft == 0:
-            xPhys = x_k.copy()
-        elif self.ft == 1:
-            xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
+    def assemble_K(self, x, add=None, interpolation="simp"):
+        if interpolation.lower() == 'simp':
+            x_scale = (self.Eps + x ** self.penal * (1 - self.Eps))
+        elif interpolation.lower() == 'simplin':
+            x_scale = (self.Eps + (0.1 * x + 0.9 * (x ** self.penal)) * (1 - self.Eps))
+        else:
+            raise RuntimeError(f"Option {interpolation} not known as a material interpolation scheme")
 
-        dg_j[0, :] = (-self.penal * xPhys ** (self.penal - 1) * (self.Emax - self.Emin)) * self.ce
-        dg_j[1, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
+        # Setup and solve FE problem
+        sK = ((self.KE.flatten()[np.newaxis]).T * x_scale).flatten(order='F')
+        K = coo_matrix((sK, (self.iK, self.jK)), shape=(self.ndof, self.ndof)).tocsc()
+        # FIXME: Here coo is converted to csc
+        # Remove constrained dofs from matrix
+        K = self.deleterowcol(K, self.fixed, self.fixed)  # FIXME: Here it is (was) converted back to coo?
+        return K
 
-        # Sensitivity filtering
-        if self.ft == 0:
-            dg_j[0, :] = np.asarray((self.H * (x_k * dg_j[0, :]))[np.newaxis].T / self.Hs)[:, 0] / np.maximum(0.001, x_k)
-        elif self.ft == 1:
-            dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
-            dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
-
-        return dg_j
+    def assemble_M(self, x, rho=1.0):
+        x_scale = self.Eps + (1 - self.Eps) * x
+        sM = np.kron(x_scale, np.ones(8)*rho/4)
+        xdiag = np.zeros(self.ndof)
+        np.add.at(xdiag, self.edofMat.flatten(), sM)  # Assemble the diagonal
+        return diags(xdiag[self.free])
 
     @staticmethod
-    def lk():
+    def linear_solve(K, f):
+        Kcoo = K.tocoo()
+        K = cvxopt.spmatrix(Kcoo.data, Kcoo.row.astype(int), Kcoo.col.astype(int))
+        B = cvxopt.matrix(f)
+        cvxopt.cholmod.linsolve(K, B)
+        return np.array(B)
+
+    @staticmethod
+    def element_matrix_stiffness():   # FIXME Give this function a proper name please :)
         """Element stiffness matrix"""
         E = 1
         nu = 0.3
@@ -179,11 +170,53 @@ class Top88(Problem):
                            interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
             fig.show()
             vis = [fig, ax, im]
+
+            # # Plot the indices of xPhys
+            # fig, ax = plt.subplots()
+            # plt.title('xPhys indices', fontsize=16)
+            # ax.set_ylabel('nely', fontsize=16)
+            # ax.set_xlabel('nelx', fontsize=16)
+            # values = np.arange(0, len(xPhys)).reshape((self.nelx, self.nely)).T
+            # ax.imshow(values, cmap=plt.cm.Blues, interpolation='none')
+            # ax.set_xticks(np.arange(0, self.nelx, 1))
+            # ax.set_yticks(np.arange(0, self.nely, 1))
+            # ax.set_xticks(np.arange(-.5, self.nelx+0.5, 1), minor=True)
+            # ax.set_yticks(np.arange(-.5, self.nely+0.5, 1), minor=True)
+            # ax.grid(which='minor', color='k', linestyle='-', linewidth=1)
+            # for i in range(0, self.nelx, 3):
+            #     for j in range(0, self.nely, 3):
+            #         c = values[j, i]
+            #         text = ax.text(i, j, str(c), va='center', ha='center', color='black')
+            #         text.set_path_effects([PathEffects.withStroke(linewidth=1.2, foreground='w')])
+
             return vis
         else:
-            im = vis[2]
             fig = vis[0]
+            ax = vis[1]
+            im = vis[2]
             im.set_array(-xPhys.reshape((self.nelx, self.nely)).T)
+            ax.set_title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            fig.canvas.draw()
+            return vis
+
+    def visualize_field(self, x_k, max, iteration, vis):
+        """Function to visualize current design"""
+        if iteration == 0:
+            plt.ion()
+            fig, ax = plt.subplots()
             plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            ax.set_ylabel('nely', fontsize=16)
+            ax.set_xlabel('nelx', fontsize=16)
+            im = ax.imshow(x_k.reshape((self.nelx, self.nely)).T, cmap='jet',
+                           interpolation='none', norm=colors.Normalize(vmin=0, vmax=max))
+            fig.show()
+            vis = [fig, ax, im]
+            return vis
+        else:
+            fig = vis[0]
+            ax = vis[1]
+            im = vis[2]
+            im.set_array(x_k.reshape((self.nelx, self.nely)).T)
+            ax.set_title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
             fig.canvas.draw()
             return vis

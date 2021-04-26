@@ -1,7 +1,7 @@
 from sao.problems.problem import Problem
-from sao.approximations.intervening import Linear
+from sao.intervening_variables import Linear
 from sao.approximations.taylor import Taylor1
-from sao.move_limits.ml_intervening import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimitIntervening
 
 
 class Subproblem(Problem):
@@ -19,10 +19,9 @@ class Subproblem(Problem):
 
         # If available, handle 2nd-order information
         if ddf is not None:
-            self.approx.update(self.inter.y(x).T, f, df * self.inter.dxdy(x),
-                               ddf * (self.inter.dxdy(x)) ** 2 + df * (self.inter.ddxddy(x)))
+            self.approx.update(x, self.inter.y, f, df, self.inter.dxdy, ddf=ddf, ddxddy=self.inter.ddxddy)
         else:
-            self.approx.update(self.inter.y(x).T, f, df * self.inter.dxdy(x))
+            self.approx.update(x, self.inter.y, f, df, self.inter.dxdy)
 
         self.alpha, self.beta = self.ml.update(x, intervening=self.inter)
 
@@ -35,23 +34,39 @@ class Subproblem(Problem):
     def ddg(self, x):
         return self.approx.ddg(self.inter.y(x).T, self.inter.dydx(x), self.inter.ddyddx(x))
 
+    def g_dg(self, x):
+        # save repeatedly used computations
+        y = self.inter.y(x).T
+        dydx = self.inter.dydx(x)
+        return self.approx.g(y), self.approx.dg(y, dydx)
+
+    def g_dg_ddg(self, x):
+        # save repeatedly used computations
+        y = self.inter.y(x).T
+        dydx = self.inter.dydx(x)
+
+        g = self.approx.g(y)
+        dg = self.approx.dg(y, dydx)
+        ddg = self.approx.ddg(y, dydx, self.inter.ddyddx(x))
+        return g, dg, ddg
+
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
     Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [(m+1) x n]
     y = [(m+1) x n] or [n], depending on the intervening variables used (see ReferenceFiles/TaylorExpansion.pdf)
     x = [n]
-        
+
           |   resp [1, 2, 3]  |     resp [4, 5]
-    -------------------------------------------------         
+    -------------------------------------------------
     0-N   |  Taylor1 + MMA    |  Taylor1 + Conlin
-    -------------------------------------------------    
+    -------------------------------------------------
     N-N+2 |  Taylor1 + linear |  Taylor1 + reciprocal
-    
-    
+
+
     P = [P1, P2]
         [P3, P4]
-        
+
     Q = [0, 0 ]
         [0, Q4]
-    
+
     '''

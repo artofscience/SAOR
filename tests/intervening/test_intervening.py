@@ -1,12 +1,23 @@
 import pytest
+import logging
 import numpy as np
-from Problems.square import Square
-from sao.approximations.intervening import Linear, Reciprocal, ConLin, MMA
+from Problems.Square import Square
+from sao.intervening_variables import Linear, ConLin, Reciprocal, MMA
+
+# Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+
+# If you want to print on terminal
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 
 @pytest.mark.parametrize('n', [10])
 def test_linear(n):
-    print("Testing linear intervening variables")
+    logger.info("Testing linear intervening variables")
     prob = Square(n)
     lin = Linear()
 
@@ -17,7 +28,7 @@ def test_linear(n):
 
 @pytest.mark.parametrize('n', [10])
 def test_reciprocal(n):
-    print("Testing reciprocal intervening variables")
+    logger.info("Testing reciprocal intervening variables")
     prob = Square(n)
     rec = Reciprocal()
 
@@ -28,7 +39,7 @@ def test_reciprocal(n):
 
 @pytest.mark.parametrize('n', [10])
 def test_conlin(n):
-    print("Testing ConLin intervening variables")
+    logger.info("Testing ConLin intervening variables")
     prob = Square(n)
     conlin = ConLin()
     conlin.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
@@ -50,7 +61,7 @@ def test_conlin(n):
 
 @pytest.mark.parametrize('n', [10])
 def test_mma(n):
-    print("Testing MMA intervening variables")
+    logger.info("Testing MMA intervening variables")
     prob = Square(n)
     mma = MMA(prob.xmin, prob.xmax)
     mma.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))

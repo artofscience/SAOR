@@ -8,5 +8,5 @@ class PrimalDual(GBOpt, ABC):
     Primal-dual optimizer.
     """
 
-    def __init__(self, problem):
-        super().__init__(problem)
+    def __init__(self, problem, **kwargs):
+        super().__init__(problem, **kwargs)

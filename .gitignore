@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# line profiler output
+*.lprof
+
 # Distribution / packaging
 .Python
 build/
