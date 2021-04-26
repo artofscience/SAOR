@@ -21,8 +21,9 @@ class InteriorPoint(PrimalDual, ABC):
         super().__init__(problem, **kwargs)
 
         self.epsimin = kwargs.get('epsimin', 1e-6)
-        self.iteramax = kwargs.get('iteramax', 20)
-        self.iterinmax = kwargs.get('iterinmax', 20)
+        self.max_outer_iter = kwargs.get('outer_iter', 100)
+        self.max_lines_iter = kwargs.get('iteramax', 20)
+        self.max_inner_iter = kwargs.get('iterinmax', 20)
         self.alphab = kwargs.get('alphab', -1.01)
         self.epsifac = kwargs.get('epsifac', 0.9)
         self.epsired = kwargs.get('epsired', 0.1)  # 0.0 < (float) epsired < 1.0
@@ -37,7 +38,6 @@ class InteriorPoint(PrimalDual, ABC):
         self.iter = 0
         self.iterout = 0
         self.iterin = 0
-        self.itera = 0
         self.step = 0
         self.epsi = 1
 
@@ -47,7 +47,7 @@ class InteriorPoint(PrimalDual, ABC):
     wold: list = NotImplemented
 
     @abstractmethod
-    def get_residual(self):
+    def residual(self):
         ...
 
     @abstractmethod
@@ -55,70 +55,49 @@ class InteriorPoint(PrimalDual, ABC):
         ...
 
     def get_step_size(self):
-        temp = [self.alphab * self.dw[1:][i] / a for i, a in enumerate(self.w[1:])]         # stepxx
-        temp.append(self.alphab * self.dw[0] / (self.w[0] - self.alpha))                    # stepalpha
-        temp.append(-self.alphab * self.dw[0] / (self.beta - self.w[0]))                    # stepbeta
-        temp.append(np.array([1]))
-        self.step = 1.0 / np.maximum.reduce(np.hstack(temp))
+        step_x = [max(self.alphab * dw/w) for w, dw in zip(self.w[1:], self.dw[1:])]
+        step_alpha = max(self.alphab * self.dw[0] / (self.w[0] - self.alpha))
+        step_beta = max(-self.alphab * self.dw[0] / (self.beta - self.w[0]))
+        return 1.0 / max(1.0, max(step_x), step_alpha, step_beta)
 
     def update(self):
-
-        # iterate until convergence
-        self.itera = 0
-        while self.epsi > self.epsimin:
+        self.iter = 0
+        while self.iter < self.max_outer_iter and self.epsi > self.epsimin:
             self.iter += 1
 
-            # Calculate the initial residual, its norm and maximum value
-            # This indicates how far we are from the global optimum for THIS epsi
-            self.get_residual()
-            rnorm = np.linalg.norm(np.hstack(self.r))
-            rmax = np.max(np.abs(np.hstack(self.r)))
+            # The initial residual: its norm and maximum. This gives an
+            # indicates how far we are from the global optimum for the
+            # current ``self.epsi``.
+            rnorm, rmax = self.residual()
 
-            ittt = 0
-            while rmax > self.epsifac * self.epsi and ittt < self.iterinmax:
-                ittt = ittt + 1
-                self.itera += 1
-                self.iterin += 1
+            inner_iter = 0
+            while inner_iter < self.max_inner_iter and rmax > self.epsifac * self.epsi:
+                inner_iter = inner_iter + 1
 
-                """
-                Get the Newton direction
-                This basically builds dw and includes a solve
-                """
+                # Obtain the Newton direction: builds ``dw``
+                # Note: this requires solving a system of equations
                 self.get_newton_direction()
-                self.get_step_size()
 
-                # Set w_old = w
-                for count, value in enumerate(self.w):
-                    self.wold[count] = value
+                # the setp size can be evaluated once ``dw`` is evaluated
+                step = self.get_step_size()
 
-                # Initialize the counter for the line search
-                rnew = 2 * rnorm
+                # line search along the newton direction
+                lines_iter = 0
+                rnew = 2*rnorm
+                while lines_iter < self.max_lines_iter and rnew > rnorm:
+                    lines_iter += 1
 
-                # Line search in the Newton direction dw
-                itto = 0
-                while rnew > rnorm and itto < self.iteramax:
-                    itto = itto + 1
+                    # set a step in the Newton direction
+                    # w^(l+1) = w^(l) + step^(l) * dw
+                    self.w = [w + step * dw for w, dw in zip(self.w, self.dw)]
 
-                    # set a step in the Newton direction w^(l+1) = w^(l) + step^(l) * dw
-                    for count, value in enumerate(self.dw):
-                        self.w[count] = self.wold[count] + self.step * value
+                    rnew, rmax = self.residual()
+                    step /= 2
 
-                    self.get_residual()
-                    rnew = np.linalg.norm(np.hstack(self.r))
-                    self.step *= 0.5
-
-                rnorm = 1.0 * rnew
-                rmax = np.max(np.abs(np.hstack(self.r)))
-                self.step *= 2
+                rnorm = rnew
+                step *= 2
 
             self.epsi *= self.epsired
-
-            # print("iter: %2d" % self.iter, ", ",
-            #       "solves: %2d" % itera, ", ",
-            #       "obj: %.2e" % self.g(self.w[0])[0], ", ",
-            #       "x:", ["{:+.2f}".format(i) for i in self.w[0][1:3]], ", ",
-            #       "lam:", ["{:+.2f}".format(i) for i in self.w[3]], ", ",
-            #       "|kkt|: %.1e" % (np.linalg.norm(self.dg(self.w[0])[0] + self.w[3].dot(self.dg(self.w[0])[1:]))))
 
         return self.w[0]
 
@@ -221,9 +200,8 @@ class InteriorPointX(InteriorPoint):
 
         self.r = deepcopy(self.w)
         self.dw = deepcopy(self.w)
-        self.wold = deepcopy(self.w)
 
-    def get_residual(self):
+    def residual(self):
         """
         r(x)        = psi / dx - xsi + eta = dg/dx[x] obj + lam' * dg/dx[x] constraints - xsi + eta
         r(xsi)      = xsi * (x - a) - e
@@ -237,6 +215,7 @@ class InteriorPointX(InteriorPoint):
         self.r[2] = self.w[2] * (self.beta - self.w[0]) - self.epsi
         self.r[3] = self.g(self.w[0])[1:] + self.w[4]
         self.r[4] = self.w[3] * self.w[4] - self.epsi
+        return np.linalg.norm(np.hstack(self.r)), np.max(np.abs(np.hstack(self.r)))
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -398,9 +377,8 @@ class InteriorPointXY(InteriorPointX):
 
         self.r = deepcopy(self.w)
         self.dw = deepcopy(self.w)
-        self.wold = deepcopy(self.w)
 
-    def get_residual(self):
+    def residual(self):
         """
         r(x)        = psi / dx - xsi + eta = dg/dx[x] obj + lam' * dg/dx[x] constraints - xsi + eta
         r(xsi)      = xsi * (x - a) - e
@@ -411,10 +389,11 @@ class InteriorPointXY(InteriorPointX):
         r(y)        = c + d*y - lam - mu
         r(mu)       = mu*y - e
         """
-        super().get_residual()
+        super().residual()
         self.r[3] -= self.w[5]  # relam
         self.r[5] = self.c - self.w[6] - self.w[3]  # rey
         self.r[6] = self.w[6] * self.w[5] - self.epsi  # remu
+        return np.linalg.norm(np.hstack(self.r)), np.max(np.abs(np.hstack(self.r)))
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -612,9 +591,8 @@ class InteriorPointXYZ(InteriorPointXY):
 
         self.r = deepcopy(self.w)
         self.dw = deepcopy(self.w)
-        self.wold = deepcopy(self.w)
 
-    def get_residual(self):
+    def residual(self):
         """
         r(x)        = psi / dx - xsi + eta = dg/dx[x] obj + lam' * dg/dx[x] constraints - xsi + eta
         r(xsi)      = xsi * (x - a) - e
@@ -627,11 +605,12 @@ class InteriorPointXYZ(InteriorPointXY):
         r(z)        = a0 - zeta - lam.a
         r(zeta)     = z*zeta - e
         """
-        super().get_residual()
+        super().residual()
         self.r[3] -= self.w[7] * self.a  # relam
         self.r[5] += self.d * self.w[5]  # rey
         self.r[7] = self.a0 - self.w[8] - self.w[3].dot(self.a)  # rez
         self.r[8] = self.w[7] * self.w[8] - self.epsi  # rezet
+        return np.linalg.norm(np.hstack(self.r)), np.max(np.abs(np.hstack(self.r)))
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
