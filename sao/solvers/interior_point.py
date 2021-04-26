@@ -62,6 +62,7 @@ class InteriorPoint(PrimalDual, ABC):
 
     def update(self):
         self.iter = 0
+
         while self.iter < self.max_outer_iter and self.epsi > self.epsimin:
             self.iter += 1
 
@@ -215,7 +216,10 @@ class InteriorPointX(InteriorPoint):
         self.r[2] = self.w[2] * (self.beta - self.w[0]) - self.epsi
         self.r[3] = self.g(self.w[0])[1:] + self.w[4]
         self.r[4] = self.w[3] * self.w[4] - self.epsi
-        return np.linalg.norm(np.hstack(self.r)), np.max(np.abs(np.hstack(self.r)))
+
+        resnorm = np.linalg.norm(np.hstack(self.r))
+        resmax = np.max(np.abs(np.hstack(self.r)))
+        return resnorm, resmax
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -389,11 +393,10 @@ class InteriorPointXY(InteriorPointX):
         r(y)        = c + d*y - lam - mu
         r(mu)       = mu*y - e
         """
-        super().residual()
         self.r[3] -= self.w[5]  # relam
         self.r[5] = self.c - self.w[6] - self.w[3]  # rey
         self.r[6] = self.w[6] * self.w[5] - self.epsi  # remu
-        return np.linalg.norm(np.hstack(self.r)), np.max(np.abs(np.hstack(self.r)))
+        return super().residual()
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -605,12 +608,11 @@ class InteriorPointXYZ(InteriorPointXY):
         r(z)        = a0 - zeta - lam.a
         r(zeta)     = z*zeta - e
         """
-        super().residual()
         self.r[3] -= self.w[7] * self.a  # relam
         self.r[5] += self.d * self.w[5]  # rey
         self.r[7] = self.a0 - self.w[8] - self.w[3].dot(self.a)  # rez
         self.r[8] = self.w[7] * self.w[8] - self.epsi  # rezet
-        return np.linalg.norm(np.hstack(self.r)), np.max(np.abs(np.hstack(self.r)))
+        return super().residual()
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
