@@ -26,35 +26,30 @@ class ConLin(Intervening):
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
-        for (row, positive) in enumerate(self.positive):
-            y[row, positive] = self.lin.y(x[positive])
-            y[row, ~positive] = self.rec.y(x[~positive])
+        y[self.positive] = np.broadcast_to(self.lin.y(x), self.positive.sum())
+        y[~self.positive] = np.broadcast_to(self.rec.y(x), (~self.positive).sum())
         return y
 
     def dydx(self, x):
         dydx = np.zeros_like(self.positive, dtype=float)
-        for (row, positive) in enumerate(self.positive):
-            dydx[row, positive] = self.lin.dydx(x[positive])
-            dydx[row, ~positive] = self.rec.dydx(x[~positive])
+        dydx[self.positive] = np.broadcast_to(self.lin.dydx(x), self.positive.sum())
+        dydx[~self.positive] = np.broadcast_to(self.rec.dydx(x), (~self.positive).sum())
         return dydx
 
     def ddyddx(self, x):
         ddyddx = np.zeros_like(self.positive, dtype=float)
-        for (row, positive) in enumerate(self.positive):
-            ddyddx[row, positive] = self.lin.ddyddx(x[positive])
-            ddyddx[row, ~positive] = self.rec.ddyddx(x[~positive])
+        ddyddx[self.positive] = np.broadcast_to(self.lin.ddyddx(x), self.positive.sum())
+        ddyddx[~self.positive] = np.broadcast_to(self.rec.ddyddx(x), (~self.positive).sum())
         return ddyddx
 
     def dxdy(self, x):
         dxdy = np.zeros_like(self.positive, dtype=float)
-        for (row, positive) in enumerate(self.positive):
-            dxdy[row, positive] = self.lin.dxdy(x[positive])
-            dxdy[row, ~positive] = self.rec.dxdy(x[~positive])
+        dxdy[self.positive] = np.broadcast_to(self.lin.dxdy(x), self.positive.sum())
+        dxdy[~self.positive] = np.broadcast_to(self.rec.dxdy(x), (~self.positive).sum())
         return dxdy
 
     def ddxddy(self, x):
         ddxddy = np.zeros_like(self.positive, dtype=float)
-        for (row, positive) in enumerate(self.positive):
-            ddxddy[row, positive] = self.lin.ddxddy(x[positive])
-            ddxddy[row, ~positive] = self.rec.ddxddy(x[~positive])
+        ddxddy[self.positive] = np.broadcast_to(self.lin.ddxddy(x), self.positive.sum())
+        ddxddy[~self.positive] = np.broadcast_to(self.rec.ddxddy(x), (~self.positive).sum())
         return ddxddy
