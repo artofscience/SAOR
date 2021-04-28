@@ -4,34 +4,65 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from scipy.sparse import diags
 from dataclasses import dataclass, fields
-from typing import Optional
 
 
 @dataclass
-class Storage(object):
-    x: np.array  # 0
-    xsi: float  # 1
-    eta: float  # 2
-    lam: np.array  # 3
-    s: np.array  # 4
-    y: Optional[np.array] = None  # 5
-    mu: Optional[float] = None  # 6
-    z: Optional[np.array] = None  # 7
-    zeta: Optional[np.array] = None  # 8
+class State(object):
+    """A dataclass carrying the state for the IPOpt solvers.
+
+    This dataclass contains the often used variables throughout the IP solvers.
+    Additionally, some basic functionality is provided, such as addition
+    and multiplication. For addition, two states can be added where the values
+    of the corresponding fields are summed together. For multiplication, it is
+    assumed to be multiplied with a single scalar value, scaling all fields
+    within the state object.
+
+    TODO: document the variables and what they represent
+    """
+    x: np.array
+    xsi: float
+    eta: float
+    lam: np.array
+    s: np.array
 
     def __iter__(self):
+        """Iterator over all values of each field present in the state."""
         for field in fields(self):
-            if (value := getattr(self, field.name)) is not None:
-                yield value
+            yield getattr(self, field.name)
 
     def __add__(self, other):
-        return Storage(*(s + o for s, o in zip(self, other)))
+        """Addition of two states, where each field is summed together."""
+        return self.__class__(*(s + o for s, o in zip(self, other)))
 
     def __mul__(self, other):
-        return Storage(*(value * other for value in self))
+        """Multiplication with a scalar value to scale all fields."""
+        return self.__class__(*(value * other for value in self))
 
     def __rmul__(self, other):
+        """Right multiplication with a scalar, see ``__mul__``."""
         return self.__mul__(other)
+
+    def norm(self):
+        """Return the norm of all stacked variables."""
+        return np.linalg.norm(np.hstack(tuple(self)))
+
+    def max(self):
+        """Return the abs maximum of all stacked variables in self."""
+        return np.max(np.abs(np.hstack(tuple(self))))
+
+
+@dataclass
+class StateY(State):
+    """An extended data class adding the ``y`` and ``mu`` variables."""
+    y: np.array
+    mu: float
+
+
+@dataclass
+class StateYZ(StateY):
+    """An extended data class adding the ``z`` and ``zeta`` variables."""
+    z: np.array
+    zeta: np.array
 
 
 class InteriorPoint(PrimalDual, ABC):
@@ -70,8 +101,9 @@ class InteriorPoint(PrimalDual, ABC):
         self.step = 0
         self.epsi = 1
 
-    dw: list = NotImplemented
-    wold: list = NotImplemented
+    r: State = NotImplemented
+    w: State = NotImplemented
+    dw: State = NotImplemented
 
     @abstractmethod
     def residual(self):
@@ -220,7 +252,7 @@ class InteriorPointX(InteriorPoint):
         w.x = (a + b)/2
         """
 
-        self.w = Storage(
+        self.w = State(
             self.x0,
             np.maximum(1 / (self.x0 - self.alpha), 1),
             np.maximum(1 / (self.beta - self.x0), 1),
@@ -232,7 +264,8 @@ class InteriorPointX(InteriorPoint):
         self.dw = deepcopy(self.w)
 
     def residual(self):
-        """
+        """Updates the residual and return its norm and maximum.
+
         r(x)        = psi / dx - xsi + eta = dg/dx[x] obj + lam' * dg/dx[x] constraints - xsi + eta
         r(xsi)      = xsi * (x - a) - e
         r(eta)      = eta * (b - x) - e
@@ -245,10 +278,7 @@ class InteriorPointX(InteriorPoint):
         self.r.eta = self.w.eta * (self.beta - self.w.x) - self.epsi
         self.r.lam = self.g(self.w.x)[1:] + self.w.s
         self.r.s = self.w.lam * self.w.s - self.epsi
-
-        resnorm = np.linalg.norm(np.hstack(list(self.r)))
-        resmax = np.max(np.abs(np.hstack(list(self.r))))
-        return resnorm, resmax
+        return self.r.norm(), self.r.max()
 
     def get_newton_direction(self):
         # Some calculations to omit repetitive calculations later on
@@ -404,8 +434,11 @@ class InteriorPointXY(InteriorPointX):
         Note however that a < x < b must hold. For variables where this does not hold one should use
         w.x = (a + b)/2
         """
-        self.w.y = np.ones(self.m)
-        self.w.mu = np.maximum(self.c / 2, 1)
+
+        self.w = StateY(
+                *(var for var in self.w),
+                np.ones(self.m),
+                np.maximum(self.c / 2, 1))
 
         self.r = deepcopy(self.w)
         self.dw = deepcopy(self.w)
@@ -616,8 +649,12 @@ class InteriorPointXYZ(InteriorPointXY):
         Note however that a < x < b must hold. For variables where this does not hold one should use
         w.x = (a + b)/2
         """
-        self.w.z = np.ones(1)
-        self.w.zeta = np.ones(1)
+
+        self.w = StateYZ(
+                *(var for var in self.w),
+                np.ones(1),
+                np.ones(1))
+
         self.r = deepcopy(self.w)
         self.dw = deepcopy(self.w)
 
