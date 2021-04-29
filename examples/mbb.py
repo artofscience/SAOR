@@ -1,9 +1,11 @@
 import numpy as np
 import logging
+
 from Problems.topology_optimization_benchmark.compliance import Compliance
 from Problems.topology_optimization_benchmark.stress import Stress
 from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
+
 from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
 from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
@@ -11,6 +13,7 @@ from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.util.plotter import Plot, Plot2
+from sao.convergence_criteria.ObjChange import ObjectiveChange
 # from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
@@ -45,6 +48,10 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
                          ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = ObjectiveChange()
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
@@ -58,7 +65,8 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 500:
+    # while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -77,9 +85,14 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         if plotter2_flag:
             plotter2.plot_approx(x_k, f, prob, subprob, itte)
 
+        # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
         solves += solver.itera
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, dg=prob.dg, lam=solver.lam, g=prob.g, gold1=approx.gold1,
+                                     xold1=approx.xold1, iter=itte)
 
         itte += 1
 
@@ -526,10 +539,10 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 if __name__ == "__main__":
     # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
-    # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
     # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
-    example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
 
     # Mixed optimizers
     # example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)

@@ -1,17 +1,16 @@
-## Imports
-from ConvergenceCriteria.ConvCriterion import ConvergenceCriterion
+from .ConvCriterion import ConvergenceCriterion
 
 
-## Contains all the possible convergence criteria one might use
-class ObjectivecChange(ConvergenceCriterion):
+class ObjectiveChange(ConvergenceCriterion):
+    """Function to calculate the normalized change in the objective function values. """
 
-    ## Constructor of class
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.name = 'ObjectiveChange'
-
-    ## Function to calculate the Normalized Change in Objective Function Values
     def get_response(self, **kwargs):
+        """ A method that calculates the response of the current convergence criterion.
+
+        :param kwargs: Gets current response vector -g- as well as the one of the previous iteration -gold1-
+        :return: ObjChange_abs : Normalized change in the objective function values
+        """
+
         g = kwargs.get('g', None)
         gold1 = kwargs.get('gold1', None)
         if gold1 is not None:                                                   # TODO: Maybe its better with try-except
