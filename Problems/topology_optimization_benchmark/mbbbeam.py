@@ -18,7 +18,7 @@ class MBBBeam(Problem, ABC):
     u: np.array = NotImplemented
     f: np.array = NotImplemented
 
-    def __init__(self, nelx, nely, volfrac=0.5, penal=3.0, rmin=2):
+    def __init__(self, nelx, nely, volfrac=0.4, penal=3, rmin=3):
         super().__init__()
         self.Eps = 1e-9      # ratio of Emin/Emax
         self.nelx = nelx
@@ -30,7 +30,7 @@ class MBBBeam(Problem, ABC):
         self.n = self.nely * self.nelx
         self.xmin = np.zeros(self.n, dtype=float)
         self.xmax = np.ones(self.n, dtype=float)
-        self.x0 = 0.5 * np.ones(self.n)     # np.random.rand(self.n)
+        self.x0 = np.random.rand(self.n)   # volfrac * np.ones(self.n)
         self.xold = self.xmin.copy()
         self.m = 1
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
@@ -133,6 +133,7 @@ class MBBBeam(Problem, ABC):
     @staticmethod
     def element_matrix_stiffness():   # FIXME Give this function a proper name please :)
         """Element stiffness matrix"""
+
         E = 1
         nu = 0.3
         k = np.array([1 / 2 - nu / 6, 1 / 8 + nu / 8, -1 / 4 - nu / 12, -1 / 8 + 3 * nu / 8, -1 / 4 + nu / 12,
@@ -149,7 +150,7 @@ class MBBBeam(Problem, ABC):
 
     @staticmethod
     def deleterowcol(A, delrow, delcol):
-        # Assumes that matrix is in symmetric csc form !
+        # Assumes that matrix is in symmetric csc form
         m = A.shape[0]
         keep = np.delete(np.arange(0, m), delrow)
         A = A[keep, :]
@@ -159,11 +160,12 @@ class MBBBeam(Problem, ABC):
 
     def visualize(self, x_k, iteration, vis):
         """Function to visualize current design"""
+
         xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
         if iteration == 0:
             plt.ion()
             fig, ax = plt.subplots()
-            plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            plt.title(f'{self.__class__.__name__}: n = {self.n}, iter = {iteration}', fontsize=16)
             ax.set_ylabel('nely', fontsize=16)
             ax.set_xlabel('nelx', fontsize=16)
             im = ax.imshow(-xPhys.reshape((self.nelx, self.nely)).T, cmap='gray',
@@ -195,16 +197,17 @@ class MBBBeam(Problem, ABC):
             ax = vis[1]
             im = vis[2]
             im.set_array(-xPhys.reshape((self.nelx, self.nely)).T)
-            ax.set_title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            ax.set_title(f'{self.__class__.__name__}: n = {self.n}, iter = {iteration}', fontsize=16)
             fig.canvas.draw()
             return vis
 
     def visualize_field(self, x_k, max, iteration, vis):
         """Function to visualize current design"""
+
         if iteration == 0:
             plt.ion()
             fig, ax = plt.subplots()
-            plt.title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            ax.set_title(f'{self.__class__.__name__}: n = {self.n}, iter = {iteration}', fontsize=16)
             ax.set_ylabel('nely', fontsize=16)
             ax.set_xlabel('nelx', fontsize=16)
             im = ax.imshow(x_k.reshape((self.nelx, self.nely)).T, cmap='jet',
@@ -217,6 +220,6 @@ class MBBBeam(Problem, ABC):
             ax = vis[1]
             im = vis[2]
             im.set_array(x_k.reshape((self.nelx, self.nely)).T)
-            ax.set_title('Half MBB-beam: iter = {}'.format(iteration), fontsize=16)
+            ax.set_title(f'{self.__class__.__name__}: n = {self.n}, iter = {iteration}', fontsize=16)
             fig.canvas.draw()
             return vis
