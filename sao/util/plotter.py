@@ -170,9 +170,9 @@ class Plot2:
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='o', markersize=9)
                     alpha = plt.axvline(x=subprob.ml.alpha[i], color='b', linestyle=(0, (3, 8)),
-                                        label=f'$a_{i}^{{({itte})}}$')
+                                        label=fr'$\alpha_{i}^{{({itte})}}$')
                     beta = plt.axvline(x=subprob.ml.beta[i], color='b', linestyle=(0, (3, 8, 1, 8)),
-                                       label=f'$b_{i}^{{({itte})}}$')
+                                       label=fr'$\beta_{i}^{{({itte})}}$')
                 else:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'r--',
                                             label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
@@ -183,9 +183,9 @@ class Plot2:
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='s', markersize=9)
                     alpha = plt.axvline(x=subprob.ml.alpha[i], color='r', linestyle=(0, (3, 8)),
-                                        label=f'$a_{i}^{{({itte})}}$')
+                                        label=fr'$\alpha_{i}^{{({itte})}}$')
                     beta = plt.axvline(x=subprob.ml.beta[i], color='r', linestyle=(0, (3, 8, 1, 8)),
-                                       label=f'$b_{i}^{{({itte})}}$')
+                                       label=fr'$\beta_{i}^{{({itte})}}$')
 
                 # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
                 if self.iter > 1:
@@ -197,7 +197,7 @@ class Plot2:
                 x_max = self.x[i, -1].copy()
 
                 # Print approximation name for each pair of {x_i, g_j} and set limits for x and y axes
-                ax.set(xlabel='$x_{}$'.format({i + 1}), ylabel='$g_{}$'.format({j}),
+                ax.set(xlabel=f'$x_{i}$', ylabel=f'$g_{j}$',
                        xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
                        ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)),
                        title='%s: {},  $iter = {}$'.format(subprob.approx.__class__.__name__, itte) % prob.__class__.__name__)
