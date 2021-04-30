@@ -83,7 +83,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
@@ -143,7 +143,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -198,7 +198,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -253,7 +253,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         solver = ipopt(subprob)
         x_k = solver.update()
@@ -320,7 +320,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
@@ -388,7 +388,7 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
@@ -456,7 +456,7 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
@@ -524,7 +524,7 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)

@@ -90,7 +90,7 @@ class Plot2:
                 self.fig.append(plt.subplots(1, 1)[0])
                 self.fig_idx[j, i] = plt.gcf().number
 
-    def plot_approx(self, x_k, f, prob, subprob, itte):
+    def plot_pair(self, x_k, f, prob, subprob, itte):
         """
         This function plots (some of) the {g_j - x_i}, for j in responses & i in variables.
 

@@ -2,7 +2,7 @@
 import numpy as np
 from .ConvCriterion import ConvergenceCriterion
 from .KKT import KKT
-from .ObjChange import ObjectivecChange
+from .ObjChange import ObjectiveChange
 from .VarChange import VariableChange
 from .Feasibility import Feasibility
 
@@ -13,9 +13,8 @@ class Alltogether(ConvergenceCriterion):
     ## Constructor of class
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = 'Alltogether'
         self.kkt = KKT(**kwargs)
-        self.obj_change = ObjectivecChange(**kwargs)
+        self.obj_change = ObjectiveChange(**kwargs)
         self.var_change = VariableChange(**kwargs)
         self.feasibility = Feasibility(**kwargs)
         self.criteria_list = [self.kkt, self.obj_change, self.var_change, self.feasibility]
@@ -32,4 +31,4 @@ class Alltogether(ConvergenceCriterion):
             if max_iter_flag:
                 print('Maximum number of {} iterations was reached'.format(kwargs.get('iter', '')))
             else:
-                print('Criterion {} was satisfied within a tolerance of {}'.format(self.name, self.tolerance))
+                print(f'Criterion {self.__class__.__name__} was satisfied within a tolerance of {self.tolerance}')

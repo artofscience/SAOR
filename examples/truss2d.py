@@ -62,7 +62,7 @@ def example_truss2d():
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
