@@ -3,7 +3,7 @@ import logging
 from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointX as ipx
@@ -33,7 +33,7 @@ def example_square_Svanberg(n):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -44,12 +44,12 @@ def example_square_Svanberg(n):
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2_flag = False
+    plotter2_flag = True
     if plotter2_flag:
-        plotter2 = Plot2(prob)
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n))
 
     # Optimization loop
-    while itte < 50:
+    while itte < 500:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -83,8 +83,8 @@ def example_square_ipx(n):
     prob = Square(n)
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
+                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -94,7 +94,7 @@ def example_square_ipx(n):
     plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
-        plotter2 = Plot2(prob)
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
 
     # Optimization loop
     while itte < 50:
@@ -145,7 +145,7 @@ def example_square_ipxy(n):
     plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
-        plotter2 = Plot2(prob)
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
 
     # Optimization loop
     while itte < 50:
@@ -195,7 +195,7 @@ def example_square_ipxyz(n):
     plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
     if plotter2_flag:
-        plotter2 = Plot2(prob)
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
 
     # Optimization loop
     while itte < 50:
@@ -294,8 +294,8 @@ def example_square_mixed(n):
 
 
 if __name__ == "__main__":
-    example_square_Svanberg(20)
-    example_square_ipx(20)
+    example_square_Svanberg(2)
+    example_square_ipx(2)
     example_square_ipxy(20)
     example_square_ipxyz(20)
     example_square_mixed(20)

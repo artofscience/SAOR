@@ -106,9 +106,9 @@ class MMA(Intervening):
         return ddxddy
 
     def get_move_limit(self):
-        zzl1 = self.low + self.albefa * (self.x - self.low)
-        zzu1 = self.upp - self.albefa * (self.upp - self.x)
-        return zzl1, zzu1
+        zzl2 = self.low + self.albefa * (self.x - self.low)
+        zzu2 = self.upp - self.albefa * (self.upp - self.x)
+        return zzl2, zzu2
 
 
 class MMASquared(MMA):

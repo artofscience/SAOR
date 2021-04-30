@@ -169,6 +169,10 @@ class Plot2:
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='o', markersize=9)
+                    alpha = plt.axvline(x=subprob.ml.alpha[i], color='b', linestyle=(0, (3, 8)),
+                                        label=f'$a_{i}^{{({itte})}}$')
+                    beta = plt.axvline(x=subprob.ml.beta[i], color='b', linestyle=(0, (3, 8, 1, 8)),
+                                       label=f'$b_{i}^{{({itte})}}$')
                 else:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'r--',
                                             label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
@@ -178,10 +182,14 @@ class Plot2:
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='s', markersize=9)
+                    alpha = plt.axvline(x=subprob.ml.alpha[i], color='r', linestyle=(0, (3, 8)),
+                                        label=f'$a_{i}^{{({itte})}}$')
+                    beta = plt.axvline(x=subprob.ml.beta[i], color='r', linestyle=(0, (3, 8, 1, 8)),
+                                       label=f'$b_{i}^{{({itte})}}$')
 
                 # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
                 if self.iter > 1:
-                    for m in range(0, 3):  # Change 3 to 5 if you wanna plot asymptotes cuz you add 2 more lines
+                    for m in range(0, 5):  # Change 3 to 5 if you wanna plot asymptotes cuz you add 2 more lines
                         ax.lines[0].remove()
 
                 # Plot details (labels, title, x_limit, y_limit, fontsize, legend, etc)

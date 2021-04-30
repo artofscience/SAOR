@@ -80,10 +80,11 @@ class MoveLimitMMA(MoveLimitStrategy):
         self.beta = xmax + 0
         self.move_limit = move_limit
         self.x, self.xold1, self.xold2 = None, None, None
+        self.low, self.upp = None, None
         self.ml_init = kwargs.get('ml_init', 0.5)
         self.ml_incr = kwargs.get('ml_incr', 1.2)
         self.ml_decr = kwargs.get('ml_decr', 0.7)
-        self.ml_bound = kwargs.get('ml_bound', 10.0)
+        self.ml_bound = kwargs.get('ml_bound', 100.0)
         self.ml_albefa = kwargs.get('ml_albefa', 0.1)
         self.factor = self.ml_init * np.ones(len(xmin))
 
@@ -103,36 +104,43 @@ class MoveLimitMMA(MoveLimitStrategy):
         self.x = x
 
         # limit change with the move limit
-        zzl1 = x - self.move_limit * self.dx
-        zzu1 = x + self.move_limit * self.dx
+        zzl1 = self.x - self.move_limit * self.dx
+        zzu1 = self.x + self.move_limit * self.dx
 
         # if intervening vars provide a type of 'move limit' (e.g. MMA), limit change in x_i wrt intermediate variables
-        if self.xold2 is not None:
+        if self.xold2 is None:
+            self.low = self.x - self.factor * self.dx
+            self.upp = self.x + self.factor * self.dx
+            self.alpha = np.maximum.reduce([zzl1, self.xmin])
+            self.beta = np.minimum.reduce([zzu1, self.xmax])
+        else:
+            # check for oscillations in variables (if zzz > 0: no oscillations, if zzz < 0: oscillations)
             zzz = (self.x - self.xold1) * (self.xold1 - self.xold2)
+
+            # oscillating variables x_i are assigned a factor of asydecr and non-oscillating to asyincr
             self.factor[zzz > 0] = self.ml_incr
             self.factor[zzz < 0] = self.ml_decr
 
-            # update lower and upper bounds
-            lower = self.x - self.factor * (self.xold1 - self.alpha)
-            upper = self.x + self.factor * (self.beta - self.xold1)
+            # update lower and upper 'asymptotes'
+            self.low = self.x - self.factor * (self.xold1 - self.low)
+            self.upp = self.x + self.factor * (self.upp - self.xold1)
 
-            zzl2 = lower + self.ml_albefa * (self.x - lower)
-            zzu2 = upper - self.ml_albefa * (upper - self.x)
+            # check min and max bounds of asymptotes, as they cannot be too close or far from the variable (redundant?)
+            lowmin = self.x - self.ml_bound * self.dx
+            lowmax = self.x - 1 / (self.ml_bound ** 2) * self.dx
+            uppmin = self.x + 1 / (self.ml_bound ** 2) * self.dx
+            uppmax = self.x + self.ml_bound * self.dx
 
-            # check max bounds
-            zzl2_min = self.x - self.ml_bound * self.dx
-            zzl2_max = self.x - 1 / (self.ml_bound ** 2) * self.dx
-            zzu2_min = self.x + 1 / (self.ml_bound ** 2) * self.dx
-            zzu2_max = self.x + self.ml_bound * self.dx
+            # if given asymptotes cross boundaries put them to their max/min values (redundant?)
+            self.low = np.clip(self.low, lowmin, lowmax)
+            self.upp = np.clip(self.upp, uppmin, uppmax)
 
-            # clip bounds
-            zzl2 = np.clip(zzl2, zzl2_min, zzl2_max)
-            zzu2 = np.clip(zzu2, zzu2_min, zzu2_max)
+            # move limits from 'asymptotes'
+            zzl2 = self.low + self.ml_albefa * (self.x - self.low)
+            zzu2 = self.upp - self.ml_albefa * (self.upp - self.x)
 
+            # final move limits (most conservative)
             self.alpha = np.maximum.reduce([zzl1, zzl2, self.xmin])  # gets the max for each row of (zzl1, zzl2, xmin)
             self.beta = np.minimum.reduce([zzu1, zzu2, self.xmax])   # gets the min for each row of (zzu1, zzu2, xmax)
-        else:
-            self.alpha = np.maximum.reduce([zzl1, self.xmin])
-            self.beta = np.minimum.reduce([zzu1, self.xmax])
 
         return self.alpha, self.beta

@@ -16,7 +16,7 @@ from sao.util.plotter import Plot, Plot2
 from sao.convergence_criteria.ObjChange import ObjectiveChange
 # from line_profiler import LineProfiler
 
-np.set_printoptions(precision=4)
+np.set_printoptions(precision=8)
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
