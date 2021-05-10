@@ -24,6 +24,32 @@ class MoveLimitStrategy(ABC):
         ...
 
 
+class NoMoveLimit(MoveLimitStrategy):
+    """
+    This is a move limit strategy for the case of Taylor-like approximations wrt intervening variables.
+    These intervening variables impose move limits on the allowable change of the design variables at each iteration.
+    """
+
+    def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=1000.0, **kwargs):
+        super().__init__(xmin, xmax, **kwargs)
+        self.dx = xmax - xmin
+        self.alpha = xmin + 0
+        self.beta = xmax + 0
+        self.move_limit = move_limit
+
+    def update(self, x, **kwargs):
+        """
+        This method updates the allowable move limits from the current point.
+
+        :param x: Design variable vector of size [n]
+        :param kwargs: the inter.get_move_limit() is passed as a keyword argument in order to compute the maximum
+                       variable change allowed by the intervening variables.
+        :return: self.alpha, self.beta: lower and upper move-limits respectively
+        """
+
+        return self.alpha, self.beta
+
+
 class MoveLimitIntervening(MoveLimitStrategy):
     """
     This is a move limit strategy for the case of Taylor-like approximations wrt intervening variables.

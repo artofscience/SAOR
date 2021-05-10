@@ -85,10 +85,6 @@ class Plot2:
         self.vars = kwargs.get('variables', np.arange(0, prob.n))
         self.fig = []
         self.fig_idx = {}
-        for i in self.vars:
-            for j in self.resp:
-                self.fig.append(plt.subplots(1, 1)[0])
-                self.fig_idx[j, i] = plt.gcf().number
 
     def plot_pair(self, x_k, f, prob, subprob, itte):
         """
@@ -101,6 +97,13 @@ class Plot2:
         :param itte: Current iteration number to show on the title of the plots.
         :return:
         """
+
+        # Create a list of figures to plot on
+        if self.iter == 0:
+            for i in self.vars:
+                for j in self.resp:
+                    self.fig.append(plt.subplots(1, 1)[0])
+                    self.fig_idx[j, i] = plt.gcf().number
 
         # Initialize plotting arrays for g_j(x_curr) and g_j_tilde(x_curr)
         prob_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
@@ -209,6 +212,128 @@ class Plot2:
                 plt.grid(True)
                 plt.legend(loc='upper right')
                 plt.show(block=False)
+
+        self.iter += 1
+
+    def contour_plot(self, x_k, f, prob, subprob, itte):
+        """
+        This method is used to generate contour plots of {g_j - x_i} for 2D problems, where X = [x1, x2].
+        Both the exact P_{NLP} and the approximate P_{NLP}_tilde are plotted at each design iteration.
+
+        :param x_k: The current design.
+        :param f: The current response values.
+        :param prob: This object is used to evaluate the exact responses, i.e. prob.g.
+        :param subprob: This object is used to get several useful data for the plots, e.g. n, m, g, inter, etc.
+        :param itte: Current iteration number to show on the title of the plots.
+        :return:
+        """
+        X, Y = np.meshgrid(self.x[0, :], self.x[1, :])
+
+        # For the first iteration
+        if self.iter == 0:
+
+            # Exact problem P_nlp: z_exact[m+1, x2, x1] has values for responses g_j(x_curr), for all x1, x2
+            z_exact = np.empty((prob.m + 1, self.x.shape[1], self.x.shape[1]))
+            x_curr = np.empty((prob.n, 1))
+            for k2 in range(0, self.x.shape[1]):  # sweeping x2
+                for k1 in range(0, self.x.shape[1]):  # sweeping x1
+                    x_curr[0, 0] = self.x[0, k1].copy()
+                    x_curr[1, 0] = self.x[1, k2].copy()
+                    z_exact[:, k2, k1] = prob.g(x_curr)
+
+            # Plot g_0 and x_k
+            self.fig.append(plt.subplots(1, 1)[0])
+            self.fig_idx['fig_exact'] = plt.gcf().number
+            fig_exact = plt.figure(self.fig_idx['fig_exact'])
+            ax_exact = plt.gca()
+            obj_exact = plt.contourf(X, Y, z_exact[0, :, :], 50, cmap='jet')
+            point_exact = plt.scatter(x_k[0], x_k[1],
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                            ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
+                                      marker='o', edgecolors='yellow', color='k', s=100)
+
+            # Plot iso-lines of constraints to show feasible region: g_j(X) = 0
+            if prob.m > 0:
+                for i in range(1, prob.m + 1):
+                    constr_exact = plt.contour(X, Y, z_exact[i, :, :], np.array([-0.1, 0.]), cmap='gray')
+                    ax_exact.clabel(constr_exact, inline=1, fontsize=10)
+
+            # Figure properties
+            ax_exact.set_title('$P_{NLP}$ of %s' % prob.name, fontsize=20)
+            ax_exact.set_xlabel('$x_1$', fontsize=18)
+            ax_exact.set_ylabel('$x_2$', fontsize=18)
+            cbar = fig_exact.colorbar(obj_exact, shrink=0.5, aspect=8)
+            cbar.set_label('$g_0(\mathbf{X})$', labelpad=-30, y=1.15, rotation=0, fontsize=18)
+            plt.legend()
+            plt.show(block=False)  # Use keyword 'block' to override blocking behaviour of debugger
+
+        # For iteration > 0
+        else:
+
+            # Plot in Exact Figure the optimal point found by the solver at the last iteration
+            plt.figure(self.fig_idx['fig_exact'])
+            point_exact = plt.scatter(x_k[0], x_k[1],
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                            ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
+                                      marker='o', edgecolors='yellow', color='k', s=100)
+            plt.legend()
+            plt.show(block=False)  # Use keyword 'block' to override blocking behaviour of debugger
+
+            # Plot in Approx Figure the optimal point found by the solver at the last iteration
+            plt.figure(self.fig_idx['fig_approx'])
+            opt_point = plt.scatter(x_k[0], x_k[1],
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                            ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
+                                      marker='o', edgecolors='yellow', color='k', s=100)
+            plt.legend()
+            plt.show(block=False)  # Use keyword 'block' to override blocking behaviour of debugger
+
+        # Approx problem P_nlp_tilde: z_approx[m+1, x2, x1] has values for responses g_j_tilde(x_curr), for all x1, x2
+        z_approx = np.empty((prob.m + 1, self.x.shape[1], self.x.shape[1]))
+        x_curr = np.empty(prob.n)
+        for k2 in range(0, self.x.shape[1]):  # sweeping x2
+            for k1 in range(0, self.x.shape[1]):  # sweeping x1
+                x_curr[0] = self.x[0, k1]
+                x_curr[1] = self.x[1, k2]
+                z_approx[:, k2, k1] = subprob.g(x_curr)
+
+        # For MMA family: Force response values farther than asymptotes to NaN
+        if subprob.inter.__class__.__name__ == 'MMA':
+            for i in range(0, prob.m + 1):  # for every response -g_j-
+                for k2 in range(0, self.x.shape[1]):
+                    if (self.x[1, k2] < 1.01 * subprob.inter.low[1]) or (self.x[1, k2] > 0.99 * subprob.inter.upp[1]):
+                        z_approx[:, k2, :] = np.NaN
+                for k1 in range(0, self.x.shape[1]):
+                    if (self.x[0, k1] < 1.01 * subprob.inter.low[0]) or (self.x[0, k1] > 0.99 * subprob.inter.upp[0]):
+                        z_approx[:, :, k1] = np.NaN
+
+        # New plot for approximate problem P_nlp_tilde
+        self.fig.append(plt.subplots(1, 1)[0])
+        self.fig_idx['fig_approx'] = plt.gcf().number
+        fig_approx = plt.figure(self.fig_idx['fig_approx'])
+        ax_approx = plt.gca()
+        obj_approx = plt.contourf(X, Y, z_approx[0, :, :], 50, cmap='jet')
+
+        # Plot iso-lines of constraints to show feasible region: g_j_tilde(X) = 0
+        if prob.m > 0:
+            for i in range(1, prob.m + 1):
+                constr_approx = plt.contour(X, Y, z_approx[i, :, :], np.array([-0.1, 0.]), cmap='gray')
+                ax_approx.clabel(constr_approx, inline=1, fontsize=10)
+
+        # Plot approximation point -x_k-
+        point_approx = plt.scatter(x_k[0], x_k[1],
+                                   label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                         ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
+                                   marker='o', edgecolors='yellow', color='k', s=100)
+
+        # Figure properties
+        ax_approx.set_title('$\widetilde{P}_{NLP}$ with %s \n  $iter = %i$' % (subprob.inter.__class__.__name__, self.iter), fontsize=20)
+        ax_approx.set_xlabel('$x_1$', fontsize=18)
+        ax_approx.set_ylabel('$x_2$', fontsize=18)
+        cbar = fig_approx.colorbar(obj_approx, shrink=0.5, aspect=8)
+        cbar.set_label('$g_0(\mathbf{X})$', labelpad=-30, y=1.15, rotation=0, fontsize=18)
+        plt.legend()
+        plt.show(block=False)  # overwrite blocking behaviour of debugger
 
         self.iter += 1
 

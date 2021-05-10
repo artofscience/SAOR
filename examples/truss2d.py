@@ -3,7 +3,7 @@ import logging
 from Problems.Li2015_Fig4 import Li2015Fig4
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
+from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA, NoMoveLimit
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -35,7 +35,7 @@ def example_truss2d():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(force_convex=True),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=15.0))
+                         ml=NoMoveLimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=100.0))
 
     # Initialize iteration counter and design
     itte = 0
@@ -46,12 +46,12 @@ def example_truss2d():
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
-    plotter2_flag = False
+    plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
     # Optimization loop
-    while itte < 50:
+    while itte < 15:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -68,7 +68,8 @@ def example_truss2d():
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+            # plotter2.plot_pair(x_k, f, prob, subprob, itte)
+            plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
@@ -85,8 +86,7 @@ def example_truss2d_mixed():
     prob = Li2015Fig4()
 
     # Define variable and response sets as dictionaries
-    var_set = {0: np.array([0]),
-               1: np.array([1])}
+    var_set = {0: np.array([0, 1])}
     resp_set = {0: np.array([0]),
                 1: np.array([1, 2])}
 
@@ -94,24 +94,24 @@ def example_truss2d_mixed():
     subprob_map = {
                    (0, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]],
-                                                              move_limit=15.0)),
-                   (0, 1): Subproblem(intervening=Linear(),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]],
-                                                              move_limit=15.0)),
+                                      ml=NoMoveLimit(xmin=prob.xmin[var_set[0]],
+                                                     xmax=prob.xmax[var_set[0]],
+                                                     move_limit=100.0)),
+                   # (0, 1): Subproblem(intervening=Linear(),
+                   #                    approximation=Taylor1(),
+                   #                    ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                   #                                            xmax=prob.xmax[var_set[1]],
+                   #                                            move_limit=15.0)),
                    (1, 0): Subproblem(intervening=MMA(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]],
-                                                              move_limit=15.0)),
-                   (1, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
-                                                              xmax=prob.xmax[var_set[1]],
-                                                              move_limit=15.0)),
+                                      ml=NoMoveLimit(xmin=prob.xmin[var_set[0]],
+                                                     xmax=prob.xmax[var_set[0]],
+                                                     move_limit=100.0)),
+                   # (1, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
+                   #                    approximation=Taylor1(),
+                   #                    ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                   #                                            xmax=prob.xmax[var_set[1]],
+                   #                                            move_limit=15.0)),
                    # (2, 0): Subproblem(intervening=Linear(),
                    #                    approximation=Taylor1(),
                    #                    ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
@@ -148,8 +148,8 @@ def example_truss2d_mixed():
         plotter3 = Plot3(prob, responses=np.arange(0, prob.m + 1), variables=np.arange(0, prob.n))
 
     # Optimization loop
-    # while itte < 500:
-    while not criterion.converged:
+    while itte < 15:
+    # while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -157,7 +157,8 @@ def example_truss2d_mixed():
         ddf = None
 
         # Print & plot g_j and x_i at current iteration
-        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}'.format(itte, np.array2string(x_k[0]), f[0]))
+        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}'.format(
+            itte, np.array2string(x_k[:]), f[0], f[1], f[2]))
         plotter.plot([f[0], f[1], f[2]])
 
         # Build approximate subproblem at X^(k)
@@ -179,5 +180,5 @@ def example_truss2d_mixed():
 
 
 if __name__ == "__main__":
-    # example_truss2d()
-    example_truss2d_mixed()
+    example_truss2d()
+    # example_truss2d_mixed()
