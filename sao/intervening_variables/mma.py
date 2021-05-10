@@ -42,40 +42,40 @@ class MMA(Intervening):
         self.get_asymptotes()
 
     def get_asymptotes(self):
-        # # Initial values of asymptotes
-        # if self.xold2 is None:
-        #     self.low = self.x - self.factor * self.dx
-        #     self.upp = self.x + self.factor * self.dx
-        #
-        # # Update scheme for asymptotes
-        # else:
-        #     # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
-        #     # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
-        #
-        #     # check for oscillations in variables (if zzz > 0: no oscillations, if zzz < 0: oscillations)
-        #     zzz = (self.x - self.xold1) * (self.xold1 - self.xold2)
-        #
-        #     # oscillating variables x_i are assigned a factor of asydecr and non-oscillating to asyincr
-        #     self.factor[zzz > 0] = self.asyincr
-        #     self.factor[zzz < 0] = self.asydecr
-        #
-        #     # update lower and upper asymptotes
-        #     self.low = self.x - self.factor * (self.xold1 - self.low)
-        #     self.upp = self.x + self.factor * (self.upp - self.xold1)
-        #
-        #     # check min and max bounds of asymptotes, as they cannot be too close or far from the variable
-        #     lowmin = self.x - self.asybound * self.dx
-        #     lowmax = self.x - 1 / (self.asybound ** 2) * self.dx
-        #     uppmin = self.x + 1 / (self.asybound ** 2) * self.dx
-        #     uppmax = self.x + self.asybound * self.dx
-        #
-        #     # if given asymptotes cross boundaries put them to their max/min values (redundant?)
-        #     self.low = np.clip(self.low, lowmin, lowmax)
-        #     self.upp = np.clip(self.upp, uppmin, uppmax)
+        # Initial values of asymptotes
+        if self.xold2 is None:
+            self.low = self.x - self.factor * self.dx
+            self.upp = self.x + self.factor * self.dx
 
-        # Fix asymptotes for testing
-        self.low = self.xmin - 1 * self.dx
-        self.upp = self.xmax + 1 * self.dx
+        # Update scheme for asymptotes
+        else:
+            # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
+            # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
+
+            # check for oscillations in variables (if zzz > 0: no oscillations, if zzz < 0: oscillations)
+            zzz = (self.x - self.xold1) * (self.xold1 - self.xold2)
+
+            # oscillating variables x_i are assigned a factor of asydecr and non-oscillating to asyincr
+            self.factor[zzz > 0] = self.asyincr
+            self.factor[zzz < 0] = self.asydecr
+
+            # update lower and upper asymptotes
+            self.low = self.x - self.factor * (self.xold1 - self.low)
+            self.upp = self.x + self.factor * (self.upp - self.xold1)
+
+            # check min and max bounds of asymptotes, as they cannot be too close or far from the variable
+            lowmin = self.x - self.asybound * self.dx
+            lowmax = self.x - 1 / (self.asybound ** 2) * self.dx
+            uppmin = self.x + 1 / (self.asybound ** 2) * self.dx
+            uppmax = self.x + self.asybound * self.dx
+
+            # if given asymptotes cross boundaries put them to their max/min values (redundant?)
+            self.low = np.clip(self.low, lowmin, lowmax)
+            self.upp = np.clip(self.upp, uppmin, uppmax)
+
+        # # Fix asymptotes for testing
+        # self.low = self.xmin - 0.1 * self.dx
+        # self.upp = self.xmax + 0.1 * self.dx
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
@@ -108,10 +108,9 @@ class MMA(Intervening):
         return ddxddy
 
     def get_move_limit(self):
-        # zzl2 = self.low + self.albefa * (self.x - self.low)
-        # zzu2 = self.upp - self.albefa * (self.upp - self.x)
-        # return zzl2, zzu2
-        return self.xmin, self.xmax
+        zzl2 = self.low + self.albefa * (self.x - self.low)
+        zzu2 = self.upp - self.albefa * (self.upp - self.x)
+        return zzl2, zzu2
 
 
 class MMASquared(MMA):

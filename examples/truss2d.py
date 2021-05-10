@@ -37,6 +37,13 @@ def example_truss2d():
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(force_convex=True),
                          ml=NoMoveLimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=100.0))
 
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
@@ -51,7 +58,7 @@ def example_truss2d():
         plotter2 = Plot2(prob)
 
     # Optimization loop
-    while itte < 15:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -73,6 +80,9 @@ def example_truss2d():
 
         # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         itte += 1
 
@@ -148,8 +158,7 @@ def example_truss2d_mixed():
         plotter3 = Plot3(prob, responses=np.arange(0, prob.m + 1), variables=np.arange(0, prob.n))
 
     # Optimization loop
-    while itte < 15:
-    # while not criterion.converged:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
