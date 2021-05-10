@@ -142,17 +142,15 @@ class Plot2:
                 # Plot new exact response
                 if self.iter % 2 == 1:
                     exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'b',
-                                          label='$g_{}$'.format({j}) + '$^{(}$' +
-                                                '$^{}$'.format({itte}) + '$^{)}$')
+                                          label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
                 else:
                     exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'r',
-                                          label='$g_{}$'.format({j}) + '$^{(}$' +
-                                                '$^{}$'.format({itte}) + '$^{)}$')
+                                          label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
 
                 # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
                 if subprob.inter.__class__.__name__ == 'MMA':
-                    # L_i = plt.axvline(x=approx.low[i], color='g', label='$L_{}^{{(k)}}$'.format(i + 1))
-                    # U_i = plt.axvline(x=approx.upp[i], color='y', label='$U_{}^{{(k)}}$'.format(i + 1))
+                    # L_i = plt.axvline(x=subprob.inter.low[i], color='g', label=f'$L_{i}^{{(k)}}$')
+                    # U_i = plt.axvline(x=subprob.inter.upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
 
                     # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
                     for k in range(0, self.x.shape[1]):
@@ -165,7 +163,7 @@ class Plot2:
                                             label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
                                                   '$^{}$'.format({itte}) + '$^{)}$')
                     exp_point = plt.plot(x_k[i], f[j],
-                                         label='$X_{}$'.format({i + 1}) +
+                                         label='$X_{}$'.format({i}) +
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='o', markersize=9)
@@ -178,7 +176,7 @@ class Plot2:
                                             label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
                                                   '$^{}$'.format({itte}) + '$^{)}$')
                     exp_point = plt.plot(x_k[i], f[j],
-                                         label='$X_{}$'.format({i + 1}) +
+                                         label='$X_{}$'.format({i}) +
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='s', markersize=9)
@@ -189,7 +187,7 @@ class Plot2:
 
                 # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
                 if self.iter > 1:
-                    for m in range(0, 5):  # Change 3 to 5 if you wanna plot asymptotes cuz you add 2 more lines
+                    for m in range(0, 5):  # Change 5 to 7 if you wanna plot asymptotes cuz you add 2 more lines
                         ax.lines[0].remove()
 
                 # Plot details (labels, title, x_limit, y_limit, fontsize, legend, etc)
@@ -198,9 +196,12 @@ class Plot2:
 
                 # Print approximation name for each pair of {x_i, g_j} and set limits for x and y axes
                 ax.set(xlabel=f'$x_{i}$', ylabel=f'$g_{j}$',
-                       xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
+                       # xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
                        ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)),
-                       title='%s: {},  $iter = {}$'.format(subprob.approx.__class__.__name__, itte) % prob.__class__.__name__)
+                       title='%s: {} - {} \n  $iter = {}$'.format(subprob.inter.__class__.__name__,
+                                                                  subprob.approx.__class__.__name__,
+                                                                  itte)
+                             % prob.__class__.__name__)
 
                 # FontSize for title, xlabel and ylabel set to 20
                 for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
@@ -208,5 +209,143 @@ class Plot2:
                 plt.grid(True)
                 plt.legend(loc='upper right')
                 plt.show(block=False)
+
+        self.iter += 1
+
+
+class Plot3(Plot2):
+    """
+    This class is used to generate the pair plots of specific {g_j - x_i} for `Mixed` subproblems.
+    Inherits its constructor from the `Plot2` class.
+    On the same graph, exact plots of {g_j - x_i} and approximate plots of {g_j_tilde - x_i} are shown in order to
+    assess the quality of the generated approximation.
+    Since all approximations must be separable (for the solver to be efficient), the exact plots show
+    the best function approximation one can achieve with such (separable) analytical Taylor-like expansions. Also,
+    by studying such plots, one can get a better understanding as to what intervening variables would be beneficial.
+    """
+
+    def plot_pair(self, x_k, f, prob, subprob, itte):
+        """
+        This function plots (some of) the {g_j - x_i}, for j in responses & i in variables.
+
+        :param x_k: The current design.
+        :param f: The current response values.
+        :param prob: This object is used to evaluate the exact responses, i.e. prob.g.
+        :param subprob: This object is used to get several useful data for the plots, e.g. n, m, g, inter, etc.
+        :param itte: Current iteration number to show on the title of the plots.
+        :return:
+        """
+
+        # Initialize plotting arrays for g_j(x_curr) and g_j_tilde(x_curr)
+        prob_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
+        approx_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
+
+        # Sweep all subproblems
+        for p in range(0, subprob.num_of_resp_sets):
+            for l in range(0, subprob.num_of_var_sets):
+
+                # For all design vars x_i
+                for idx_var, i in enumerate(subprob.var_set[l]):
+
+                    # Make x_curr = x_k so that all design vars remain equal to x_k apart from the one you sweep
+                    x_curr = x_k.copy()
+
+                    # Sweep design variable x_curr[i, 1], while keeping all others equal to the approx.x_k
+                    for k in range(0, self.x.shape[1]):
+                        # Update current point x_curr
+                        x_curr[i] = self.x[i, k].copy()
+
+                        # Run problem at x_curr for plotting purposes, i.e. calculate g_j(x_curr)
+                        prob_response_array[:, k] = prob.g(x_curr)
+
+                        # Store g_j_tilde(x_curr) to an array for plotting purposes
+                        approx_response_array[:, k] = subprob.g(x_curr)
+
+                    # For all responses g_j
+                    for idx_resp, j in enumerate(subprob.resp_set[p]):
+
+                        # Get current figure and axes handles
+                        plt.figure(self.fig_idx[j, i])
+                        ax = plt.gca()
+
+                        # Get maximum values for y-axis so it keeps a nice scale
+                        if self.iter > 0:
+                            y_min = min(min(prob_response_array[j, :]), ax.get_ylim()[0])
+                            y_max = max(max(prob_response_array[j, :]), ax.get_ylim()[1])
+                        else:
+                            y_min = min(prob_response_array[j, :])
+                            y_max = max(prob_response_array[j, :])
+
+                        # Plot new exact response
+                        if self.iter % 2 == 1:
+                            exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'b',
+                                                  label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
+                        else:
+                            exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'r',
+                                                  label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
+
+                        # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
+                        if subprob.subprob_map[p, l].inter.__class__.__name__ == 'MMA':
+                            # L_i = plt.axvline(x=subprob.inter.low[i], color='g', label=f'$L_{i}^{{(k)}}$')
+                            # U_i = plt.axvline(x=subprob.inter.upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
+
+                            # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
+                            for k in range(0, self.x.shape[1]):
+                                if (self.x[i, k] <= 1.01 * subprob.subprob_map[p, l].inter.low[idx_var]) \
+                                   or (self.x[i, k] >= 0.99 * subprob.subprob_map[p, l].inter.upp[idx_var]):
+                                    approx_response_array[j, k] = np.NaN
+
+                        # Alternate between red and blue plots to tell them apart easily
+                        if self.iter % 2 == 1:
+                            approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'b--',
+                                                    label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
+                                                          '$^{}$'.format({itte}) + '$^{)}$')
+                            exp_point = plt.plot(x_k[i], f[j],
+                                                 label='$X_{}$'.format({i}) +
+                                                       '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
+                                                       '$ = {}$'.format(np.around(x_k[i], decimals=4)),
+                                                 color='k', marker='o', markersize=9)
+                            alpha = plt.axvline(x=subprob.alpha[i], color='b', linestyle=(0, (3, 8)),
+                                                label=fr'$\alpha_{i}^{{({itte})}}$')
+                            beta = plt.axvline(x=subprob.beta[i], color='b', linestyle=(0, (3, 8, 1, 8)),
+                                               label=fr'$\beta_{i}^{{({itte})}}$')
+                        else:
+                            approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'r--',
+                                                    label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
+                                                          '$^{}$'.format({itte}) + '$^{)}$')
+                            exp_point = plt.plot(x_k[i], f[j],
+                                                 label='$X_{}$'.format({i}) +
+                                                       '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
+                                                       '$ = {}$'.format(np.around(x_k[i], decimals=4)),
+                                                 color='k', marker='s', markersize=9)
+                            alpha = plt.axvline(x=subprob.alpha[i], color='r', linestyle=(0, (3, 8)),
+                                                label=fr'$\alpha_{i}^{{({itte})}}$')
+                            beta = plt.axvline(x=subprob.beta[i], color='r', linestyle=(0, (3, 8, 1, 8)),
+                                               label=fr'$\beta_{i}^{{({itte})}}$')
+
+                        # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
+                        if self.iter > 1:
+                            for m in range(0, 5):  # Change 5 to 7 if you wanna plot asymptotes cuz you add 2 more lines
+                                ax.lines[0].remove()
+
+                        # Plot details (labels, title, x_limit, y_limit, fontsize, legend, etc)
+                        x_min = self.x[i, 0].copy()
+                        x_max = self.x[i, -1].copy()
+
+                        # Print approximation name for each pair of {x_i, g_j} and set limits for x and y axes
+                        ax.set(xlabel=f'$x_{i}$', ylabel=f'$g_{j}$',
+                               # xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
+                               ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)),
+                               title='%s: {} - {} \n  $iter = {}$'.format(subprob.subprob_map[p, l].inter.__class__.__name__,
+                                                                          subprob.subprob_map[p, l].approx.__class__.__name__,
+                                                                          itte)
+                                     % prob.__class__.__name__)
+
+                        # FontSize for title, xlabel and ylabel set to 20
+                        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
+                            item.set_fontsize(20)
+                        plt.grid(True)
+                        plt.legend(loc='upper right')
+                        plt.show(block=False)
 
         self.iter += 1

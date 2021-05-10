@@ -38,14 +38,16 @@ def example_square_Svanberg(n):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+    # subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
+    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
-    criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -58,7 +60,7 @@ def example_square_Svanberg(n):
     plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = True
     if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n))
+        plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
 
     # Optimization loop
     # while itte < 500:

@@ -84,7 +84,7 @@ class MoveLimitMMA(MoveLimitStrategy):
         self.ml_init = kwargs.get('ml_init', 0.5)
         self.ml_incr = kwargs.get('ml_incr', 1.2)
         self.ml_decr = kwargs.get('ml_decr', 0.7)
-        self.ml_bound = kwargs.get('ml_bound', 100.0)
+        self.ml_bound = kwargs.get('ml_bound', 10.0)
         self.ml_albefa = kwargs.get('ml_albefa', 0.1)
         self.factor = self.ml_init * np.ones(len(xmin))
 

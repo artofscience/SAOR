@@ -1,11 +1,9 @@
 import numpy as np
 import logging
-
 from Problems.topology_optimization_benchmark.compliance import Compliance
 from Problems.topology_optimization_benchmark.stress import Stress
 from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
-
 from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
 from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
@@ -14,6 +12,10 @@ from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.util.plotter import Plot, Plot2
 from sao.convergence_criteria.ObjChange import ObjectiveChange
+from sao.convergence_criteria.VarChange import VariableChange
+from sao.convergence_criteria.KKT import KKT
+from sao.convergence_criteria.Feasibility import Feasibility
+from sao.convergence_criteria.Alltogether import Alltogether
 # from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
@@ -43,14 +45,19 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
-                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax),
+                         approximation=Taylor1(),
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+    # subprob = Subproblem(intervening=Linear(),
+    #                      approximation=NonSphericalTaylor2(),
+    #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    criterion = ObjectiveChange()
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -86,13 +93,12 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        solver = ipopt(subprob, x0=x_k)
+        solver = ipopt(subprob)
         x_k = solver.update()
         solves += solver.itera
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, dg=prob.dg, lam=solver.lam, g=prob.g, gold1=approx.gold1,
-                                     xold1=approx.xold1, iter=itte)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
 
         itte += 1
 
@@ -219,7 +225,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
     # subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
     #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
@@ -278,14 +284,18 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
                 1: np.array([1])}
 
     # Instantiate a mixed approximation scheme
-    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
-                   (1, 0): Subproblem(intervening=Linear(),
+    subprob_map = {
+                   (0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                                       approximation=Taylor1(),
                                       ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
-                                                      xmax=prob.xmax[var_set[0]]))}
+                                                      xmax=prob.xmax[var_set[0]],
+                                                      move_limit=1.0)),
+                   (1, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
+                                                      xmax=prob.xmax[var_set[0]],
+                                                      move_limit=1.0))
+                   }
 
     # Instantiate a mixed scheme
     subprob = Mixed(subprob_map, var_set, resp_set)
@@ -323,7 +333,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        solver = ipopt(subprob, x0=x_k)
+        solver = ipopt(subprob)
         x_k = solver.update()
         solves += solver.itera
 
@@ -485,11 +495,14 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                                       approximation=Taylor1(),
                                       ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
+                                                              xmax=prob.xmax[var_set[0]],
+                                                              move_limit=(prob.xmax - prob.xmin))),
                    (1, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
                                       ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
-                                                      xmax=prob.xmax[var_set[0]]))}
+                                                      xmax=prob.xmax[var_set[0]],
+                                                      move_limit=(prob.xmax - prob.xmin))
+                                      )}
 
     # Instantiate a mixed scheme
     subprob = Mixed(subprob_map, var_set, resp_set)
@@ -539,10 +552,10 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 if __name__ == "__main__":
     # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
-    example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
     # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
-    # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
 
     # Mixed optimizers
     # example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
