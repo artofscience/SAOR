@@ -166,7 +166,8 @@ def example_truss2d_mixed():
 
         # Plot current approximation
         if plotter3_flag:
-            plotter3.plot_pair(x_k, f, prob, subprob, itte)
+            # plotter3.plot_pair(x_k, f, prob, subprob, itte)
+            plotter3.contour_plot(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
@@ -180,5 +181,5 @@ def example_truss2d_mixed():
 
 
 if __name__ == "__main__":
-    example_truss2d()
-    # example_truss2d_mixed()
+    # example_truss2d()
+    example_truss2d_mixed()
