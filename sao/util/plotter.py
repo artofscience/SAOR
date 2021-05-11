@@ -66,8 +66,10 @@ class Plot:
 
 class Plot2:
     """
-    This class is used to generate the plots for `non-Mixed` subproblems.
+    This class is used to generate the plots for `non-Mixed` subproblems. Includes a method to plot pairs of {g_j - x_i}
+    for low-dimensional problems, as well as a method to generate contour plots for 2D problems, i.e. X = [x1, x2].
     """
+
     def __init__(self, prob, **kwargs):
         """
 
@@ -342,7 +344,9 @@ class Plot2:
 
 class Plot3(Plot2):
     """
-    This class is used to generate plots for `Mixed` subproblems.
+    Similar to the `Plot2` class, this class is used to generate plots for `Mixed` subproblems.
+    It includes a method to plot pairs of {g_j - x_i} for low-dimensional problems,
+    as well as a method to generate contour plots for 2D problems, i.e. X = [x1, x2].
     """
 
     def plot_pair(self, x_k, f, prob, subprob, itte):
@@ -480,6 +484,7 @@ class Plot3(Plot2):
         """
         This method is used to generate contour plots of {g_j - x_i} for 2D problems, where X = [x1, x2].
         Both the exact P_{NLP} and the approximate P_{NLP}_tilde are plotted at each design iteration.
+        It should be used when `Mixed` sub-problems are generated.
 
         :param x_k: The current design.
         :param f: The current response values.

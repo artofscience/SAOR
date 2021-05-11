@@ -73,7 +73,7 @@ class MMA(Intervening):
             self.low = np.clip(self.low, lowmin, lowmax)
             self.upp = np.clip(self.upp, uppmin, uppmax)
 
-        # # Fix asymptotes for testing
+        # # Fix asymptotes to constant values in order to test the influence of curvature in the responses
         # self.low = self.xmin - 0.1 * self.dx
         # self.upp = self.xmax + 0.1 * self.dx
 

@@ -26,8 +26,7 @@ class MoveLimitStrategy(ABC):
 
 class NoMoveLimit(MoveLimitStrategy):
     """
-    This is a move limit strategy for the case of Taylor-like approximations wrt intervening variables.
-    These intervening variables impose move limits on the allowable change of the design variables at each iteration.
+    This is effectively a deactivated move limit strategy. It is used to maintain compatibility with the framework.
     """
 
     def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=1000.0, **kwargs):
@@ -39,7 +38,7 @@ class NoMoveLimit(MoveLimitStrategy):
 
     def update(self, x, **kwargs):
         """
-        This method updates the allowable move limits from the current point.
+        This method simply returns the bounds given upon construction.
 
         :param x: Design variable vector of size [n]
         :param kwargs: the inter.get_move_limit() is passed as a keyword argument in order to compute the maximum
@@ -66,11 +65,13 @@ class MoveLimitIntervening(MoveLimitStrategy):
     def update(self, x, **kwargs):
         """
         This method updates the allowable move limits from the current point.
+        Depending on whether the intervening variables chosen impose implicit move limits (e.g. MMA intervening vars),
+        this method returns the appropriate local sub-problem bounds.
 
         :param x: Design variable vector of size [n]
         :param kwargs: the inter.get_move_limit() is passed as a keyword argument in order to compute the maximum
                        variable change allowed by the intervening variables.
-        :return: self.alpha, self.beta: lower and upper move-limits respectively
+        :return: self.alpha, self.beta: lower and upper move limits respectively
         """
 
         # limit change with the move limit
@@ -94,9 +95,9 @@ class MoveLimitIntervening(MoveLimitStrategy):
 class MoveLimitMMA(MoveLimitStrategy):
     """
     This is an adaptive move limit strategy extracted from the MMA algorithm.
-    Oscillatory behaviour (wrt each variable) is detected as the optimization runs,
-    and the allowable step-size for that variable is adjusted accordingly.
-    This move-limit strategy can be applied to any intervening variable selected.
+    It is essentially the asymptote update rule, according to which oscillatory behaviour (wrt each variable) is
+    detected as the optimization runs, and the allowable step-size for that variable is adjusted accordingly.
+    This move limit strategy can be applied to any intervening variable selected.
     """
 
     def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1, **kwargs):

@@ -35,7 +35,7 @@ def example_truss2d():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(force_convex=True),
-                         ml=NoMoveLimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=100.0))
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
@@ -190,5 +190,5 @@ def example_truss2d_mixed():
 
 
 if __name__ == "__main__":
-    # example_truss2d()
-    example_truss2d_mixed()
+    example_truss2d()
+    # example_truss2d_mixed()
