@@ -157,7 +157,7 @@ class IterationCount(Criterion):
     >>> convergence = IterationCount(50):
     >>> while not convergence
     """
-    def __init__(self, max_iteration):
+    def __init__(self, max_iteration=50):
         super().__init__()
         self.iteration = 0
         self.max_iteration = max_iteration
