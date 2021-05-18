@@ -101,13 +101,21 @@ class ObjectiveChange(Criterion):
         super().__init__()
         self.storage = storage
         self.tolerance = tolerance
-        self.previous = math.inf
+        self.previous = None
         self.scaled = scaled
 
     def __call__(self):
         """Evaluate the objective changes between iterations."""
         current = self.storage.f[0]
 
+        # When the previous value is not yet defined, this criterion cannot
+        # become satisfied. Thus, only update the previous value and return.
+        if self.previous is None:
+            self.previous = current
+            return
+
+        # As the previous value is set here, we can evaluate the relative
+        # change and determine if the criterion has been achieved yes or no.
         change = abs(current - self.previous)
         if self.scaled:
             change /= abs(self.previous)
