@@ -13,7 +13,7 @@ class QuadPoly1D:
         self.m = 1
         self.xmin = np.array([1.5])
         self.xmax = np.array([12.])
-        self.x0  = np.array([11.])      # use 6.9 to avoid local minimum or 11.5 to see if it gets stuck
+        self.x0  = np.array([5.9])      # use 6.9 to avoid local minimum or 11.5 to see if it gets stuck
 
     def g(self, x):
         g_j = np.empty(self.m + 1)

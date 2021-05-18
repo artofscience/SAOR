@@ -1,5 +1,4 @@
 import numpy as np
-
 from .intervening import Intervening
 
 
@@ -20,19 +19,18 @@ class MMA(Intervening):
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
 
-        # asyinc was 1.1 here, whereas in modular code was 1.2
+        self.xmin, self.xmax = xmin, xmax
+
+        # MMA parameter initialization
         self.asyinit = kwargs.get('asyinit', 0.5)
         self.asyincr = kwargs.get('asyincr', 1.2)
         self.asydecr = kwargs.get('asydecr', 0.7)
         self.asybound = kwargs.get('asydecr', 10.0)
-
-        # move limit of vars wrt asymptotes (i.e. alpha, beta)
         self.albefa = kwargs.get('albefa', 0.1)
         self.factor = self.asyinit * np.ones(len(xmin))
         self.dx = xmax - xmin
 
-        # A boolean indicator array that keeps track of the positive (and
-        # negative) values of the variables.
+        # A boolean indicator array that keeps track of the positive (and negative) values of the variables
         self.positive = None
 
     def update(self, x, f, df):
@@ -65,7 +63,7 @@ class MMA(Intervening):
             self.low = self.x - self.factor * (self.xold1 - self.low)
             self.upp = self.x + self.factor * (self.upp - self.xold1)
 
-            # check min and max bounds of asymptotes, as they cannot be too close or far from the variable (redundant?)
+            # check min and max bounds of asymptotes, as they cannot be too close or far from the variable
             lowmin = self.x - self.asybound * self.dx
             lowmax = self.x - 1 / (self.asybound ** 2) * self.dx
             uppmin = self.x + 1 / (self.asybound ** 2) * self.dx
@@ -74,6 +72,10 @@ class MMA(Intervening):
             # if given asymptotes cross boundaries put them to their max/min values (redundant?)
             self.low = np.clip(self.low, lowmin, lowmax)
             self.upp = np.clip(self.upp, uppmin, uppmax)
+
+        # # Fix asymptotes to constant values in order to test the influence of curvature in the responses
+        # self.low = self.xmin - 0.1 * self.dx
+        # self.upp = self.xmax + 0.1 * self.dx
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
@@ -106,9 +108,9 @@ class MMA(Intervening):
         return ddxddy
 
     def get_move_limit(self):
-        zzl1 = self.low + self.albefa * (self.x - self.low)
-        zzu1 = self.upp - self.albefa * (self.upp - self.x)
-        return zzl1, zzu1
+        zzl2 = self.low + self.albefa * (self.x - self.low)
+        zzu2 = self.upp - self.albefa * (self.upp - self.x)
+        return zzl2, zzu2
 
 
 class MMASquared(MMA):

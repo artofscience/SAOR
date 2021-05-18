@@ -11,6 +11,11 @@ from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.util.plotter import Plot, Plot2
+from sao.convergence_criteria.ObjChange import ObjectiveChange
+from sao.convergence_criteria.VarChange import VariableChange
+from sao.convergence_criteria.KKT import KKT
+from sao.convergence_criteria.Feasibility import Feasibility
+from sao.convergence_criteria.Alltogether import Alltogether
 # from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
@@ -32,7 +37,7 @@ logger.addHandler(stream_handler)
 # logger.addHandler(file_handler)
 
 
-def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3.0):
+def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     logger.info("Solving compliance minimization subject to volume constraint")
 
     # Instantiate problem
@@ -40,10 +45,19 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3.0):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax),
+                         approximation=Taylor1(),
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+    # subprob = Subproblem(intervening=Linear(),
+    #                      approximation=NonSphericalTaylor2(),
+    #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -58,7 +72,8 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3.0):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 250:
+    # while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -75,11 +90,15 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3.0):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
-        solver = ipopt(subprob, x0=x_k)
+        # Solve current subproblem
+        solver = ipopt(subprob)
         x_k = solver.update()
         solves += solver.itera
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
 
         itte += 1
 
@@ -130,7 +149,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -142,7 +161,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
     print(solves)
 
 
-def example_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01, kout=0.01):
+def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01, kout=0.01):
     logger.info("Solving displacement minimization subject to volume constraint")
 
     # Instantiate problem
@@ -168,7 +187,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01,
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 250:
+    while itte < 500:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -185,7 +204,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, kin=0.01,
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
@@ -205,10 +224,10 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+    # subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
+    #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -223,7 +242,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(9, prob.n, 60))
 
     # Optimization loop
-    while itte < 250:
+    while itte < 500:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -240,7 +259,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         solver = ipopt(subprob)
         x_k = solver.update()
@@ -257,6 +276,78 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate problem
     prob = Compliance(nelx, nely, volfrac, penal, rmin)
+    assert prob.n == nelx * nely
+
+    # Define variable and response sets as dictionaries
+    var_set = {0: np.arange(0, prob.n)}
+    resp_set = {0: np.array([0]),
+                1: np.array([1])}
+
+    # Instantiate a mixed approximation scheme
+    subprob_map = {
+                   (0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
+                                                      xmax=prob.xmax[var_set[0]],
+                                                      move_limit=1.0)),
+                   (1, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
+                                                      xmax=prob.xmax[var_set[0]],
+                                                      move_limit=1.0))
+                   }
+
+    # Instantiate a mixed scheme
+    subprob = Mixed(subprob_map, var_set, resp_set)
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+    vis = None
+    solves = 0
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2_flag = False
+    if plotter2_flag:
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
+
+    # Optimization loop
+    while itte < 500:
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+
+        # Print current iteration and x_k
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df)
+
+        # Plot current approximation
+        if plotter2_flag:
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+
+        # Solve current subproblem
+        solver = ipopt(subprob)
+        x_k = solver.update()
+        solves += solver.itera
+
+        itte += 1
+
+    logger.info('Optimization loop converged!')
+    print(solves)
+
+
+def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
+    logger.info("Solving compliance minimization subject to aggregated stress constraint with y=Mixed")
+
+    # Instantiate problem
+    prob = Stress(nelx, nely, volfrac, penal, rmin, max_stress=max_stress)
     assert prob.n == nelx * nely
 
     # Define variable and response sets as dictionaries
@@ -290,7 +381,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 250:
+    while itte < 500:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -307,7 +398,146 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+
+        # Solve current subproblem
+        solver = ipopt(subprob, x0=x_k)
+        x_k = solver.update()
+        solves += solver.itera
+
+        itte += 1
+
+    logger.info('Optimization loop converged!')
+    print(solves)
+
+
+def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01, kout=0.001):
+    logger.info("Solving displacement minimization subject to volume constraint")
+
+    # Instantiate problem
+    prob = Mechanism(nelx, nely, volfrac, penal, rmin, kin=kin, kout=kout)
+    assert prob.n == nelx * nely
+
+    # Define variable and response sets as dictionaries
+    var_set = {0: np.arange(0, prob.n)}
+    resp_set = {0: np.array([0]),
+                1: np.array([1])}
+
+    # Instantiate a mixed approximation scheme
+    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]])),
+                   (1, 0): Subproblem(intervening=Linear(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                      xmax=prob.xmax[var_set[0]]))}
+
+    # Instantiate a mixed scheme
+    subprob = Mixed(subprob_map, var_set, resp_set)
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+    vis = None
+    solves = 0
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2_flag = False
+    if plotter2_flag:
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
+
+    # Optimization loop
+    while itte < 500:
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+
+        # Print current iteration and x_k
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df)
+
+        # Plot current approximation
+        if plotter2_flag:
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+
+        # Solve current subproblem
+        solver = ipopt(subprob, x0=x_k)
+        x_k = solver.update()
+        solves += solver.itera
+
+        itte += 1
+
+    logger.info('Optimization loop converged!')
+    print(solves)
+
+
+def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
+    logger.info("Solving eigenfrequency maximization subject to volume constraint with y=Mixed")
+
+    # Instantiate problem
+    prob = Eigenvalue(nelx, nely, volfrac, penal, rmin)
+    assert prob.n == nelx * nely
+
+    # Define variable and response sets as dictionaries
+    var_set = {0: np.arange(0, prob.n)}
+    resp_set = {0: np.array([0]),
+                1: np.array([1])}
+
+    # Instantiate a mixed approximation scheme
+    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                                              xmax=prob.xmax[var_set[0]],
+                                                              move_limit=(prob.xmax - prob.xmin))),
+                   (1, 0): Subproblem(intervening=Linear(),
+                                      approximation=Taylor1(),
+                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
+                                                      xmax=prob.xmax[var_set[0]],
+                                                      move_limit=(prob.xmax - prob.xmin))
+                                      )}
+
+    # Instantiate a mixed scheme
+    subprob = Mixed(subprob_map, var_set, resp_set)
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+    vis = None
+    solves = 0
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2_flag = False
+    if plotter2_flag:
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
+
+    # Optimization loop
+    while itte < 500:
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+
+        # Print current iteration and x_k
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df)
+
+        # Plot current approximation
+        if plotter2_flag:
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
@@ -321,8 +551,15 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    # example_compliance(nelx=100, nely=50, volfrac=0.3, rmin=3)                    # use nelx=50, nely=20 for plotter2
-    # example_stress(nelx=100, nely=50, max_stress=1)                               # use nelx=50, nely=20 for plotter2
-    # example_mechanism(nelx=100, nely=50, kin=0.0005, kout=0.0005, volfrac=0.3)    # use nelx=50, nely=20 for plotter2
-    example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3)           # use nelx=50, nely=20 for plotter2
-    # example_compliance_mixed(nelx=100, nely=50, volfrac=0.3)                      # use nelx=50, nely=20 for plotter2
+    # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
+    # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
+    # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
+    example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+
+    # Mixed optimizers
+    # example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    # example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
+    # example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
+    # example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+
