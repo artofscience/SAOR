@@ -121,12 +121,30 @@ class ObjectiveChange(Criterion):
 class Feasibility(Criterion):
     """Enforces feasibility of all constraints with some "slack"."""
     def __init__(self, storage, slack=1e-4):
+        """Initialise the feasibility criteria with some allowed "slack".
+
+        The slack variable can be provided as a single value or as a list of
+        value, one per available constraint function. When only a single value
+        is provided, that value is considered for all constraint functions.
+        """
         super().__init__()
         self.storage = storage
-        self.slack = slack
+
+        # Test if the provided slack variables allow iteration, if not, the
+        # single value is repeated for the required number of constraints.
+        try:
+            _ = iter(slack)
+            self.slack = slack
+        except TypeError:
+            self.slack = [slack] * len(self.storage.f[1:])
+
+        err_msg = f"Wrong number of slack variables: {len(self.slack)}"
+        assert len(self.slack) == len(self.storage.f[1:]), err_msg
 
     def __call__(self):
-        self.done = all(c < self.slack for c in self.storage.f[1:])
+        """Assert feasibility for each constraint with its allowed slack."""
+        self.done = all(c < s
+                        for (c, s) in zip(self.storage.f[1:], self.slack))
 
 
 class IterationCount(Criterion):
