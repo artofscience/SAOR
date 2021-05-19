@@ -37,6 +37,9 @@ def example_truss2d():
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(force_convex=True),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
@@ -44,18 +47,15 @@ def example_truss2d():
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
+    plotter2_flag = False
+    if plotter2_flag:
+        plotter2 = Plot2(prob)
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
-    plotter2_flag = True
-    if plotter2_flag:
-        plotter2 = Plot2(prob)
 
     # Optimization loop
     while not criterion.converged:
@@ -137,6 +137,9 @@ def example_truss2d_mixed():
     # Instantiate a mixed scheme
     subprob = Mixed(subprob_map, var_set, resp_set)
 
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
@@ -144,18 +147,15 @@ def example_truss2d_mixed():
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob, responses=np.arange(0, prob.m + 1), variables=np.arange(0, prob.n))
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
 
     # Optimization loop
     while not criterion.converged:
@@ -191,4 +191,4 @@ def example_truss2d_mixed():
 
 if __name__ == "__main__":
     example_truss2d()
-    # example_truss2d_mixed()
+    example_truss2d_mixed()

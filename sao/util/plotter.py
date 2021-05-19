@@ -366,16 +366,23 @@ class Plot3(Plot2):
         :return:
         """
 
+        # Create a list of figures to plot on
+        if self.iter == 0:
+            for i in self.vars:
+                for j in self.resp:
+                    self.fig.append(plt.subplots(1, 1)[0])
+                    self.fig_idx[j, i] = plt.gcf().number
+
         # Initialize plotting arrays for g_j(x_curr) and g_j_tilde(x_curr)
         prob_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
         approx_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
 
         # Sweep all subproblems
-        for p in range(0, subprob.num_of_resp_sets):
-            for l in range(0, subprob.num_of_var_sets):
+        for p in range(0, len(subprob.responses.keys())):
+            for l in range(0, len(subprob.variables.keys())):
 
                 # For all design vars x_i
-                for idx_var, i in enumerate(subprob.var_set[l]):
+                for idx_var, i in enumerate(subprob.variables[l]):
 
                     # Make x_curr = x_k so that all design vars remain equal to x_k apart from the one you sweep
                     x_curr = x_k.copy()
@@ -392,7 +399,7 @@ class Plot3(Plot2):
                         approx_response_array[:, k] = subprob.g(x_curr)
 
                     # For all responses g_j
-                    for idx_resp, j in enumerate(subprob.resp_set[p]):
+                    for idx_resp, j in enumerate(subprob.responses[p]):
 
                         # Get current figure and axes handles
                         plt.figure(self.fig_idx[j, i])
@@ -415,14 +422,14 @@ class Plot3(Plot2):
                                                   label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
 
                         # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
-                        if subprob.subprob_map[p, l].inter.__class__.__name__ == 'MMA':
+                        if subprob[p, l].inter.__class__.__name__ == 'MMA':
                             # L_i = plt.axvline(x=subprob.inter.low[i], color='g', label=f'$L_{i}^{{(k)}}$')
                             # U_i = plt.axvline(x=subprob.inter.upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
 
                             # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
                             for k in range(0, self.x.shape[1]):
-                                if (self.x[i, k] <= 1.01 * subprob.subprob_map[p, l].inter.low[idx_var]) \
-                                   or (self.x[i, k] >= 0.99 * subprob.subprob_map[p, l].inter.upp[idx_var]):
+                                if (self.x[i, k] <= 1.01 * subprob[p, l].inter.low[idx_var]) \
+                                   or (self.x[i, k] >= 0.99 * subprob[p, l].inter.upp[idx_var]):
                                     approx_response_array[j, k] = np.NaN
 
                         # Alternate between red and blue plots to tell them apart easily
@@ -466,8 +473,8 @@ class Plot3(Plot2):
                         ax.set(xlabel=f'$x_{i}$', ylabel=f'$g_{j}$',
                                # xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
                                ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)),
-                               title='%s: {} - {} \n  $iter = {}$'.format(subprob.subprob_map[p, l].inter.__class__.__name__,
-                                                                          subprob.subprob_map[p, l].approx.__class__.__name__,
+                               title='%s: {} - {} \n  $iter = {}$'.format(subprob[p, l].inter.__class__.__name__,
+                                                                          subprob[p, l].approx.__class__.__name__,
                                                                           itte)
                                      % prob.__class__.__name__)
 
@@ -564,17 +571,17 @@ class Plot3(Plot2):
                 z_approx[:, k2, k1] = subprob.g(x_curr)
 
         # For MMA family: Force response values farther than asymptotes to NaN
-        for p in range(0, subprob.num_of_resp_sets):
-            for l in range(0, subprob.num_of_var_sets):
-                if subprob.subprob_map[p, l].inter.__class__.__name__ == 'MMA':
-                    for i in range(0, subprob.subprob_map[p, l].m + 1):
+        for p in range(0, len(subprob.responses.keys())):
+            for l in range(0, len(subprob.variables.keys())):
+                if subprob[p, l].inter.__class__.__name__ == 'MMA':
+                    for i in range(0, subprob[p, l].m + 1):
                         for k2 in range(0, self.x.shape[1]):
-                            if (self.x[1, k2] < 1.01 * subprob.subprob_map[p, l].inter.low[1]) or \
-                                    (self.x[1, k2] > 0.99 * subprob.subprob_map[p, l].inter.upp[1]):
+                            if (self.x[1, k2] < 1.01 * subprob[p, l].inter.low[1]) or \
+                                    (self.x[1, k2] > 0.99 * subprob[p, l].inter.upp[1]):
                                 z_approx[:, k2, :] = np.NaN
                         for k1 in range(0, self.x.shape[1]):
-                            if (self.x[0, k1] < 1.01 * subprob.subprob_map[p, l].inter.low[0]) or \
-                                    (self.x[0, k1] > 0.99 * subprob.subprob_map[p, l].inter.upp[0]):
+                            if (self.x[0, k1] < 1.01 * subprob[p, l].inter.low[0]) or \
+                                    (self.x[0, k1] > 0.99 * subprob[p, l].inter.upp[0]):
                                 z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde

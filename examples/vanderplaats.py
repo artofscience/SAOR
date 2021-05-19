@@ -8,7 +8,12 @@ from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.util.plotter import Plot, Plot2
+from sao.util.plotter import Plot, Plot2, Plot3
+from sao.convergence_criteria.ObjChange import ObjectiveChange
+from sao.convergence_criteria.VarChange import VariableChange
+from sao.convergence_criteria.KKT import KKT
+from sao.convergence_criteria.Feasibility import Feasibility
+from sao.convergence_criteria.Alltogether import Alltogether
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -31,18 +36,18 @@ def example_vanderplaats(N):
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
-    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob = Subproblem(intervening=MMASquared(prob.xmin, prob.xmax), approximation=Taylor1(),
+    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
 
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
-    xold1 = np.zeros_like(x_k)
-    vis = None
-    solves = 0
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
@@ -50,8 +55,14 @@ def example_vanderplaats(N):
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+    vis = None
+    solves = 0
+
     # Optimization loop
-    while np.linalg.norm(x_k - xold1) > 1e-3:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -72,12 +83,11 @@ def example_vanderplaats(N):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-        solver = ipopt(subprob, epsimin=1e-9, x0=x_k)
-        x = solver.update()
-        solves += solver.itera
-        xold1 = x_k.copy()
-        x_k = x.copy()
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+
+        # solver = ipopt(subprob, epsimin=1e-9)
+        # x_k = solver.update()
+        # solves += solver.iterin
 
         itte += 1
 
@@ -142,6 +152,13 @@ def example_vanderplaats_mixed(N):
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
     plotter2_flag = False
@@ -151,11 +168,10 @@ def example_vanderplaats_mixed(N):
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
-    xold1 = np.zeros_like(x_k)
     vis = None
 
     # Optimization loop
-    while np.linalg.norm(x_k - xold1) > 1e-3:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -176,13 +192,11 @@ def example_vanderplaats_mixed(N):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-        xold1 = x_k.copy()
-        x_k = x.copy()
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
-        # solver = ipb(subprob, epsimin=1e-7)
-        # solver.update()
-        # x_k = solver.x.copy()
+        # solver = ipopt(subprob, epsimin=1e-9)
+        # x_k = solver.update()
+        # solves += solver.iterin
 
         itte += 1
 
@@ -190,5 +204,5 @@ def example_vanderplaats_mixed(N):
 
 
 if __name__ == "__main__":
-    # example_vanderplaats(100)
+    example_vanderplaats(100)
     example_vanderplaats_mixed(100)

@@ -39,8 +39,9 @@ def example_square_Svanberg(n):
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
-    # subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
@@ -49,21 +50,17 @@ def example_square_Svanberg(n):
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2_flag = False
+    if plotter2_flag:
+        plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
 
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2_flag = True
-    if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
-
     # Optimization loop
-    # while itte < 500:
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
@@ -104,9 +101,12 @@ def example_square_ipx(n):
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
                          ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
@@ -114,8 +114,12 @@ def example_square_ipx(n):
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
 
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+
     # Optimization loop
-    while itte < 50:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -137,7 +141,10 @@ def example_square_ipx(n):
         # Solve current subproblem
         solver = ipx(subprob, epsimin=1e-6)
         x_k = solver.update()
-        print(solver.itera)
+        print(solver.iterin)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=solver.w.lam, df=df)
 
         itte += 1
 
@@ -155,9 +162,12 @@ def example_square_ipxy(n):
     subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
@@ -165,8 +175,12 @@ def example_square_ipxy(n):
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
 
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+
     # Optimization loop
-    while itte < 50:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -188,7 +202,10 @@ def example_square_ipxy(n):
         # Solve current subproblem
         solver = ipxy(subprob, epsimin=1e-6)
         x_k = solver.update()
-        print(solver.itera)
+        print(solver.iterin)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=solver.w.lam, df=df)
 
         itte += 1
 
@@ -205,9 +222,12 @@ def example_square_ipxyz(n):
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
                          ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
@@ -215,8 +235,12 @@ def example_square_ipxyz(n):
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
 
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+
     # Optimization loop
-    while itte < 50:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -238,7 +262,10 @@ def example_square_ipxyz(n):
         # Solve current subproblem
         solver = ipxyz(subprob, epsimin=1e-6)
         x_k = solver.update()
-        print(solver.itera)
+        print(solver.iterin)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=solver.w.lam, df=df)
 
         itte += 1
 
@@ -273,9 +300,12 @@ def example_square_mixed(n):
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint_1'], path=".")
@@ -283,8 +313,12 @@ def example_square_mixed(n):
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+
     # Optimization loop
-    while itte < 50:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -303,8 +337,10 @@ def example_square_mixed(n):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-        x_k = x.copy()
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         itte += 1
 
