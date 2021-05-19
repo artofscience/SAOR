@@ -3,7 +3,7 @@ import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, ConLin, MMA, ReciSquared, ReciCubed
-from sao.move_limits.move_limit import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimit
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -37,7 +37,7 @@ def example_vanderplaats(N):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -118,35 +118,35 @@ def example_vanderplaats_mixed(N):
     subprob_map = {
                    (0, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (0, 1): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[1]],
                                                               xmax=prob.xmax[var_set[1]])),
                    (1, 0): Subproblem(intervening=ConLin(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (1, 1): Subproblem(intervening=ReciSquared(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[1]],
                                                               xmax=prob.xmax[var_set[1]])),
                    (2, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (2, 1): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[1]],
                                                               xmax=prob.xmax[var_set[1]])),
                    (3, 0): Subproblem(intervening=ConLin(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (3, 1): Subproblem(intervening=ReciCubed(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[1]],
                                                               xmax=prob.xmax[var_set[1]]))
                    }
 

@@ -4,7 +4,11 @@ from sao.problems.subproblem import Subproblem
 
 
 class Mixed(Subproblem):
-    """Implements a subproblem with multiple variable and response sets."""
+    """Implements a subproblem with multiple variable and response sets.
+
+    TODO: improve documentation on input types and the formulation of the
+    required subproblem, variable, and response mappings.
+    """
 
     def __init__(self, subproblems, variables, responses):
         """Store response/variable mapping and initialise arrays."""
@@ -45,19 +49,18 @@ class Mixed(Subproblem):
         self.n, self.m = len(x), len(f) - 1
         self.f, self.df, self.ddf = f, df, ddf
 
+        # The mixed subproblem is constructed by building each of the defined
+        # subproblems within this mixed instance. This loop runs over all
+        # available response `i, r` and variable `j, v` sets and invokes the
+        # corresponding subproblems obtained by the combined keys `i, j` into
+        # the subproblem index. The second order derivatives `ddf` need only
+        # be considered when they are set.
         for ((i, j), (r, v)) in self.items():
             ddf = None if ddf is None else self.ddf[np.ix_(r, v)]
             self[i, j].build(x[v], f[r], df[np.ix_(r, v)], ddf)
 
-        # Get mixed subproblem bounds
-        # TODO: is this required to be placed within a separate function
-        # `get_bounds`, this is only called here and could possibly be
-        # collapsed into this `build` function directly?
-        self.get_bounds()
-
-    def get_bounds(self):
-        """Build the "alpha" and "beta" bounds.
-        """
+        # The alpha/beta bounds are build by merging the alpha/beta bounds for
+        # each of the defined subproblems in the mixed subproblem
         self.alpha[:] = -np.inf
         self.beta[:] = np.inf
 

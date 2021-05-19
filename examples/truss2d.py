@@ -3,7 +3,7 @@ import logging
 from Problems.Li2015_Fig4 import Li2015Fig4
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA, NoMoveLimit
+from sao.move_limits.move_limit import Movelimit, MoveLimitMMA, NoMoveLimit
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -35,7 +35,7 @@ def example_truss2d():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(force_convex=True),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=5.0))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=5.0))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -110,7 +110,7 @@ def example_truss2d_mixed():
                                                      move_limit=100.0)),
                    # (0, 1): Subproblem(intervening=Linear(),
                    #                    approximation=Taylor1(),
-                   #                    ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                   #                    ml=Movelimit(xmin=prob.xmin[var_set[1]],
                    #                                            xmax=prob.xmax[var_set[1]],
                    #                                            move_limit=15.0)),
                    (1, 0): Subproblem(intervening=MMA(prob.xmin[var_set[0]], prob.xmax[var_set[0]]),
@@ -120,7 +120,7 @@ def example_truss2d_mixed():
                                                      move_limit=100.0)),
                    # (1, 1): Subproblem(intervening=MMA(prob.xmin[var_set[1]], prob.xmax[var_set[1]]),
                    #                    approximation=Taylor1(),
-                   #                    ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                   #                    ml=Movelimit(xmin=prob.xmin[var_set[1]],
                    #                                            xmax=prob.xmax[var_set[1]],
                    #                                            move_limit=15.0)),
                    # (2, 0): Subproblem(intervening=Linear(),

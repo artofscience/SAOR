@@ -4,7 +4,7 @@ import logging
 from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, Reciprocal
-from sao.move_limits.move_limit import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimit
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 
@@ -36,19 +36,19 @@ def test_mixed(n, h):
     # Instantiate subproblem objects for a mixed approximation scheme
     subprob_map = {(0, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor2(force_convex=False),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (0, 1): Subproblem(intervening=Reciprocal(),
                                       approximation=Taylor2(force_convex=False),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[1]],
                                                               xmax=prob.xmax[var_set[1]])),
                    (1, 0): Subproblem(intervening=Reciprocal(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (1, 1): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[1]],
+                                      ml=MoveLimit(xmin=prob.xmin[var_set[1]],
                                                               xmax=prob.xmax[var_set[1]]))}
 
     # Instantiate a mixed scheme

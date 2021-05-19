@@ -1,3 +1,5 @@
+import math
+
 from abc import ABC, abstractmethod
 
 
@@ -14,6 +16,16 @@ class Intervening(ABC):
     second derivatives of the mapping and their inverses, see the reference
     material at: `ReferenceFiles/TaylorExpansion.pdf`.
     """
+
+    @property
+    def alpha(self):
+        """A lower bound of the feasible range for the intervening variable."""
+        return -math.inf
+
+    @property
+    def beta(self):
+        """A upper bound of the feasible range for the intervening variable."""
+        return +math.inf
 
     @abstractmethod
     def y(self, x):

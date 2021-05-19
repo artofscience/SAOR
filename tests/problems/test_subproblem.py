@@ -4,7 +4,7 @@ import logging
 from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, ConLin, Reciprocal, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimit
 from sao.problems.subproblem import Subproblem
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -24,7 +24,7 @@ def test_lin_taylor1(n, h):
     logger.info("Testing Subproblem(Taylor1, y=x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
 
     # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
@@ -43,7 +43,7 @@ def test_lin_taylor2(n, h):
     logger.info("Subproblem(Taylor2, y=x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Linear(), approximation=Taylor2(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
 
     # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
@@ -64,7 +64,7 @@ def test_rec_taylor1(n, h):
     logger.info("Testing Subproblem(Taylor1, y=1/x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
     inter = Reciprocal()
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
@@ -89,7 +89,7 @@ def test_rec_taylor2(n, h):
     logger.info("Testing Subproblem(Taylor2, y=1/x)")
     prob = Square(n)
     subprob = Subproblem(intervening=Reciprocal(), approximation=Taylor2(force_convex=False),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
     inter = Reciprocal()
     inter.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
@@ -120,7 +120,7 @@ def test_conlin_taylor1(n, h):
     logger.info("Testing Subproblem(Taylor1, y=ConLin)")
     prob = Square(n)
     subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
     inter = ConLin()
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
@@ -144,7 +144,7 @@ def test_conlin_taylor2(n, h):
     logger.info("Testing Subproblem(Taylor2, y=ConLin)")
     prob = Square(n)
     subprob = Subproblem(intervening=ConLin(), approximation=Taylor2(force_convex=False),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
     inter = ConLin()
     inter.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
@@ -176,7 +176,7 @@ def test_mma_taylor1(n, h):
     logger.info("Testing Subproblem(Taylor1, y=MMA)")
     prob = Square(n)
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
     inter = MMA(prob.xmin, prob.xmax)
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
@@ -200,7 +200,7 @@ def test_mma_taylor2(n, h):
     logger.info("Testing Subproblem(Taylor2, y=MMA)")
     prob = Square(n)
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor2(force_convex=False),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
     inter = MMA(prob.xmin, prob.xmax)
     inter.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))

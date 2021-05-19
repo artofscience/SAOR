@@ -1,11 +1,13 @@
+import numpy as np
+
 from sao.problems.problem import Problem
 from sao.intervening_variables import Linear
 from sao.approximations.taylor import Taylor1
-from sao.move_limits.move_limit import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimit
 
 
 class Subproblem(Problem):
-    def __init__(self, intervening=Linear(), approximation=Taylor1(), ml=MoveLimitIntervening()):
+    def __init__(self, intervening=Linear(), approximation=Taylor1(), ml=MoveLimit()):
         super().__init__()
         self.inter = intervening
         self.approx = approximation
@@ -23,7 +25,18 @@ class Subproblem(Problem):
         else:
             self.approx.update(x, self.inter.y, f, df, self.inter.dxdy)
 
-        self.alpha, self.beta = self.ml.update(x, intervening=self.inter)
+        # Enforce restriction on the possible step size within the subproblem.
+        # The step is restricted by the chosen move limit strategy as well as
+        # the feasible range of the intervening variables. First the move
+        # limits are applied to constraint the step size.
+        self.alpha, self.beta = self.ml(x)
+
+        # Additional constraint on the step size by the feasible range of the
+        # intervening variables. This prevents the subsolver to make an update
+        # that causes the intervening variable to reach unreachable values,
+        # e.g. cross the lower/upper bounds in the MMA asymptotes.
+        self.alpha = np.maximum(self.alpha, self.inter.alpha)
+        self.beta = np.minimum(self.beta, self.inter.beta)
 
     def g(self, x):
         return self.approx.g(self.inter.y(x).T)

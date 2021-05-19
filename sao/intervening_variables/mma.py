@@ -33,6 +33,22 @@ class MMA(Intervening):
         # A boolean indicator array that keeps track of the positive (and negative) values of the variables
         self.positive = None
 
+    @property
+    def alpha(self):
+        """A lower bound of the feasible range for the intervening variable.
+
+        TODO: add details on this formulation here.
+        """
+        return self.low + self.albefa * (self.x - self.low)
+
+    @property
+    def beta(self):
+        """A upper bound of the feasible range for the intervening variable.
+
+        TODO: add details on this formulation here.
+        """
+        return self.upp - self.albefa * (self.upp - self.x)
+
     def update(self, x, f, df):
         """Update state of previous iterations."""
         self.xold2 = self.xold1
@@ -107,10 +123,6 @@ class MMA(Intervening):
         ddxddy[~self.positive] = np.broadcast_to(2 * (x - self.low) ** 3, self.positive.shape)[~self.positive]
         return ddxddy
 
-    def get_move_limit(self):
-        zzl2 = self.low + self.albefa * (self.x - self.low)
-        zzu2 = self.upp - self.albefa * (self.upp - self.x)
-        return zzl2, zzu2
 
 
 class MMASquared(MMA):

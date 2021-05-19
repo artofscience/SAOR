@@ -6,7 +6,7 @@ from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
 from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
+from sao.move_limits.move_limit import Movelimit, MoveLimitMMA
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
@@ -47,7 +47,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                          approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
     # subprob = Subproblem(intervening=Linear(),
     #                      approximation=NonSphericalTaylor2(),
     #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
@@ -115,7 +115,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
 
     # Instantiate a non-mixed approximation scheme
     # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    #                      ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
                          ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
@@ -181,7 +181,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
 
     # Instantiate a non-mixed approximation scheme
     # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    #                      ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax))
     subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
                          ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
@@ -247,7 +247,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
     # subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
     #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
 
@@ -403,7 +403,7 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
     subprob_map = {
                    (0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=Movelimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (1, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
@@ -484,11 +484,11 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
     subprob_map = {
                    (0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=Movelimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (1, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=Movelimit(xmin=prob.xmin[var_set[0]],
                                                       xmax=prob.xmax[var_set[0]]))
                    }
 
@@ -565,7 +565,7 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     subprob_map = {
                    (0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=Movelimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]],
                                                               move_limit=(prob.xmax - prob.xmin))),
                    (1, 0): Subproblem(intervening=Linear(),

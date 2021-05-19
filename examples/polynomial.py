@@ -3,7 +3,7 @@ import logging
 from Problems.QuadPoly1D import QuadPoly1D
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
+from sao.move_limits.move_limit import Movelimit, MoveLimitMMA
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -36,7 +36,7 @@ def example_poly():
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                          approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=15.0))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=15.0))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

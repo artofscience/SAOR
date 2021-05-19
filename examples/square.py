@@ -3,7 +3,7 @@ import logging
 from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
+from sao.move_limits.move_limit import Movelimit, MoveLimitMMA
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointX as ipx
@@ -38,7 +38,7 @@ def example_square_Svanberg(n):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -162,7 +162,7 @@ def example_square_ipxy(n):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=ConLin(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
@@ -223,7 +223,7 @@ def example_square_ipxyz(n):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax))
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
@@ -290,11 +290,11 @@ def example_square_mixed(n):
     subprob_map = {
                    (0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=Movelimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]])),
                    (1, 0): Subproblem(intervening=Linear(),
                                       approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
+                                      ml=Movelimit(xmin=prob.xmin[var_set[0]],
                                                               xmax=prob.xmax[var_set[0]]))
                    }
 
