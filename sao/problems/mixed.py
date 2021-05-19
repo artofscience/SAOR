@@ -1,89 +1,98 @@
-## Imports
-from sao.problems.subproblem import Subproblem
+"""Mixed scheme subproblem implementation."""
 import numpy as np
+from sao.problems.subproblem import Subproblem
 
 
-## Mixed scheme assembly class
 class Mixed(Subproblem):
+    """Implements a subproblem with multiple variable and response sets."""
 
-    def __init__(self, subprob_map, var_set, resp_set):
-        self.num_of_var_sets = len(var_set.keys())                      # number of variable sets
-        self.num_of_resp_sets = len(resp_set.keys())                    # number of response sets
+    def __init__(self, subproblems, variables, responses):
+        """Store response/variable mapping and initialise arrays."""
+        self.subproblems = subproblems
+        self.variables = variables
+        self.responses = responses
 
-        # Calculate n, m
-        self.n = 0
-        self.m = -1
-        for l in range(0, self.num_of_var_sets):
-            self.n += len(var_set[l])
-        for p in range(0, self.num_of_resp_sets):
-            self.m += len(resp_set[p])
+        self.n = sum(sum(v) for v in self.variables.values())
+        self.m = sum(sum(r) for r in self.responses.values())
 
-        # Initialize arrays
         self.alpha = np.zeros(self.n, dtype=float)
         self.beta = np.ones(self.n, dtype=float)
-        self.f = np.zeros(self.m + 1, dtype=float)
-        self.df = np.zeros((self.m + 1, self.n), dtype=float)
-        self.ddf = np.zeros((self.m + 1, self.n), dtype=float)
+        self.f = np.zeros(self.m, dtype=float)
+        self.df = np.zeros((self.m, self.n), dtype=float)
+        self.ddf = np.zeros((self.m, self.n), dtype=float)
 
-        # Store dictionaries
-        self.subprob_map = subprob_map                                  # dictionary of subproblems
-        self.var_set = var_set                                          # dictionary of variable sets
-        self.resp_set = resp_set                                        # dictionary of response sets
+    def __getitem__(self, key):
+        """Get subproblem by indexing on class instance."""
+        return self.subproblems[key]
 
+    def __setitem__(self, key, value):
+        """Set subproblem value by indexing on class instance."""
+        self.subproblems[key] = value
+
+    def items(self):
+        """Yields all indices and values of the responses and variable sets.
+
+        This is a shorthand for iterating of the product of the (keys, values)
+        of both the variable and response sets. It mostly acts to reduce the
+        double loops throughout this class.
+        """
+        for (i, response) in self.responses.items():
+            for (j, variable) in self.variables.items():
+                yield ((i, j), (response, variable))
 
     def build(self, x, f, df, ddf=None):
-        self.n, self.m = len(x), len(f) - 1             # to fit Stijn's solvers
+        """Builds the subproblem for all variable and response sets."""
+        self.n, self.m = len(x), len(f) - 1
         self.f, self.df, self.ddf = f, df, ddf
 
-        # Build constituent subproblems
-        for p in range(0, self.num_of_resp_sets):
-            for l in range(0, self.num_of_var_sets):
-                if ddf is not None:
-                    self.subprob_map[p, l].build(x[self.var_set[l]],
-                                                 f[self.resp_set[p]],
-                                                 df[np.ix_(self.resp_set[p], self.var_set[l])],
-                                                 ddf[np.ix_(self.resp_set[p], self.var_set[l])])
-                else:
-                    self.subprob_map[p, l].build(x[self.var_set[l]],
-                                                 f[self.resp_set[p]],
-                                                 df[np.ix_(self.resp_set[p], self.var_set[l])])
+        for ((i, j), (r, v)) in self.items():
+            ddf = None if ddf is None else self.ddf[np.ix_(r, v)]
+            self[i, j].build(x[v], f[r], df[np.ix_(r, v)], ddf)
 
         # Get mixed subproblem bounds
+        # TODO: is this required to be placed within a separate function
+        # `get_bounds`, this is only called here and could possibly be
+        # collapsed into this `build` function directly?
         self.get_bounds()
 
     def get_bounds(self):
+        """Build the "alpha" and "beta" bounds.
+        """
         self.alpha[:] = -np.inf
         self.beta[:] = np.inf
-        for p in range(0, self.num_of_resp_sets):
-            for l in range(0, self.num_of_var_sets):
-                self.alpha[self.var_set[l]] = np.maximum(self.alpha[self.var_set[l]],
-                                                         self.subprob_map[p, l].alpha)
-                self.beta[self.var_set[l]] = np.minimum(self.beta[self.var_set[l]],
-                                                        self.subprob_map[p, l].beta)
+
+        for ((i, j), (r, v)) in self.items():
+            self.alpha[v] = np.maximum(self.alpha[v], self[i, j].alpha)
+            self.beta[v] = np.minimum(self.beta[v], self[i, j].beta)
 
     def g(self, x):
-        g_value = - (self.num_of_var_sets - 1) * self.f      # cuz each time a var_set is added, so is the const. term
-        for p in range(0, self.num_of_resp_sets):
-            for l in range(0, self.num_of_var_sets):
-                g_value[self.resp_set[p]] += self.subprob_map[p, l].approx.g(
-                    self.subprob_map[p, l].inter.y(x[self.var_set[l]]).T)
-        return g_value
+        """Approximate the function value across all responses."""
+        # Each time a variables is added: so should the constant term
+        result = - (len(self.variables) - 1) * self.f
+
+        for ((i, j), (r, v)) in self.items():
+            result[r] += self[i, j].approx.g(self[i, j].inter.y(x[v]).T)
+
+        return result
 
     def dg(self, x):
-        dg_value = np.zeros_like(self.df)
-        for p in range(0, self.num_of_resp_sets):
-            for l in range(0, self.num_of_var_sets):
-                dg_value[np.ix_(self.resp_set[p], self.var_set[l])] = self.subprob_map[p, l].approx.dg(
-                    self.subprob_map[p, l].inter.y(x[self.var_set[l]]).T,
-                    self.subprob_map[p, l].inter.dydx(x[self.var_set[l]]))
-        return dg_value
+        """Approximate the derivative across all responses/variables."""
+        result = np.zeros_like(self.df)
+
+        for ((i, j), (r, v)) in self.items():
+            result[np.ix_(r, v)] = self[i, j].approx.dg(
+                self[i, j].inter.y(x[v]).T,
+                self[i, j].inter.dydx(x[v]))
+
+        return result
 
     def ddg(self, x):
-        ddg_value = np.zeros_like(self.df)
-        for p in range(0, self.num_of_resp_sets):
-            for l in range(0, self.num_of_var_sets):
-                ddg_value[np.ix_(self.resp_set[p], self.var_set[l])] = self.subprob_map[p, l].approx.ddg(
-                    self.subprob_map[p, l].inter.y(x[self.var_set[l]]).T,
-                    self.subprob_map[p, l].inter.dydx(x[self.var_set[l]]),
-                    self.subprob_map[p, l].inter.ddyddx(x[self.var_set[l]]))
-        return ddg_value
+        """Approximate the second derivative of all responses/variables."""
+        result = np.zeros_like(self.df)
+        for ((i, j), (r, v)) in self.items():
+            result[np.ix_(r, v)] = self[i, j].approx.ddg(
+                self[i, j].inter.y(x[v]).T,
+                self[i, j].inter.dydx(x[v]),
+                self[i, j].inter.ddyddx(x[v]))
+
+        return result
