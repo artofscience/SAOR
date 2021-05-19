@@ -53,7 +53,6 @@ def test_square_ipxyz(n):
         subprob.build(x_k, f, df, ddf)
         solver = ipxyz(subprob, epsimin=1e-6)
         x_k = solver.update()
-        print(solver.itera)
 
         itte += 1
 
