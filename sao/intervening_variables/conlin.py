@@ -5,10 +5,13 @@ from .exponential import Linear, Reciprocal
 
 
 class ConLin(Intervening):
-    """The ``ConLin`` formulation of intervening variables.
+    """The ``ConLin`` formulation of intervening variables, introduced by:
+    https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620230307.
 
-    A combination of `Linear` and `Reciprocal` intervening variables.
-    # TODO: improve documentation including references.
+    This is a 1st-order Taylor expansion with respect to the mixed (i.e. a combination of `Linear` and `Reciprocal`)
+    intervening variables:
+        y_i = x_i     ,  if dg_j/dx_i >= 0
+        y_i = 1/x_i   ,  if dg_j/dx_i < 0
     """
     def __init__(self):
         # The linear and reciprocal intervening variables

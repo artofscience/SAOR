@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_vars.intervening import Linear, ConLin, MMA, ReciSquared, ReciCubed
+from sao.intervening_variables import Linear, ConLin, MMA, ReciSquared, ReciCubed
 from sao.move_limits.move_limit import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
@@ -69,7 +69,7 @@ def example_vanderplaats(N):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
         # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
@@ -173,7 +173,7 @@ def example_vanderplaats_mixed(N):
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_approx(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
         x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
