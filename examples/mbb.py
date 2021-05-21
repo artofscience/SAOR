@@ -60,7 +60,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -80,9 +80,10 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -126,7 +127,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -146,9 +147,10 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
 
         # Print current iteration and x_k
         vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -191,7 +193,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -211,9 +213,10 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -256,7 +259,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(9, prob.n, 60))
@@ -276,9 +279,10 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -337,7 +341,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -357,9 +361,10 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -417,7 +422,7 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -437,9 +442,10 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
 
         # Print current iteration and x_k
         vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -497,7 +503,7 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -517,9 +523,10 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -579,7 +586,7 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -599,9 +606,10 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'
+                    '|  max_constr_viol: {:^6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]), max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)

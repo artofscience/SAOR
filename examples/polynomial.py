@@ -49,7 +49,7 @@ def example_poly():
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
@@ -67,8 +67,9 @@ def example_poly():
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print & plot g_j and x_i at current iteration
-        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}'.format(itte, np.array2string(x_k[0]), f[0]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  max_constr_viol: {:^6.3f}'.format(
+            itte, np.array2string(x_k[0]), f[0], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -127,7 +128,7 @@ def example_poly_mixed():
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
@@ -145,8 +146,9 @@ def example_poly_mixed():
         ddf = None
 
         # Print & plot g_j and x_i at current iteration
-        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}'.format(itte, np.array2string(x_k[0]), f[0]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  max_constr_viol: {:^6.3f}'.format(
+            itte, np.array2string(x_k[0]), f[0], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)

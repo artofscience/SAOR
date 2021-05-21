@@ -35,7 +35,7 @@ def example_truss2d():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(force_convex=True),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=5.0))
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -48,8 +48,8 @@ def example_truss2d():
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
-    plotter2_flag = False
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'max_constr_violation'], path=".")
+    plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
@@ -66,9 +66,10 @@ def example_truss2d():
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print & plot g_j and x_i at current iteration
-        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}'.format(
-            itte, np.array2string(x_k[:]), f[0], f[1], f[2]))
-        plotter.plot([f[0], f[1], f[2]])
+        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  '
+                    'constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+            itte, np.array2string(x_k[:]), f[0], f[1], f[2], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], f[2], max(0, max(f[1:]))])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -81,7 +82,7 @@ def example_truss2d():
         # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
-        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        # Assess convergence (give the correct keyword arguments for the criterion you choose)
         criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         itte += 1
@@ -148,7 +149,7 @@ def example_truss2d_mixed():
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1', 'constraint_2'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob, responses=np.arange(0, prob.m + 1), variables=np.arange(0, prob.n))
@@ -166,9 +167,10 @@ def example_truss2d_mixed():
         ddf = None
 
         # Print & plot g_j and x_i at current iteration
-        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}'.format(
-            itte, np.array2string(x_k[:]), f[0], f[1], f[2]))
-        plotter.plot([f[0], f[1], f[2]])
+        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  '
+                    'constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+            itte, np.array2string(x_k[:]), f[0], f[1], f[2], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], f[2], max(0, max(f[1:]))])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)

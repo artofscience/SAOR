@@ -50,7 +50,7 @@ def example_vanderplaats(N):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -71,9 +71,10 @@ def example_vanderplaats(N):
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
-                itte, f[0], f[1], f[2], f[3]))
-        plotter.plot([f[0], f[1]])
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  '
+            'constr3: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], f[1 + N], f[-1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -160,7 +161,7 @@ def example_vanderplaats_mixed(N):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -180,9 +181,13 @@ def example_vanderplaats_mixed(N):
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
-                itte, f[0], f[1], f[1 + N], f[-1]))
-        plotter.plot([f[0], f[1]])
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  '
+            'constr3: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], f[+1 + N], f[-1], max(0, max(f[1:]))))
+        # logger.info(
+        #     'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
+        #         itte, f[0], f[1], f[1 + N], f[-1]))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)

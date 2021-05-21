@@ -51,7 +51,7 @@ def example_square_Svanberg(n):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
@@ -69,9 +69,10 @@ def example_square_Svanberg(n):
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
-        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
-            itte, np.array2string(x_k[0:2]), f[0], f[1]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  '
+                    '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
+                                                          max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -109,7 +110,7 @@ def example_square_ipx(n):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
@@ -127,9 +128,10 @@ def example_square_ipx(n):
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
-        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
-            itte, np.array2string(x_k[0:2]), f[0], f[1]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  '
+                    '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
+                                                          max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -170,7 +172,7 @@ def example_square_ipxy(n):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
@@ -188,9 +190,10 @@ def example_square_ipxy(n):
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
-        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
-            itte, np.array2string(x_k[0:2]), f[0], f[1]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  '
+                    '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
+                                                          max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -230,7 +233,7 @@ def example_square_ipxyz(n):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(0, prob.n, 2))
@@ -248,9 +251,10 @@ def example_square_ipxyz(n):
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print current iteration and x_k
-        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
-            itte, np.array2string(x_k[0:2]), f[0], f[1]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  '
+                    '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
+                                                          max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -308,7 +312,7 @@ def example_square_mixed(n):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -325,9 +329,10 @@ def example_square_mixed(n):
         df = prob.dg(x_k)
 
         # Print current iteration and x_k
-        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}'.format(
-            itte, np.array2string(x_k[0:2]), f[0], f[1]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  '
+                    '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
+                                                          max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -348,8 +353,8 @@ def example_square_mixed(n):
 
 
 if __name__ == "__main__":
-    example_square_Svanberg(2)
-    example_square_ipx(2)
+    example_square_Svanberg(20)
+    example_square_ipx(20)
     example_square_ipxy(20)
     example_square_ipxyz(20)
     example_square_mixed(20)
