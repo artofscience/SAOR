@@ -35,7 +35,12 @@ class MoveLimit(NoMoveLimit):
     def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1):
         """Stores the desired step-size (``trust region``)."""
         super().__init__(xmin, xmax)
-        self.move_limit = move_limit
+        self.move_limit = abs(move_limit)
+
+        # The move-limit is interpreted as a factor on the global bounds of
+        # each design variable, and thus cannot exceed [0, 1].
+        assert 0 <= self.move_limit <= 1.0, \
+            f"{self.move_limit=} cannot exceed [0, 1]."
 
     def __call__(self, x, factor=None):
         """Obtain the lower and upper bounds around the current point``x``.
@@ -44,7 +49,9 @@ class MoveLimit(NoMoveLimit):
         stored attribute ``self.move_limit``. This can be used to reuse the
         application of the move limit with various sizes of the trusted region.
         """
-        factor = factor if factor is not None else self.move_limit
+        # We take the absolute value here to prevent swapping the direction
+        # when a negative value might be supplied.
+        factor = abs(factor) if factor is not None else self.move_limit
 
         alpha = np.maximum(self.xmin, x - factor * self.dx)
         beta = np.minimum(self.xmax, x + factor * self.dx)
@@ -58,12 +65,17 @@ class MoveLimitMMA(MoveLimit):
     which aims to reduce oscillations between iterations (if observed) and
     adepts the allowed step-size for the variables accordingly.
     """
-    def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1,
-                 ml_init=0.5, ml_incr=1.2, ml_decr=0.7, ml_bound=10.0,
+    def __init__(self,
+                 xmin=-math.inf,
+                 xmax=math.inf,
+                 move_limit=0.1,
+                 ml_init=0.5,
+                 ml_incr=1.2,
+                 ml_decr=0.7,
+                 ml_bound=10.0,
                  ml_albefa=0.1):
-        super().__init__(xmin=xmin, xmax=xmax)
+        super().__init__(xmin=xmin, xmax=xmax, move_limit=move_limit)
         # TODO: document all possible settings below
-        self.move_limit = move_limit
         self.ml_init = ml_init
         self.ml_incr = ml_incr
         self.ml_decr = ml_decr
@@ -119,8 +131,8 @@ class MoveLimitMMA(MoveLimit):
         # check min and max bounds of asymptotes, as they cannot be too close
         # or far from the variable (TODO: redundant?)
         lowmin = self.x - self.ml_bound * self.dx
-        lowmax = self.x - 1 / (self.ml_bound ** 2) * self.dx
-        uppmin = self.x + 1 / (self.ml_bound ** 2) * self.dx
+        lowmax = self.x - 1 / (self.ml_bound**2) * self.dx
+        uppmin = self.x + 1 / (self.ml_bound**2) * self.dx
         uppmax = self.x + self.ml_bound * self.dx
 
         # if given asymptotes cross boundaries put them to their max/min values
