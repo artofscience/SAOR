@@ -3,7 +3,7 @@ import math
 import numpy as np
 
 
-class NoMoveLimit(object):
+class NoMoveLimit:
     """
     The simplest move limit strategy that always returns the global bounds of
     the problem, i.e. no restrictions are made on the possible steps size.
