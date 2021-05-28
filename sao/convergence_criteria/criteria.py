@@ -79,7 +79,6 @@ class Criteria(Criterion):
     This class simplifies chaining of various boolean operations with multiple
     (sub)classes from ``Criterion``.
     """
-
     def __init__(self, left, right, op):
         super().__init__()
         self.left, self.right = left, right
@@ -120,6 +119,37 @@ class ObjectiveChange(Criterion):
         self.done = bool(change < self.tolerance)
 
         # make sure to keep track of the previous iterations
+        self.previous = current
+
+
+class VariableChange(Criterion):
+    """Enforces an absolute, maximum variable change on all design variables.
+
+    The variable change is determined between two consecutive iterations and
+    the tolerance should be achieved for all defined design variables. If
+    desired, the variable change can be scaled, for instance to normalise the
+    change with respect to the maximum range of the design variables.
+    """
+    def __init__(self, storage, tolerance=1e-4, scaling=1.0):
+        """Initialise the criteria with a tolerance and scaling"""
+        super().__init__()
+        self.storage = storage
+        self.tolerance = tolerance
+        self.scaling = scaling
+        self.previous = math.inf
+
+    def __call__(self):
+        """Assert all variables show a sufficiently small change."""
+        # TODO: this requires the storage class to keep track of the current
+        # vector of design variables.
+        current = self.storage.x
+
+        # The (scaled) change of all variables should be sufficiently small
+        # before the variable change is satisfied.
+        self.done = all(
+            abs((current - self.previous) / self.scaling) < self.tolerance)
+
+        # keep track of the previous iterations value of the variables
         self.previous = current
 
 
