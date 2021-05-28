@@ -101,23 +101,20 @@ class ObjectiveChange(Criterion):
         super().__init__()
         self.storage = storage
         self.tolerance = tolerance
-        self.previous = None
+        self.previous = math.inf
         self.scaled = scaled
 
     def __call__(self):
         """Evaluate the objective changes between iterations."""
         current = self.storage.f[0]
 
-        # When the previous value is not yet defined, this criterion cannot
-        # become satisfied. Thus, only update the previous value and return.
-        if self.previous is None:
-            self.previous = current
-            return
-
-        # As the previous value is set here, we can evaluate the relative
-        # change and determine if the criterion has been achieved yes or no.
         change = abs(current - self.previous)
         if self.scaled:
+            # For the first iteration the previous value is still set to
+            # `math.inf`, resulting and infinite change and, after the next
+            # division, in a `NaN` value for the current change. However, this
+            # is handled correctly as the comparison operation with respect to
+            # the set tolerance returns `False` when comparing to `NaN`.
             change /= abs(self.previous)
 
         self.done = bool(change < self.tolerance)
