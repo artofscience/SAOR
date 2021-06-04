@@ -1,5 +1,5 @@
 from .intervening import Intervening
-
+import numpy as np
 
 class Exponential(Intervening):
     """A generic exponential intervening variable y = x^p.
@@ -28,6 +28,12 @@ class Exponential(Intervening):
 
     def ddxddy(self, x):
         return 1/self.p * (1/self.p - 1) * x ** (1 - 2*self.p)
+
+    def clip(self, x):  # TODO Maybe add some tolerance like albefa to keep the value from 0
+        if self.p < 0:
+            return np.maximum(x, 0.0, out=x)
+        else:
+            return x
 
 
 class Linear(Exponential):

@@ -23,6 +23,13 @@ class MoveLimitStrategy(ABC):
     def update(self, x, **kwargs):
         ...
 
+    def clip(self, x):
+        # TODO: Update with the simpler move limits
+        np.clip(x, self.xmin, self.xmax, out=x)
+        if hasattr(self, 'alpha') and hasattr(self, 'beta'):
+            np.clip(x, self.alpha, self.beta, out=x)
+        return x
+
 
 class NoMoveLimit(MoveLimitStrategy):
     """

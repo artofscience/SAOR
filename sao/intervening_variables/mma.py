@@ -33,7 +33,7 @@ class MMA(Intervening):
         # A boolean indicator array that keeps track of the positive (and negative) values of the variables
         self.positive = None
 
-    def update(self, x, f, df):
+    def update(self, x, f, df, *args, **kwargs):
         """Update state of previous iterations."""
         self.xold2 = self.xold1
         self.xold1 = self.x
@@ -111,6 +111,10 @@ class MMA(Intervening):
         zzl2 = self.low + self.albefa * (self.x - self.low)
         zzu2 = self.upp - self.albefa * (self.upp - self.x)
         return zzl2, zzu2
+
+    def clip(self, x):
+        l, u = self.get_move_limit()
+        return np.clip(x, l, u, out=x)
 
 
 class MMASquared(MMA):

@@ -23,7 +23,7 @@ class ConLin(Intervening):
         # Linear and Reciprocal intervening variables.
         self.positive = None
 
-    def update(self, x, f, df):
+    def update(self, x, f, df, *args, **kwargs):
         """Update the boolean indicator of the positive entries."""
         self.positive = df >= 0
 
@@ -61,3 +61,6 @@ class ConLin(Intervening):
             ddxddy[row, positive] = self.lin.ddxddy(x[positive])
             ddxddy[row, ~positive] = self.rec.ddxddy(x[~positive])
         return ddxddy
+
+    def clip(self, x):  # TODO Maybe add some tolerance like albefa to keep the value from 0
+        return np.maximum(x, 0.0, out=x)

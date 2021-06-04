@@ -18,7 +18,7 @@ class ReciFit(Intervening):
         self.a, self.b = None, None
         self.f, self.df, self.dfold1, self.fold1 = None, None, None, None
 
-    def update(self, x, f, df):
+    def update(self, x, f, df, *args, **kwargs):
         self.fold1 = self.f
         self.f = f
         self.dfold1 = self.df
@@ -70,7 +70,7 @@ class Bezier(Intervening):
         self.a, self.b, self.c = None, None, None
         self.f, self.fold1, self.fold2 = None, None, None
 
-    def update(self, x, f, df):
+    def update(self, x, f, df, *args, **kwargs):
         self.x = x
         self.fold2 = self.fold1
         self.fold1 = self.f
@@ -117,7 +117,7 @@ class PolyFit(Intervening):
         self.f, self.fold1 = None, None
         self.df, self.dfold1 = None, None
 
-    def update(self, x, f, df):
+    def update(self, x, f, df, *args, **kwargs):
         if self.fold1 is None:
             self.fold1 = 2 * f
             self.dfold1 = 2 * df

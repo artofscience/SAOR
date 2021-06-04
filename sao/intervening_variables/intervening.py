@@ -54,3 +54,6 @@ class Intervening(ABC):
         at previous iterations etc.
         """
         pass
+
+    def clip(self, x):
+        return x

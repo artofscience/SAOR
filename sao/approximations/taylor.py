@@ -1,27 +1,117 @@
 from .approximation import Approximation
+from sao.intervening_variables import Linear
+from sao.util.tools import _parse_to_list
 import numpy as np
 
 
+# class GCMMA(Approximation):
+#     def __init__(self, asyinit, asydecr, asyincr, asybound, albefa):
+#         ...
+#
+#     def update(self, x, f, df, ddf=None):
+#         calculate pij, qij
+#
+#     def g(self, x):
+#         sum ()
+
+
 class Taylor1(Approximation):
-    def g(self, y):
-        return self.f + (np.dot(self.dfdy, (y-self.y)) if len(y.shape) == 1 else np.einsum('ij,ji->i', self.dfdy, (y-self.y)))
+    def __init__(self, intervening=None):
+        if intervening is None:
+            intervening = Linear()
 
-    def dg(self, y, dy):
-        return self.dfdy * dy
+        self.interv = _parse_to_list(intervening)
+        self.g0 = None
+        self.y0 = None
+        self.dgdy = None
+        self.nresp, self.nvar = -1, -1
 
-    def ddg(self, y, dy, ddy):
-        return self.dfdy * ddy
+    def update(self, x, f, df, ddf=None):
+        self.nresp, self.nvar = df.shape
+        assert len(x) == self.nvar
+        assert len(f) == self.nresp
+        for intv in self.interv:
+            intv.update(x, f, df, ddf)
+        self.g0 = f*1
+        self.dgdy = [df/intv.dydx(x) for intv in self.interv]
+        self.y0 = [intv.y(x) for intv in self.interv]
+
+    def g(self, x, out=None):
+        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        if out is None:
+            out = np.zeros(self.nresp)
+        out[:] = self.g0
+        for dgdy_i, delta_yi in zip(self.dgdy, delta_y):
+            out += np.sum(dgdy_i * delta_yi, axis=1)
+        return out
+
+    def dg(self, x, out=None):
+        if out is None:
+            out = np.zeros((self.nresp, self.nvar))
+        for dgdy_i, intv in zip(self.dgdy, self.interv):
+            out += dgdy_i * intv.dydx(x)
+        return out
+
+    def ddg(self, x, out=None):
+        if out is None:
+            out = np.zeros((self.nresp, self.nvar))
+        for dgdy_i, intv in zip(self.dgdy, self.interv):
+            out += dgdy_i * intv.ddyddx(x)
+        return out
+
+    def clip(self, x):
+        [intv.clip(x) for intv in self.interv]
+        return x
+
+    # def g_and_dg(self, x):
+    #     ...
+    #
+    # def g_and_dg_and_ddg(self, x):
+    #     ...
 
 
 class Taylor2(Taylor1):
-    def g(self, y):
-        return super().g(y) + 0.5 * (np.dot(self.ddfddy, (y-self.y)**2) if len(y.shape) == 1 else np.einsum('ij,ji->i', self.ddfddy, (y-self.y)**2))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ddgddy = None
 
-    def dg(self, y, dy):
-        return super().dg(y, dy) + (self.ddfddy * (y-self.y).T) * dy
+    def update(self, x, f, df, ddf=None):
+        super().update(x, f, df, ddf)
+        if ddf is None:
+            raise RuntimeError("Second order taylor needs second order information")
+        self.ddgddy = [ddf * intv.dxdy(x) ** 2 + df * intv.ddxddy(x) for intv in self.interv]
 
-    def ddg(self, y, dy, ddy):
-        return super().ddg(y, dy, ddy) + (self.ddfddy*(y-self.y).T)*ddy + self.ddfddy*dy**2
+    def g(self, x, out=None):
+        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        if out is None:
+            out = np.zeros(self.nresp)
+        out[:] = self.g0
+        for dgdy_i, delta_yi in zip(self.dgdy, delta_y):
+            out += np.sum(dgdy_i * delta_yi, axis=1)
+        for ddgddy_i, delta_yi in zip(self.ddgddy, delta_y):
+            out += 0.5*np.sum(ddgddy_i * delta_yi**2, axis=1)
+        return out
+
+    def dg(self, x, out=None):
+        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        if out is None:
+            out = np.zeros((self.nresp, self.nvar))
+        super().dg(x, out=out)
+        for ddgddy_i, intv in zip(self.ddgddy, self.interv):
+            out += ddgddy_i * delta_y * intv.dydx(x)
+        return out
+
+        # def ddg(self, y, dy, ddy):
+    #     return super().ddg(y, dy, ddy) + (self.ddfddy*(y-self.y).T)*ddy + self.ddfddy*dy**2
+
+    def ddg(self, x, out=None):
+        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        if out is None:
+            out = np.zeros((self.nresp, self.nvar))
+        super().ddg(x, out=out)
+        for ddgddy_i, intv in zip(self.ddgddy, self.interv):
+            out += ddgddy_i * delta_y * intv.ddyddx(x) + ddgddy_i*(intv.dydx(x))**2
+        return out
 
 
 class SphericalTaylor2(Taylor2):
@@ -36,7 +126,7 @@ class SphericalTaylor2(Taylor2):
         self.dfold1 = None
         self.dxdy, self.yold1 = None, None
 
-    def update(self, x, y, f, df, dxdy, **kwargs):
+    def update(self, x, y, f, df, dxdy, *args, **kwargs):
         """
         This method updates the approximation instance for multi-point (approximate) 2nd-order Taylor expansions.
 
