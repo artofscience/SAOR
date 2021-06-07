@@ -2,16 +2,8 @@ from abc import ABC, abstractmethod
 
 
 class Approximation(ABC):
-    # def __init__(self, **kwargs):
-        # self.y = None
-        # self.f, self.df, self.ddf = None, None, None
-        # self.dfdy, self.ddfddy = None, None
 
-        # self.m = -1  # Number of constraints
-        # self.n = -1  # Number of variables
-
-        # self.force_convex = kwargs.get('force_convex', True)
-
+    @abstractmethod
     def update(self, x, f, df, ddf=None):
         """
         This method updates the approximation instance.
@@ -24,38 +16,7 @@ class Approximation(ABC):
         :param kwargs: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
-
-        # self.y = y(x).T
-        # self.f, self.dfdy = f, df * dxdy(x)
-        # self.m = len(self.f) - 1
-        # self.n = len(self.y)
-
-        # # Calculate 2nd-order part
-        # ddf = kwargs.get('ddf', None)
-        # if ddf is not None:
-        #     ddxddy = kwargs.get('ddxddy', None)
-        #     self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
-
-        # # Check size of dfdy and (optionally) ddfddy
-        # self.check_sensitivity_sizes()
-        #
-        # # Enforce convexity on ddfddy, currently done by ddfddy[ddfddy < 0] = 0
-        # if (self.ddfddy is not None) and self.force_convex:
-        #     self.enforce_convexity()
-
-        return self
-    #
-    # def check_sensitivity_sizes(self):
-    #     msg = (f'Expect sensitivity of size {self.m + 1}x{self.n}: '
-    #            f'Received {self.dfdy.shape}.')
-    #     assert self.dfdy.shape == (self.m + 1, self.n), msg
-    #
-    #     if self.ddfddy is not None:
-    #         msg = (f"Expected ddf size: {self.m+1}x{self.n}: "
-    #                f"Received: {self.ddfddy.shape}.")
-    #         assert self.ddfddy.shape == (self.m + 1, self.n), msg
-    #
-
+        ...
 
     @abstractmethod
     def g(self, x, out=None):
