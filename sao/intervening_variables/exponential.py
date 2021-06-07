@@ -23,12 +23,6 @@ class Exponential(Intervening):
     def ddyddx(self, x):
         return self.p * (self.p - 1) * x ** (self.p - 2)
 
-    def dxdy(self, x):
-        return (1/self.p) * x ** (1 - self.p)
-
-    def ddxddy(self, x):
-        return 1/self.p * (1/self.p - 1) * x ** (1 - 2*self.p)
-
     def clip(self, x):  # TODO Maybe add some tolerance like albefa to keep the value from 0
         if self.p < 0:
             return np.maximum(x, 0.0, out=x)

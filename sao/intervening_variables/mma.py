@@ -95,18 +95,6 @@ class MMA(Intervening):
         ddyddx[~self.positive] = np.broadcast_to(2 / (x - self.low) ** 3, self.positive.shape)[~self.positive]
         return ddyddx
 
-    def dxdy(self, x):
-        dxdy = np.zeros_like(self.positive, dtype=float)
-        dxdy[self.positive] = np.broadcast_to((self.upp - x) ** 2, self.positive.shape)[self.positive]
-        dxdy[~self.positive] = np.broadcast_to(-(x - self.low) ** 2, self.positive.shape)[~self.positive]
-        return dxdy
-
-    def ddxddy(self, x, **kwargs):
-        ddxddy = np.zeros_like(self.positive, dtype=float)
-        ddxddy[self.positive] = np.broadcast_to(-2 * (self.upp - x) ** 3, self.positive.shape)[self.positive]
-        ddxddy[~self.positive] = np.broadcast_to(2 * (x - self.low) ** 3, self.positive.shape)[~self.positive]
-        return ddxddy
-
     def get_move_limit(self):
         zzl2 = self.low + self.albefa * (self.x - self.low)
         zzu2 = self.upp - self.albefa * (self.upp - self.x)
@@ -143,18 +131,3 @@ class MMASquared(MMA):
         ddyddx[~self.positive] = np.broadcast_to((6 / (x-self.low)**4), self.positive.shape)[~self.positive]
         return ddyddx
 
-    def dxdy(self, x):
-        dxdy = np.zeros_like(self.positive, dtype=float)
-        temp1 = (self.upp - 1/self.y(x))
-        temp2 = (1/self.y(x) - self.low)
-        temp1[temp1 < 0] = 1e-3
-        temp2[temp2 < 0] = 1e-3
-        dxdy[self.positive] = np.broadcast_to((1 / (2*(self.y(x))**(3/2))), self.positive.shape)[self.positive]
-        dxdy[~self.positive] = np.broadcast_to((-1 / (2*(self.y(x))**(3/2))), self.positive.shape)[~self.positive]
-        return dxdy
-
-    def ddxddy(self, x, **kwargs):
-        ddxddy = np.zeros_like(self.positive, dtype=float)
-        ddxddy[self.positive] = np.broadcast_to((-3 / (4 * x**(5/2))), self.positive.shape)[self.positive]
-        ddxddy[~self.positive] = np.broadcast_to((3 / (4 * x**(5/2))), self.positive.shape)[~self.positive]
-        return ddxddy

@@ -30,21 +30,19 @@ class Intervening(ABC):
         """Evaluates the second derivatives of the mapping at x."""
         ...
 
-    @abstractmethod
     def dxdy(self, x):
         """Evaluates the first derivative of the inverse mapping at x.
 
         For details refer to the reference material provided at:
         `ReferenceFiles/TaylorExpansion.pdf`
         """
-        ...
+        return 1 / self.dydx(x)
 
-    @abstractmethod
     def ddxddy(self, x):
         """Evaluates the second derivative of the inverse mapping at x.
 
         """
-        ...
+        return -self.ddyddx(x) / self.dydx(x) ** 3
 
     def update(self, *args, **kwargs):
         """Perform inplace updates of the state of the intervening variable.
@@ -56,4 +54,5 @@ class Intervening(ABC):
         pass
 
     def clip(self, x):
+        """Default clipping is none."""
         return x

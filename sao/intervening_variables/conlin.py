@@ -48,19 +48,5 @@ class ConLin(Intervening):
             ddyddx[row, ~positive] = self.rec.ddyddx(x[~positive])
         return ddyddx
 
-    def dxdy(self, x):
-        dxdy = np.zeros_like(self.positive, dtype=float)
-        for (row, positive) in enumerate(self.positive):
-            dxdy[row, positive] = self.lin.dxdy(x[positive])
-            dxdy[row, ~positive] = self.rec.dxdy(x[~positive])
-        return dxdy
-
-    def ddxddy(self, x):
-        ddxddy = np.zeros_like(self.positive, dtype=float)
-        for (row, positive) in enumerate(self.positive):
-            ddxddy[row, positive] = self.lin.ddxddy(x[positive])
-            ddxddy[row, ~positive] = self.rec.ddxddy(x[~positive])
-        return ddxddy
-
     def clip(self, x):  # TODO Maybe add some tolerance like albefa to keep the value from 0
         return np.maximum(x, 0.0, out=x)

@@ -54,14 +54,6 @@ class ReciFit(Intervening):
         ddyddx = 2 * self.a ** 2 / (self.a * x + self.b) ** 3
         return ddyddx
 
-    def dxdy(self, x):
-        dxdy = - (self.a * x + self.b) ** 2 / self.a
-        return dxdy
-
-    def ddxddy(self, x):
-        ddxddy = 2 * (self.a * self.x + self.b) ** 3 / self.a
-        return ddxddy
-
 
 # TODO: Doesn't work properly. Either fix or delete.
 class Bezier(Intervening):
@@ -99,14 +91,6 @@ class Bezier(Intervening):
     def ddyddx(self, x):
         ddyddx = 2 * (self.a - 2*self.b + self.c)
         return ddyddx
-
-    def dxdy(self, x):
-        dxdy = -1 / (2 * (-self.a*self.c + self.a*self.y(x) + self.b**2 - 2*self.b*self.y(x) + self.c*self.y(x))**(1/2))
-        return dxdy
-
-    def ddxddy(self, x):
-        ddxddy = (-self.a + 2*self.b - self.c) / (4*(-self.a*self.c + self.a*self.y(x) + self.b**2 - 2*self.b*self.y(x) + self.c*self.y(x))**(3/2))
-        return ddxddy
 
 
 # TODO: Doesn't work properly. Either fix or delete.
@@ -153,19 +137,3 @@ class PolyFit(Intervening):
     def ddyddx(self, x):
         ddyddx = 2*self.a
         return ddyddx
-
-    def dxdy(self, x):
-        # self.x1 = -self.b/(2*self.a) + (self.b**2 + 4*self.a*(self.y(x)-self.c))**(1/2) / (2*self.a)
-        # self.x2 = -self.b/(2*self.a) + (self.b**2 + 4*self.a*(self.y(x)-self.c))**(1/2) / (2*self.a)
-        # if 0 < self.x1 < 1:
-        #     dxdy = (1 / (4*self.a*(self.y(x) - self.c) + self.b**2)**(1/2))
-        # elif 0 < self.x2 < 1:
-        dxdy = -1 / (4 * self.a * (self.y(x) - self.c) + self.b ** 2) ** (1 / 2)
-        return dxdy
-
-    def ddxddy(self, x):
-        if 0 < self.x1 < 1:
-            ddxddy = - 2*self.a / (4*self.a*(self.y(x) - self.c) + self.b**2)**(3/2)
-        elif 0 < self.x2 < 1:
-            ddxddy = 2 * self.a / (4 * self.a * (self.y(x) - self.c) + self.b ** 2) ** (3 / 2)
-        return ddxddy
