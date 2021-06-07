@@ -53,8 +53,8 @@ class Taylor1(Approximation):
     def ddg(self, x, out=None):
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
-        for dgdy_i, intv in zip(self.dgdy, self.interv):
-            out += dgdy_i * intv.ddyddx(x)
+        for dgdy, intv in zip(self.dgdy, self.interv):
+            out += dgdy * intv.ddyddx(x)
         return out
 
     def clip(self, x):
