@@ -1,4 +1,3 @@
-
 from sao.problems.problem import Problem
 from sao.intervening_variables import Linear
 from sao.approximations.taylor import Taylor1
@@ -6,25 +5,24 @@ from sao.move_limits.move_limit import NoMoveLimit
 from sao.util.tools import _parse_to_list
 
 
-
-
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(), limits=NoMoveLimit(xmin=0, xmax=1)): # TODO: Update the default movelimit to new movelimits
+    def __init__(self, approximation=Taylor1(),
+                 limits=NoMoveLimit(xmin=0, xmax=1)):  # TODO: Update the default movelimit to new movelimits
         super().__init__()
         self.approx = approximation
         self.lims = _parse_to_list(limits)
         self.alpha, self.beta = None, None
 
-
     def build(self, x, f, df, ddf=None):
-        self.n, self.m = len(x), len(f) - 1             # to fit Stijn's solvers # TODO We do not need these, they can just be obtained from len(x) in the subsolver
+        self.n, self.m = len(x), len(
+            f) - 1  # to fit Stijn's solvers # TODO We do not need these, they can just be obtained from len(x) in the subsolver
 
         # Update the approximation
         self.approx.update(x, f, df, ddf)
 
         # Update the local problem bounds
-        self.alpha = x*0 - 1e+100
-        self.beta = x*0 + 1e+100
+        self.alpha = x * 0 - 1e+100
+        self.beta = x * 0 + 1e+100
         for ml in [*self.lims, self.approx]:
             ml.clip(self.alpha)
             ml.clip(self.beta)
@@ -37,7 +35,7 @@ class Subproblem(Problem):
         return self.approx.dg(x)
 
     def ddg(self, x):
-        return self.approx.dg(x)
+        return self.approx.ddg(x)
 
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
