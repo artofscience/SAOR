@@ -111,7 +111,6 @@ class MoveLimitAdaptive(MoveLimit):
         :param oscillation_tol: Tolerance for detecting oscillations
         """
         super().__init__(xmin=xmin, xmax=xmax, move_limit=move_limit)
-        # TODO: document all possible settings below
         self.ml_init = ml_init
         self.ml_incr = ml_incr
         self.ml_decr = ml_decr
@@ -144,7 +143,7 @@ class MoveLimitAdaptive(MoveLimit):
             # had the same "direction" between both iterations. So, when a negative
             # result is observed for a variable, that variable must have been
             # oscillating.
-            oscillates = (self.x - self.xold1) * (self.xold1 - self.xold2)
+            oscillates = (self.x - self.xold1) * (self.xold1 - self.xold2) / self.max_dx
 
             # To reduce the oscillations, the oscillating variables are assigned
             # `asydecr` compared to `asyincr` for the non oscillating variables.
