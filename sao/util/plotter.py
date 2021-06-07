@@ -77,7 +77,8 @@ class Plot2:
         :param kwargs: From the kwargs you get which pairs of {g_j - x_i} you want to plot. If none are given, all
                        possible combinations are plotted, that is n*(m+1) plots.
         """
-        self.iter = 0
+        self.iter_pair = 0
+        self.iter_contour = 0
         self.x = np.linspace(prob.xmin, prob.xmax, 50).T
         self.resp = kwargs.get('responses', np.arange(0, prob.m + 1))
         self.vars = kwargs.get('variables', np.arange(0, prob.n))
@@ -102,7 +103,7 @@ class Plot2:
         """
 
         # Create a list of figures to plot on
-        if self.iter == 0:
+        if self.iter_pair == 0:
             for i in self.vars:
                 for j in self.resp:
                     self.fig.append(plt.subplots(1, 1)[0])
@@ -138,7 +139,7 @@ class Plot2:
                 ax = plt.gca()
 
                 # Get maximum values for y-axis so it keeps a nice scale
-                if self.iter > 0:
+                if self.iter_pair > 0:
                     y_min = min(min(prob_response_array[j, :]), ax.get_ylim()[0])
                     y_max = max(max(prob_response_array[j, :]), ax.get_ylim()[1])
                 else:
@@ -146,7 +147,7 @@ class Plot2:
                     y_max = max(prob_response_array[j, :])
 
                 # Plot new exact response
-                if self.iter % 2 == 1:
+                if self.iter_pair % 2 == 1:
                     exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'b',
                                           label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
                 else:
@@ -164,7 +165,7 @@ class Plot2:
                             approx_response_array[j, k] = np.NaN
 
                 # Alternate between red and blue plots to tell them apart easily
-                if self.iter % 2 == 1:
+                if self.iter_pair % 2 == 1:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'b--',
                                             label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
                                                   '$^{}$'.format({itte}) + '$^{)}$')
@@ -192,7 +193,7 @@ class Plot2:
                                        label=fr'$\beta_{i}^{{({itte})}}$')
 
                 # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
-                if self.iter > 1:
+                if self.iter_pair > 1:
                     for m in range(0, 5):  # Change 5 to 7 if you wanna plot asymptotes cuz you add 2 more lines
                         ax.lines[0].remove()
 
@@ -216,7 +217,7 @@ class Plot2:
                 plt.legend(loc='upper right')
                 plt.show(block=False)
 
-        self.iter += 1
+        self.iter_pair += 1
 
     def contour_plot(self, x_k, f, prob, subprob, itte):
         """
@@ -233,7 +234,7 @@ class Plot2:
         X, Y = np.meshgrid(self.x[0, :], self.x[1, :])
 
         # For the first iteration
-        if self.iter == 0:
+        if self.iter_contour == 0:
 
             # Exact problem P_nlp: z_exact[m+1, x2, x1] has values for responses g_j(x_curr), for all x1, x2
             z_exact = np.empty((prob.m + 1, self.x.shape[1], self.x.shape[1]))
@@ -251,7 +252,7 @@ class Plot2:
             ax_exact = plt.gca()
             obj_exact = plt.contourf(X, Y, z_exact[0, :, :], 50, cmap='jet')
             point_exact = plt.scatter(x_k[0], x_k[1],
-                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                             ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                       marker='o', edgecolors='yellow', color='k', s=100)
 
@@ -263,8 +264,8 @@ class Plot2:
 
             # Figure properties
             ax_exact.set_title('$P_{NLP}$ of %s' % prob.name, fontsize=20)
-            ax_exact.set_xlabel('$x_1$', fontsize=18)
-            ax_exact.set_ylabel('$x_2$', fontsize=18)
+            ax_exact.set_xlabel('$x_0$', fontsize=18)
+            ax_exact.set_ylabel('$x_1$', fontsize=18)
             cbar = fig_exact.colorbar(obj_exact, shrink=0.5, aspect=8)
             cbar.set_label('$g_0(\mathbf{X})$', labelpad=-30, y=1.15, rotation=0, fontsize=18)
             plt.legend()
@@ -276,7 +277,7 @@ class Plot2:
             # Plot in Exact Figure the optimal point found by the solver at the last iteration
             plt.figure(self.fig_idx['fig_exact'])
             point_exact = plt.scatter(x_k[0], x_k[1],
-                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                             ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                       marker='o', edgecolors='yellow', color='k', s=100)
             plt.legend()
@@ -285,7 +286,7 @@ class Plot2:
             # Plot in Approx Figure the optimal point found by the solver at the last iteration
             plt.figure(self.fig_idx['fig_approx'])
             opt_point = plt.scatter(x_k[0], x_k[1],
-                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                             ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                       marker='o', edgecolors='yellow', color='k', s=100)
             plt.legend()
@@ -325,21 +326,21 @@ class Plot2:
 
         # Plot approximation point -x_k-
         point_approx = plt.scatter(x_k[0], x_k[1],
-                                   label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                   label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                          ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
-            subprob.inter.__class__.__name__, subprob.approx.__class__.__name__, self.iter), fontsize=20)
-        ax_approx.set_xlabel('$x_1$', fontsize=18)
-        ax_approx.set_ylabel('$x_2$', fontsize=18)
+            subprob.inter.__class__.__name__, subprob.approx.__class__.__name__, self.iter_contour), fontsize=20)
+        ax_approx.set_xlabel('$x_0$', fontsize=18)
+        ax_approx.set_ylabel('$x_1$', fontsize=18)
         cbar = fig_approx.colorbar(obj_approx, shrink=0.5, aspect=8)
         cbar.set_label('$g_0(\mathbf{X})$', labelpad=-30, y=1.15, rotation=0, fontsize=18)
         plt.legend()
         plt.show(block=False)  # overwrite blocking behaviour of debugger
 
-        self.iter += 1
+        self.iter_contour += 1
 
 
 class Plot3(Plot2):
@@ -366,16 +367,23 @@ class Plot3(Plot2):
         :return:
         """
 
+        # Create a list of figures to plot on
+        if self.iter_pair == 0:
+            for i in self.vars:
+                for j in self.resp:
+                    self.fig.append(plt.subplots(1, 1)[0])
+                    self.fig_idx[j, i] = plt.gcf().number
+
         # Initialize plotting arrays for g_j(x_curr) and g_j_tilde(x_curr)
         prob_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
         approx_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
 
         # Sweep all subproblems
-        for p in range(0, subprob.num_of_resp_sets):
-            for l in range(0, subprob.num_of_var_sets):
+        for p in range(0, len(subprob.responses.keys())):
+            for l in range(0, len(subprob.variables.keys())):
 
                 # For all design vars x_i
-                for idx_var, i in enumerate(subprob.var_set[l]):
+                for idx_var, i in enumerate(subprob.variables[l]):
 
                     # Make x_curr = x_k so that all design vars remain equal to x_k apart from the one you sweep
                     x_curr = x_k.copy()
@@ -392,14 +400,14 @@ class Plot3(Plot2):
                         approx_response_array[:, k] = subprob.g(x_curr)
 
                     # For all responses g_j
-                    for idx_resp, j in enumerate(subprob.resp_set[p]):
+                    for idx_resp, j in enumerate(subprob.responses[p]):
 
                         # Get current figure and axes handles
                         plt.figure(self.fig_idx[j, i])
                         ax = plt.gca()
 
                         # Get maximum values for y-axis so it keeps a nice scale
-                        if self.iter > 0:
+                        if self.iter_pair > 0:
                             y_min = min(min(prob_response_array[j, :]), ax.get_ylim()[0])
                             y_max = max(max(prob_response_array[j, :]), ax.get_ylim()[1])
                         else:
@@ -407,7 +415,7 @@ class Plot3(Plot2):
                             y_max = max(prob_response_array[j, :])
 
                         # Plot new exact response
-                        if self.iter % 2 == 1:
+                        if self.iter_pair % 2 == 1:
                             exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'b',
                                                   label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
                         else:
@@ -415,18 +423,18 @@ class Plot3(Plot2):
                                                   label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
 
                         # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
-                        if subprob.subprob_map[p, l].inter.__class__.__name__ == 'MMA':
+                        if subprob[p, l].inter.__class__.__name__ == 'MMA':
                             # L_i = plt.axvline(x=subprob.inter.low[i], color='g', label=f'$L_{i}^{{(k)}}$')
                             # U_i = plt.axvline(x=subprob.inter.upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
 
                             # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
                             for k in range(0, self.x.shape[1]):
-                                if (self.x[i, k] <= 1.01 * subprob.subprob_map[p, l].inter.low[idx_var]) \
-                                   or (self.x[i, k] >= 0.99 * subprob.subprob_map[p, l].inter.upp[idx_var]):
+                                if (self.x[i, k] <= 1.01 * subprob[p, l].inter.low[idx_var]) \
+                                   or (self.x[i, k] >= 0.99 * subprob[p, l].inter.upp[idx_var]):
                                     approx_response_array[j, k] = np.NaN
 
                         # Alternate between red and blue plots to tell them apart easily
-                        if self.iter % 2 == 1:
+                        if self.iter_pair % 2 == 1:
                             approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'b--',
                                                     label='$\widetilde{g}$' + '$_{}$'.format({j}) + '$^{(}$' +
                                                           '$^{}$'.format({itte}) + '$^{)}$')
@@ -454,7 +462,7 @@ class Plot3(Plot2):
                                                label=fr'$\beta_{i}^{{({itte})}}$')
 
                         # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
-                        if self.iter > 1:
+                        if self.iter_pair > 1:
                             for m in range(0, 5):  # Change 5 to 7 if you wanna plot asymptotes cuz you add 2 more lines
                                 ax.lines[0].remove()
 
@@ -466,8 +474,8 @@ class Plot3(Plot2):
                         ax.set(xlabel=f'$x_{i}$', ylabel=f'$g_{j}$',
                                # xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
                                ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)),
-                               title='%s: {} - {} \n  $iter = {}$'.format(subprob.subprob_map[p, l].inter.__class__.__name__,
-                                                                          subprob.subprob_map[p, l].approx.__class__.__name__,
+                               title='%s: {} - {} \n  $iter = {}$'.format(subprob[p, l].inter.__class__.__name__,
+                                                                          subprob[p, l].approx.__class__.__name__,
                                                                           itte)
                                      % prob.__class__.__name__)
 
@@ -478,7 +486,7 @@ class Plot3(Plot2):
                         plt.legend(loc='upper right')
                         plt.show(block=False)
 
-        self.iter += 1
+        self.iter_pair += 1
 
     def contour_plot(self, x_k, f, prob, subprob, itte):
         """
@@ -496,7 +504,7 @@ class Plot3(Plot2):
         X, Y = np.meshgrid(self.x[0, :], self.x[1, :])
 
         # For the first iteration
-        if self.iter == 0:
+        if self.iter_contour == 0:
 
             # Exact problem P_nlp: z_exact[m+1, x2, x1] has values for responses g_j(x_curr), for all x1, x2
             z_exact = np.empty((prob.m + 1, self.x.shape[1], self.x.shape[1]))
@@ -514,7 +522,7 @@ class Plot3(Plot2):
             ax_exact = plt.gca()
             obj_exact = plt.contourf(X, Y, z_exact[0, :, :], 50, cmap='jet')
             point_exact = plt.scatter(x_k[0], x_k[1],
-                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                             ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                       marker='o', edgecolors='yellow', color='k', s=100)
 
@@ -526,8 +534,8 @@ class Plot3(Plot2):
 
             # Figure properties
             ax_exact.set_title('$P_{NLP}$ of %s' % prob.name, fontsize=20)
-            ax_exact.set_xlabel('$x_1$', fontsize=18)
-            ax_exact.set_ylabel('$x_2$', fontsize=18)
+            ax_exact.set_xlabel('$x_0$', fontsize=18)
+            ax_exact.set_ylabel('$x_1$', fontsize=18)
             cbar = fig_exact.colorbar(obj_exact, shrink=0.5, aspect=8)
             cbar.set_label('$g_0(\mathbf{X})$', labelpad=-30, y=1.15, rotation=0, fontsize=18)
             plt.legend()
@@ -539,7 +547,7 @@ class Plot3(Plot2):
             # Plot in Exact Figure the optimal point found by the solver at the last iteration
             plt.figure(self.fig_idx['fig_exact'])
             point_exact = plt.scatter(x_k[0], x_k[1],
-                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                             ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                       marker='o', edgecolors='yellow', color='k', s=100)
             plt.legend()
@@ -548,7 +556,7 @@ class Plot3(Plot2):
             # Plot in Approx Figure the optimal point found by the solver at the last iteration
             plt.figure(self.fig_idx['fig_approx'])
             opt_point = plt.scatter(x_k[0], x_k[1],
-                                    label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                    label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                           ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                     marker='o', edgecolors='yellow', color='k', s=100)
             plt.legend()
@@ -564,17 +572,17 @@ class Plot3(Plot2):
                 z_approx[:, k2, k1] = subprob.g(x_curr)
 
         # For MMA family: Force response values farther than asymptotes to NaN
-        for p in range(0, subprob.num_of_resp_sets):
-            for l in range(0, subprob.num_of_var_sets):
-                if subprob.subprob_map[p, l].inter.__class__.__name__ == 'MMA':
-                    for i in range(0, subprob.subprob_map[p, l].m + 1):
+        for p in range(0, len(subprob.responses.keys())):
+            for l in range(0, len(subprob.variables.keys())):
+                if subprob[p, l].inter.__class__.__name__ == 'MMA':
+                    for i in range(0, subprob[p, l].m + 1):
                         for k2 in range(0, self.x.shape[1]):
-                            if (self.x[1, k2] < 1.01 * subprob.subprob_map[p, l].inter.low[1]) or \
-                                    (self.x[1, k2] > 0.99 * subprob.subprob_map[p, l].inter.upp[1]):
+                            if (self.x[1, k2] < 1.01 * subprob[p, l].inter.low[1]) or \
+                                    (self.x[1, k2] > 0.99 * subprob[p, l].inter.upp[1]):
                                 z_approx[:, k2, :] = np.NaN
                         for k1 in range(0, self.x.shape[1]):
-                            if (self.x[0, k1] < 1.01 * subprob.subprob_map[p, l].inter.low[0]) or \
-                                    (self.x[0, k1] > 0.99 * subprob.subprob_map[p, l].inter.upp[0]):
+                            if (self.x[0, k1] < 1.01 * subprob[p, l].inter.low[0]) or \
+                                    (self.x[0, k1] > 0.99 * subprob[p, l].inter.upp[0]):
                                 z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde
@@ -592,18 +600,18 @@ class Plot3(Plot2):
 
         # Plot approximation point -x_k-
         point_approx = plt.scatter(x_k[0], x_k[1],
-                                   label='$\mathbf{X}$' + '$^{}$'.format({self.iter}) +
+                                   label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                          ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {}, iter = {}'.format(
-            subprob.__class__.__name__, self.iter), fontsize=20)
-        ax_approx.set_xlabel('$x_1$', fontsize=18)
-        ax_approx.set_ylabel('$x_2$', fontsize=18)
+            subprob.__class__.__name__, self.iter_contour), fontsize=20)
+        ax_approx.set_xlabel('$x_0$', fontsize=18)
+        ax_approx.set_ylabel('$x_1$', fontsize=18)
         cbar = fig_approx.colorbar(obj_approx, shrink=0.5, aspect=8)
         cbar.set_label('$g_0(\mathbf{X})$', labelpad=-30, y=1.15, rotation=0, fontsize=18)
         plt.legend()
         plt.show(block=False)  # overwrite blocking behaviour of debugger
 
-        self.iter += 1
+        self.iter_contour += 1

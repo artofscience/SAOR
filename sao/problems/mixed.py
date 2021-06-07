@@ -16,8 +16,8 @@ class Mixed(Subproblem):
         self.variables = variables
         self.responses = responses
 
-        self.n = sum(sum(v) for v in self.variables.values())
-        self.m = sum(sum(r) for r in self.responses.values())
+        self.n = sum(len(v) for v in self.variables.values())
+        self.m = sum(len(r) for r in self.responses.values())
 
         self.alpha = np.zeros(self.n, dtype=float)
         self.beta = np.ones(self.n, dtype=float)
@@ -42,7 +42,7 @@ class Mixed(Subproblem):
         """
         for (i, response) in self.responses.items():
             for (j, variable) in self.variables.items():
-                yield ((i, j), (response, variable))
+                yield (i, j), (response, variable)
 
     def build(self, x, f, df, ddf=None):
         """Builds the subproblem for all variable and response sets."""

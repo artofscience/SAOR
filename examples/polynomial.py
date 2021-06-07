@@ -3,7 +3,7 @@ import logging
 from Problems.QuadPoly1D import QuadPoly1D
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
+from sao.move_limits.move_limit import Movelimit, MoveLimitMMA
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -36,7 +36,10 @@ def example_poly():
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax),
                          approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=15.0))
+                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=15.0))
+
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
@@ -45,21 +48,17 @@ def example_poly():
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
+    plotter2_flag = True
+    if plotter2_flag:
+        plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
 
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2_flag = False
-    if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
-
     # Optimization loop
-    # while itte < 500:
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
@@ -68,8 +67,9 @@ def example_poly():
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Print & plot g_j and x_i at current iteration
-        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}'.format(itte, np.array2string(x_k[0]), f[0]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  max_constr_viol: {:^6.3f}'.format(
+            itte, np.array2string(x_k[0]), f[0], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -117,6 +117,9 @@ def example_poly_mixed():
     # Instantiate a mixed scheme
     subprob = Mixed(subprob_map, var_set, resp_set)
 
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
@@ -124,21 +127,17 @@ def example_poly_mixed():
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1', 'max_constr_violation'], path=".")
+    plotter3_flag = True
+    if plotter3_flag:
+        plotter3 = Plot3(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
+
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
 
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter3_flag = False
-    if plotter3_flag:
-        plotter3 = Plot3(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
-
     # Optimization loop
-    # while itte < 500:
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
@@ -147,8 +146,9 @@ def example_poly_mixed():
         ddf = None
 
         # Print & plot g_j and x_i at current iteration
-        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}'.format(itte, np.array2string(x_k[0]), f[0]))
-        plotter.plot([f[0], f[1]])
+        logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  max_constr_viol: {:^6.3f}'.format(
+            itte, np.array2string(x_k[0]), f[0], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -169,5 +169,5 @@ def example_poly_mixed():
 
 
 if __name__ == "__main__":
-    # example_poly()
+    example_poly()
     example_poly_mixed()

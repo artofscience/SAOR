@@ -40,9 +40,10 @@ class Vanderplaats(Problem):
         y = 0.
         ya = 0.
         g = np.zeros((self.m + 1), dtype=float)
+
         for i in range(self.N):
-            b = x_k[i]  # get width
-            h = x_k[self.N + i]  # get height
+            b = x_k[i]                  # get width
+            h = x_k[self.N + i]         # get height
 
             # Weight objective
             g[0] = g[0] + self.S * b * h * 1e-3
@@ -53,11 +54,11 @@ class Vanderplaats(Problem):
             # Second moment of area
             I = b * h ** 3 / 12
 
-            # Stress constraint
+            # Stress constraints
             sts = (M * h) / (2 * I)
             g[1 + i] = sts / self.sig_max - 1.
 
-            # Geometric constraint
+            # Geometric constraints
             g[1 + self.N + i] = h - 20 * b
 
             # Left displacement
