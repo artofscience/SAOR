@@ -16,10 +16,7 @@ import numpy as np
 
 
 class Taylor1(Approximation):
-    def __init__(self, intervening=None):
-        if intervening is None:
-            intervening = Linear()
-
+    def __init__(self, intervening=Linear()):
         self.interv = _parse_to_list(intervening)
         self.g0 = None
         self.y0 = None

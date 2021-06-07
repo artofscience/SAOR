@@ -30,16 +30,15 @@ def test_square_ipxyz(n):
     assert prob.n == n
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not (x_k == pytest.approx(1/n * np.ones_like(x_k), rel=1e-3)):
-
+    while not (x_k == pytest.approx(1 / n * np.ones_like(x_k), rel=1e-3)):
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
