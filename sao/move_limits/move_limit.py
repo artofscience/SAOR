@@ -116,7 +116,7 @@ class MoveLimitAdaptive(MoveLimit):
         self.ml_decr = ml_decr
         self.ml_bound = ml_bound
         self.osc_tol = oscillation_tol
-        self.factor = self.ml_init * np.ones(len(xmin))
+        self.factor = None
 
         # history variables
         self.x, self.xold1, self.xold2 = None, None, None
@@ -136,6 +136,13 @@ class MoveLimitAdaptive(MoveLimit):
         # update stored variables from previous iterations
         self.xold2, self.xold1, self.x = self.xold1, self.x, x  # TODO, do we need to make a deep copy for xold?
 
+        if self.factor is None:
+            self.factor = self.ml_init * np.ones_like(x)
+
+        # If xold2 is None, not enough iterations were performed
+        # to have all (required) history information available.
+        # This only updates the `self.xmin` and `self.xmin` variables
+        # using a default move limit approach
         if self.xold2 is not None:
             # To test if a design variable oscillates between iterations, we
             # evaluate the product of its change between the last two iterations.
@@ -153,11 +160,6 @@ class MoveLimitAdaptive(MoveLimit):
             # Clip the factor between minimum factor and 1.0
             # (steps > move_limit are not allowed)
             np.clip(self.factor, self.ml_bound, 1.0, out=self.factor)
-
-        # If xold2 is None, not enough iterations were performed
-        # to have all (required) history information available.
-        # This only updates the `self.xmin` and `self.xmin` variables
-        # using a default move limit approach
 
         # apply the move limits to xmin and xmax
         self.xmin = self.x - self.factor*self.max_dx
