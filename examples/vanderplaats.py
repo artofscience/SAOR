@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import Linear, ConLin, MMA, ReciSquared, ReciCubed
+from sao.intervening_variables import Linear, ConLin, MMA, ReciSquared, ReciCubed, MMASquared
 from sao.move_limits.move_limit import MoveLimitIntervening
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
@@ -31,11 +31,8 @@ def example_vanderplaats(N):
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
-    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob = Subproblem(intervening=MMASquared(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-
+    subprob = Subproblem(approximation=Taylor1(intervening=MMASquared(prob.xmin, prob.xmax)),
+                         limits=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
 
     # Initialize iteration counter and design
     itte = 0
@@ -191,4 +188,4 @@ def example_vanderplaats_mixed(N):
 
 if __name__ == "__main__":
     # example_vanderplaats(100)
-    example_vanderplaats_mixed(100)
+    example_vanderplaats(100)

@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 
-
 class Approximation(ABC):
 
-    @abstractmethod
     def update(self, x, f, df, ddf=None):
         """
         This method updates the approximation instance.
@@ -16,7 +14,7 @@ class Approximation(ABC):
         :param kwargs: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
-        ...
+        return self
 
     @abstractmethod
     def g(self, x, out=None):

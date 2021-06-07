@@ -71,7 +71,7 @@ def test_rec_taylor1(n, h):
     assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
     assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
     assert dfdy == pytest.approx(prob.dg(prob.x0) * inter.dxdy(prob.x0), rel=1e-4)
-    # assert subprob.approx.dgdy == pytest.approx(dfdy, rel=1e-4)
+    assert subprob.approx.dgdy[0] == pytest.approx(dfdy, rel=1e-4)
 
     # Check validity of approximate responses (and sensitivities) at X^(k) + h
     delta_y = (inter.y(prob.x0 + h) - inter.y(prob.x0)).T
@@ -95,13 +95,13 @@ def test_rec_taylor2(n, h):
     # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
     assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
     assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
-    # assert subprob.approx.dgdy == pytest.approx(dfdy, rel=1e-4)
+    assert subprob.approx.dgdy[0] == pytest.approx(dfdy, rel=1e-4)
     assert subprob.ddg(prob.x0) == pytest.approx(prob.ddg(prob.x0), rel=1e-4)
     assert dfdy == pytest.approx(prob.dg(prob.x0) * inter.dxdy(prob.x0), rel=1e-4)
     assert ddfddy == pytest.approx(
         prob.ddg(prob.x0) * (inter.dxdy(prob.x0)) ** 2 + prob.dg(prob.x0) * (inter.ddxddy(prob.x0)), rel=1e-4)
-    # assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
-    # assert subprob.approx.ddfddy == pytest.approx(ddfddy, rel=1e-4)
+    assert subprob.approx.dgdy[0] == pytest.approx(dfdy, rel=1e-4)
+    assert subprob.approx.ddgddy[0] == pytest.approx(ddfddy, rel=1e-4)
 
     # Check validity of approximate responses (and sensitivities) at X^(k) + h
     delta_y = (inter.y(prob.x0 + h) - inter.y(prob.x0)).T
@@ -128,7 +128,7 @@ def test_conlin_taylor1(n, h):
     # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
     assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
     assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
-    # assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
+    assert subprob.approx.dgdy[0] == pytest.approx(dfdy, rel=1e-4)
 
     # Check validity of approximate responses (and sensitivities) at X^(k) + h
     delta_y = (inter.y(prob.x0 + h) - inter.y(prob.x0)).T
@@ -151,21 +151,21 @@ def test_conlin_taylor2(n, h):
 
     # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
     assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)
-    # assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
-    # assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
-    # assert subprob.ddg(prob.x0) == pytest.approx(prob.ddg(prob.x0), rel=1e-4)
-    # assert subprob.approx.dfdy == pytest.approx(dfdy, rel=1e-4)
-    # assert subprob.approx.ddfddy == pytest.approx(ddfddy, rel=1e-4)
+    assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
+    assert subprob.approx.dgdy[0] == pytest.approx(dfdy, rel=1e-4)
+    assert subprob.ddg(prob.x0) == pytest.approx(prob.ddg(prob.x0), rel=1e-4)
+    assert subprob.approx.dgdy[0] == pytest.approx(dfdy, rel=1e-4)
+    assert subprob.approx.ddgddy[0] == pytest.approx(ddfddy, rel=1e-4)
 
     # Check validity of approximate responses (and sensitivities) at X^(k) + h
     delta_y = (inter.y(prob.x0 + h) - inter.y(prob.x0)).T
-    # assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + np.diag(dfdy.dot(delta_y)) +
-    #                                               0.5 * np.diag(ddfddy.dot(delta_y ** 2)), rel=1e-4)
-    # assert subprob.dg(prob.x0 + h) == pytest.approx(dfdy * inter.dydx(prob.x0 + h) +
-    #                                                ddfddy * delta_y.T * inter.dydx(prob.x0 + h), rel=1e-4)
-    # assert subprob.ddg(prob.x0 + h) == pytest.approx(dfdy * inter.ddyddx(prob.x0 + h) + ddfddy * delta_y.T *
-    #                                                 inter.ddyddx(prob.x0 + h) + ddfddy * inter.dydx(prob.x0 + h) ** 2,
-    #                                                 rel=1e-4)
+    assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + np.diag(dfdy.dot(delta_y)) +
+                                                   0.5 * np.diag(ddfddy.dot(delta_y ** 2)), rel=1e-4)
+    assert subprob.dg(prob.x0 + h) == pytest.approx(dfdy * inter.dydx(prob.x0 + h) +
+                                                    ddfddy * delta_y.T * inter.dydx(prob.x0 + h), rel=1e-4)
+    assert subprob.ddg(prob.x0 + h) == pytest.approx(dfdy * inter.ddyddx(prob.x0 + h) + ddfddy * delta_y.T *
+                                                     inter.ddyddx(prob.x0 + h) + ddfddy * inter.dydx(prob.x0 + h) ** 2,
+                                                     rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -213,13 +213,13 @@ def test_mma_taylor2(n, h):
 
     # Check validity of approximate responses (and sensitivities) at X^(k) + h
     delta_y = (inter.y(prob.x0 + h) - inter.y(prob.x0)).T
-    # assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + np.diag(dfdy.dot(delta_y)) +
-    #                                               0.5 * np.diag(ddfddy.dot(delta_y ** 2)), rel=1e-4)
-    # assert subprob.dg(prob.x0 + h) == pytest.approx(dfdy * inter.dydx(prob.x0 + h) +
-    #                                                ddfddy * delta_y.T * inter.dydx(prob.x0 + h), rel=1e-4)
-    # assert subprob.ddg(prob.x0 + h) == pytest.approx(dfdy * inter.ddyddx(prob.x0 + h) + ddfddy * delta_y.T *
-    #                                                 inter.ddyddx(prob.x0 + h) + ddfddy * inter.dydx(prob.x0 + h) ** 2,
-    #                                                 rel=1e-4)
+    assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + np.diag(dfdy.dot(delta_y)) +
+                                                   0.5 * np.diag(ddfddy.dot(delta_y ** 2)), rel=1e-4)
+    assert subprob.dg(prob.x0 + h) == pytest.approx(dfdy * inter.dydx(prob.x0 + h) +
+                                                    ddfddy * delta_y.T * inter.dydx(prob.x0 + h), rel=1e-4)
+    assert subprob.ddg(prob.x0 + h) == pytest.approx(dfdy * inter.ddyddx(prob.x0 + h) + ddfddy * delta_y.T *
+                                                     inter.ddyddx(prob.x0 + h) + ddfddy * inter.dydx(prob.x0 + h) ** 2,
+                                                     rel=1e-4)
 
 
 if __name__ == "__main__":

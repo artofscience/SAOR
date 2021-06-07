@@ -201,6 +201,3 @@ if __name__ == "__main__":
     test_taylor1(4, 0.1)
     test_taylor2(4, 0.1)
     test_taylor1_intervening(4, 0.1)
-    # test_taylor2_intervening(4, 0.1)
-    # test_SphericalTaylor2(4, 0.1)
-    # test_NonSphericalTaylor2(4, 0.1)
