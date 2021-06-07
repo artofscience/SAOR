@@ -75,8 +75,7 @@ class Taylor2(Taylor1):
 
     def update(self, x, f, df, ddf=None):
         super().update(x, f, df, ddf)
-        if ddf is None:
-            raise RuntimeError("Second order taylor needs second order information")
+        assert ddf is not None, "Second order taylor needs second order information"
         self.ddgddy = [ddf * intv.dxdy(x) ** 2 + df * intv.ddxddy(x) for intv in self.interv]
 
     def g(self, x, out=None):
