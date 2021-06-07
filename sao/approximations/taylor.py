@@ -32,6 +32,7 @@ class Taylor1(Approximation):
         self.g0 = f*1
         self.dgdy = [df/intv.dydx(x) for intv in self.interv]
         self.y0 = [intv.y(x) for intv in self.interv]
+        return self
 
     def g(self, x, out=None):
         delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
@@ -94,8 +95,8 @@ class Taylor2(Taylor1):
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         super().dg(x, out=out)
-        for ddgddy_i, intv in zip(self.ddgddy, self.interv):
-            out += ddgddy_i * delta_y * intv.dydx(x)
+        for i, intv in enumerate(self.interv):
+            out += self.ddgddy[i] * delta_y[i] * intv.dydx(x)
         return out
 
         # def ddg(self, y, dy, ddy):
@@ -106,8 +107,8 @@ class Taylor2(Taylor1):
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         super().ddg(x, out=out)
-        for ddgddy_i, intv in zip(self.ddgddy, self.interv):
-            out += ddgddy_i * delta_y * intv.ddyddx(x) + ddgddy_i*(intv.dydx(x))**2
+        for i, intv in enumerate(self.interv):
+            out += self.ddgddy[i] * (delta_y[i] * intv.ddyddx(x) + (intv.dydx(x)) ** 2)  # comment
         return out
 
 
