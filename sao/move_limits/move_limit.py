@@ -1,4 +1,3 @@
-import copy
 import math
 import numpy as np
 
@@ -46,12 +45,17 @@ class Bound(GeneralMoveLimit):
      The simplest move limit strategy that always clips the global bounds of
     the problem, i.e. no restrictions are made on the possible steps size.
     """
+
     def __init__(self, xmin=0.0, xmax=1.0):
         """
         Setup the object with a minimum and maximum global bound
         :param xmin: Minimum value
         :param xmax: Maximum value
         """
+        self.xmin = xmin
+        self.xmax = xmax
+
+    def set_bounds(self, xmin=0.0, xmax=1.0):
         self.xmin = xmin
         self.xmax = xmax
 
@@ -82,7 +86,7 @@ class MoveLimit(GeneralMoveLimit):
 
 class MoveLimitAdaptive(MoveLimit):
     """
-    This provides and adaptive move limit strategy as originally proposed
+    This provides an adaptive move limit strategy as originally proposed
     within the MMA algorithm. It is essentially the asymptote update rule,
     which aims to reduce oscillations between iterations (if observed) and
     adepts the allowed step-size for the variables accordingly.

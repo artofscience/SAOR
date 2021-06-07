@@ -3,7 +3,7 @@ import logging
 from Problems.Li2015_Fig4 import Li2015Fig4
 from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import Movelimit, MoveLimitMMA, NoMoveLimit
+from sao.move_limits.move_limit import MoveLimit, Bound
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -34,8 +34,8 @@ def example_truss2d():
     prob = Li2015Fig4()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(force_convex=True),
-                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=5.0))
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -193,4 +193,4 @@ def example_truss2d_mixed():
 
 if __name__ == "__main__":
     example_truss2d()
-    example_truss2d_mixed()
+    # example_truss2d_mixed()

@@ -1,19 +1,24 @@
 from sao.problems.problem import Problem
 from sao.intervening_variables import Linear
 from sao.approximations.taylor import Taylor1
-from sao.move_limits.move_limit import NoMoveLimit
+from sao.move_limits.move_limit import Bound, MoveLimit
 from sao.util.tools import _parse_to_list
 
 
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(), limits=NoMoveLimit(xmin=0, xmax=1)):  # TODO: Update the default movelimit to new movelimits
+    def __init__(self, approximation=Taylor1(),
+                 limits=Bound(xmin=0, xmax=1)):  # TODO: Update the default movelimit to new movelimits
         super().__init__()
         self.approx = approximation
         self.lims = _parse_to_list(limits)
         self.alpha, self.beta = None, None
 
+    def set_limits(self, limits):
+        self.lims = _parse_to_list(limits)
+
     def build(self, x, f, df, ddf=None):
-        self.n, self.m = len(x), len(f) - 1  # to fit Stijn's solvers # TODO We do not need these, they can just be obtained from len(x) in the subsolver
+        self.n, self.m = len(x), len(
+            f) - 1  # to fit Stijn's solvers # TODO We do not need these, they can just be obtained from len(x) in the subsolver
 
         # Update the approximation
         self.approx.update(x, f, df, ddf)
