@@ -35,7 +35,7 @@ class Taylor1(Approximation):
         return self
 
     def g(self, x, out=None):
-        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros(self.nresp)
         out[:] = self.g0
