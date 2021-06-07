@@ -3,34 +3,60 @@ import math
 import numpy as np
 
 
-class NoMoveLimit:
+class GeneralMoveLimit:
     """
-    The simplest move limit strategy that always returns the global bounds of
-    the problem, i.e. no restrictions are made on the possible steps size.
+    Abstract movelimit class, that implements the clip method.
 
     The move limits are evaluated by calling an instance of a move limit class,
-    i.e. the subclasses of ``NoMoveLimit``, where ``__call__`` return the
-    corresponding lower and upper bounds.
+    i.e. the subclasses of ``Bound``, where ``__call__`` or ``clip`` clips the
+    given vector within the appropriate limits.
     """
-    def __init__(self, xmin, xmax):
-        """Store the global problem bounds on initialisation."""
-        self.xmin = xmin
-        self.xmax = xmax
-        self.dx = self.xmax - self.xmin
+
+    # Default is unbounded
+    xmin = -np.inf
+    xmax = np.inf
+
+    def update(self, x, f, df, ddf=None):
+        """
+        Update function
+        :param x: Current design vector
+        :param f: Function evaluation at x
+        :param df: First derivatives at x
+        :param ddf: Second derivatives at x
+        :return: self
+        """
+        return self
 
     def __call__(self, x):
-        """Returns the global bounds of the problem."""
-        return self.xmin, self.xmax
+        """Clips the vector to the bounds of the movelimit"""
+        return self.clip(x)
 
     def clip(self, x):
-        # TODO: Update with the simpler move limits
-        np.clip(x, self.xmin, self.xmax, out=x)
-        if hasattr(self, 'alpha') and hasattr(self, 'beta'):
-            np.clip(x, self.alpha, self.beta, out=x)
-        return x
+        """
+        Clips the given vector within the bounds of xmin and xmax, as stored in the object.
+        This function changes the input vector, so it does not make a copy.
+        :param x: The vector to be clipped
+        :return: The clipped vector
+        """
+        return np.clip(x, self.xmin, self.xmax, out=x)
 
 
-class MoveLimit(NoMoveLimit):
+class Bound(GeneralMoveLimit):
+    """
+     The simplest move limit strategy that always clips the global bounds of
+    the problem, i.e. no restrictions are made on the possible steps size.
+    """
+    def __init__(self, xmin=0.0, xmax=1.0):
+        """
+        Setup the object with a minimum and maximum global bound
+        :param xmin: Minimum value
+        :param xmax: Maximum value
+        """
+        self.xmin = xmin
+        self.xmax = xmax
+
+
+class MoveLimit(GeneralMoveLimit):
     """
     The move limit constrains the allowed step size to be within a trust region
     around the current point ``x``. The size of the trusted region is expressed
@@ -39,38 +65,31 @@ class MoveLimit(NoMoveLimit):
     step size to obtain the corresponding lower and upper bounds of the
     variables.
     """
-    def __init__(self, xmin=-math.inf, xmax=math.inf, move_limit=0.1):
-        """Stores the desired step-size (``trust region``)."""
-        super().__init__(xmin, xmax)
-        self.move_limit = abs(move_limit)
-
-        # The move-limit is interpreted as a factor on the global bounds of
-        # each design variable, and thus cannot exceed [0, 1].
-        assert 0 <= self.move_limit <= 1.0, \
-            f"{self.move_limit=} cannot exceed [0, 1]."
-
-    def __call__(self, x, factor=None):
-        """Obtain the lower and upper bounds around the current point``x``.
-
-        An optional argument ``factor`` can be passed in to overwrite the
-        stored attribute ``self.move_limit``. This can be used to reuse the
-        application of the move limit with various sizes of the trusted region.
+    def __init__(self, move_limit=0.1, xmin=0.0, xmax=1.0):
         """
-        # We take the absolute value here to prevent swapping the direction
-        # when a negative value might be supplied.
-        factor = abs(factor) if factor is not None else self.move_limit
+        :param move_limit: The absolute move limit, in case xmin and xmax are not given, or relative to xmin and xmax
+        :param xmin: Minimum bound
+        :param xmax: Maximum bound
+        """
+        """Stores the desired step-size (``trust region``)."""
+        self.max_dx = abs(move_limit)*(xmax-xmin)
 
-        alpha = np.maximum(self.xmin, x - factor * self.dx)
-        beta = np.minimum(self.xmax, x + factor * self.dx)
-        return alpha, beta
+    def update(self, x, f, df, ddf=None):
+        self.xmin = x - self.max_dx
+        self.xmax = x + self.max_dx
+        return self
 
 
-class MoveLimitMMA(MoveLimit):
+class MoveLimitAdaptive(MoveLimit):
     """
     This provides and adaptive move limit strategy as originally proposed
     within the MMA algorithm. It is essentially the asymptote update rule,
     which aims to reduce oscillations between iterations (if observed) and
     adepts the allowed step-size for the variables accordingly.
+
+    The maximum allowable move is determined by
+    `max_move = factor * move_limit`,
+    where the factor is updated according to any detected oscillations
     """
     def __init__(self,
                  xmin=-math.inf,
@@ -79,83 +98,70 @@ class MoveLimitMMA(MoveLimit):
                  ml_init=0.5,
                  ml_incr=1.2,
                  ml_decr=0.7,
-                 ml_bound=10.0,
-                 ml_albefa=0.1):
+                 ml_bound=0.01,
+                 oscillation_tol=1e-10):
+        """
+        :param xmin: Minimum bound (optional), used for relative movelimit
+        :param xmax: Maximum bound (optional), used for relative movelimit
+        :param move_limit: Relative/absolute movelimit, depending if xmin and xmax are given or not
+        :param ml_init: Initial factor of movelimit (max movelimit = factor * movelim)
+        :param ml_incr: Increase factor for non-oscillations
+        :param ml_decr: Decrease factor for oscillations
+        :param ml_bound: Minimum factor
+        :param oscillation_tol: Tolerance for detecting oscillations
+        """
         super().__init__(xmin=xmin, xmax=xmax, move_limit=move_limit)
         # TODO: document all possible settings below
         self.ml_init = ml_init
         self.ml_incr = ml_incr
         self.ml_decr = ml_decr
         self.ml_bound = ml_bound
-        self.ml_albefa = ml_albefa
+        self.osc_tol = oscillation_tol
         self.factor = self.ml_init * np.ones(len(xmin))
 
         # history variables
         self.x, self.xold1, self.xold2 = None, None, None
-        self.low, self.upp = None, None
 
-    def __call__(self, x):
+    def update(self, x, f, df, ddf=None):
         """
         This method updates the allowable move limits from the current point.
         It has a similar structure to the asymptote update rule given by:
         http://www.ingveh.ulg.ac.be/uploads/education/meca-0027-1/MMA_DCAMM_1998.pdf
 
         :param x: Design variable vector of size [n]
-        :param kwargs:
-        :return: alpha, beta: lower and upper move limits
+        :param f: Function value
+        :param df: Sensitivities
+        :param ddf: Second derivatives
+        :return: self
         """
-
         # update stored variables from previous iterations
-        self.xold2, self.xold1, self.x = self.xold1, self.x, x
+        self.xold2, self.xold1, self.x = self.xold1, self.x, x  # TODO, do we need to make a deep copy for xold?
 
-        # start the bounds using the default move limit approach
-        alpha, beta = super().__call__(x)
+        if self.xold2 is not None:
+            # To test if a design variable oscillates between iterations, we
+            # evaluate the product of its change between the last two iterations.
+            # This product will always be positive when the change in the variable
+            # had the same "direction" between both iterations. So, when a negative
+            # result is observed for a variable, that variable must have been
+            # oscillating.
+            oscillates = (self.x - self.xold1) * (self.xold1 - self.xold2)
 
-        if self.xold2 is None:
-            # Not enough iterations were performed to have all (required)
-            # history information available. This only updates the `self.low`
-            # and `self.upp` variables using a default move limit approach
-            self.low, self.upp = super().__call__(self.x, factor=self.factor)
-            return alpha, beta
+            # To reduce the oscillations, the oscillating variables are assigned
+            # `asydecr` compared to `asyincr` for the non oscillating variables.
+            self.factor[oscillates > self.osc_tol] *= self.ml_incr
+            self.factor[oscillates < self.osc_tol] *= self.ml_decr
 
-        # To test if a design variable oscillates between iterations, we
-        # evaluate the product of its change between the last two iterations.
-        # This product will always be positive when the change in the variable
-        # had the same "direction" between both iterations. So, when a negative
-        # result is observed for a variable, that variable must have been
-        # oscillating.
-        oscillates = (self.x - self.xold1) * (self.xold1 - self.xold2) <= 0
+            # Clip the factor between minimum factor and 1.0
+            # (steps > move_limit are not allowed)
+            np.clip(self.factor, self.ml_bound, 1.0, out=self.factor)
 
-        # To reduce the oscillations, the oscillating variables are assigned
-        # `asydecr` compared to `asyincr` for the non oscillating variables.
-        self.factor[oscillates] = self.ml_incr
-        self.factor[~oscillates] = self.ml_decr
+        # If xold2 is None, not enough iterations were performed
+        # to have all (required) history information available.
+        # This only updates the `self.xmin` and `self.xmin` variables
+        # using a default move limit approach
 
-        # update lower and upper asymptotes
-        self.low = self.x - self.factor * (self.xold1 - self.low)
-        self.upp = self.x + self.factor * (self.upp - self.xold1)
+        # apply the move limits to xmin and xmax
+        self.xmin = self.x - self.factor*self.max_dx
+        self.xmin = self.x + self.factor*self.max_dx
+        return self
 
-        # check min and max bounds of asymptotes, as they cannot be too close
-        # or far from the variable (TODO: redundant?)
-        lowmin = self.x - self.ml_bound * self.dx
-        lowmax = self.x - 1 / (self.ml_bound**2) * self.dx
-        uppmin = self.x + 1 / (self.ml_bound**2) * self.dx
-        uppmax = self.x + self.ml_bound * self.dx
-
-        # if given asymptotes cross boundaries put them to their max/min values
-        # (TODO: redundant?)
-        self.low = np.clip(self.low, lowmin, lowmax)
-        self.upp = np.clip(self.upp, uppmin, uppmax)
-
-        # move limits derived from the current asymptotes
-        lower = self.low + self.ml_albefa * (self.x - self.low)
-        upper = self.upp - self.ml_albefa * (self.upp - self.x)
-
-        # apply the move limits to alpha and beta to obtain the most
-        # conservative move limits, this effectively combines the standard move
-        # limit strategy given by `self.move_limit` with the move limits
-        # proposed by the intervening variables (asymptotes).
-        alpha = np.maximum(alpha, lower)
-        beta = np.minimum(beta, upper)
-
-        return alpha, beta

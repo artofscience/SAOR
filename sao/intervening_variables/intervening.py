@@ -17,16 +17,6 @@ class Intervening(ABC):
     material at: `ReferenceFiles/TaylorExpansion.pdf`.
     """
 
-    @property
-    def alpha(self):
-        """A lower bound of the feasible range for the intervening variable."""
-        return -math.inf
-
-    @property
-    def beta(self):
-        """A upper bound of the feasible range for the intervening variable."""
-        return +math.inf
-
     @abstractmethod
     def y(self, x):
         """Evaluates the mapping y = f(x)."""
