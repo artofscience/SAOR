@@ -1,56 +1,62 @@
 from .approximation import Approximation
 from sao.intervening_variables import Linear
-from sao.util.tools import _parse_to_list
+from sao.util.tools import parse_to_list
 import numpy as np
 
 
-# class GCMMA(Approximation):
-#     def __init__(self, asyinit, asydecr, asyincr, asybound, albefa):
-#         ...
-#
-#     def update(self, x, f, df, ddf=None):
-#         calculate pij, qij
-#
-#     def g(self, x):
-#         sum ()
-
-
 class Taylor1(Approximation):
+    """
+    This class creates a first order Taylor-approximation, possibly using
+    intervening variables.
+
+    Without intervening variable:
+    .. math::
+        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}(x - x_0)
+
+    With intervening variable:
+    .. math::
+        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}\frac{dx}{dy}(y(x) - y(x_0))
+    """
     def __init__(self, intervening=Linear()):
-        self.interv = _parse_to_list(intervening)
+        """Initialize the approximation, with optinal intervening variable object"""
+        self.interv = parse_to_list(intervening)
         self.g0 = None
         self.y0 = None
         self.dgdy = None
         self.nresp, self.nvar = -1, -1
 
     def update(self, x, f, df, ddf=None):
+        """Update the approximation with new information"""
         self.nresp, self.nvar = df.shape
-        assert len(x) == self.nvar
-        assert len(f) == self.nresp
+        assert len(x) == self.nvar, "Mismatch in number of design variables."
+        assert len(f) == self.nresp, "Mismatch in number of responses."
         for intv in self.interv:
             intv.update(x, f, df, ddf)
-        self.g0 = f*1
+        self.g0 = f.copy()
         self.dgdy = [df/intv.dydx(x) for intv in self.interv]
         self.y0 = [intv.y(x) for intv in self.interv]
         return self
 
     def g(self, x, out=None):
+        """Evaluates the approximation at design point `x`"""
         delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros(self.nresp)
         out[:] = self.g0
-        for dgdy_i, delta_yi in zip(self.dgdy, delta_y):
-            out += np.sum(dgdy_i * delta_yi, axis=1)
+        for dgdy, dy in zip(self.dgdy, delta_y):
+            out += np.sum(dgdy * dy, axis=1)
         return out
 
     def dg(self, x, out=None):
+        """Evaluates the approximation's gradient at design point `x`"""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
-        for dgdy_i, intv in zip(self.dgdy, self.interv):
-            out += dgdy_i * intv.dydx(x)
+        for dgdy, intv in zip(self.dgdy, self.interv):
+            out += dgdy * intv.dydx(x)
         return out
 
     def ddg(self, x, out=None):
+        """Evaluates the approximation's second derivative at design point `x`"""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         for dgdy, intv in zip(self.dgdy, self.interv):
@@ -58,17 +64,21 @@ class Taylor1(Approximation):
         return out
 
     def clip(self, x):
+        """Clips any vector `x` within the feasible bounds of any intervening variables"""
         [intv.clip(x) for intv in self.interv]
         return x
 
-    # def g_and_dg(self, x):
-    #     ...
-    #
-    # def g_and_dg_and_ddg(self, x):
-    #     ...
-
 
 class Taylor2(Taylor1):
+    """
+    Second order Taylor-approximation, with optional use of intervening variables
+
+     Without intervening variable:
+    .. math::
+        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}(x - x_0) + \frac{1}{2}\left.\frac{d^2g}{dx^2}\right|_{x_0}(x - x_0)^2
+
+    # TODO description with intervening variable
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ddgddy = None
@@ -79,18 +89,18 @@ class Taylor2(Taylor1):
         self.ddgddy = [ddf * intv.dxdy(x) ** 2 + df * intv.ddxddy(x) for intv in self.interv]
 
     def g(self, x, out=None):
-        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros(self.nresp)
-        out[:] = self.g0
-        for dgdy_i, delta_yi in zip(self.dgdy, delta_y):
-            out += np.sum(dgdy_i * delta_yi, axis=1)
-        for ddgddy_i, delta_yi in zip(self.ddgddy, delta_y):
-            out += 0.5*np.sum(ddgddy_i * delta_yi**2, axis=1)
+        out[:] = self.g0  # Redo this part from Taylor1, to avoid recalculating delta_y
+        for dgdy, dy in zip(self.dgdy, delta_y):
+            out += np.sum(dgdy * dy, axis=1)
+        for ddgddy, dy in zip(self.ddgddy, delta_y):
+            out += 0.5*np.sum(ddgddy * dy**2, axis=1)
         return out
 
     def dg(self, x, out=None):
-        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         super().dg(x, out=out)
@@ -98,16 +108,13 @@ class Taylor2(Taylor1):
             out += self.ddgddy[i] * delta_y[i] * intv.dydx(x)
         return out
 
-        # def ddg(self, y, dy, ddy):
-    #     return super().ddg(y, dy, ddy) + (self.ddfddy*(y-self.y).T)*ddy + self.ddfddy*dy**2
-
     def ddg(self, x, out=None):
-        delta_y = [intv.y(x) - y0i for intv, y0i in zip(self.interv, self.y0)]
+        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         super().ddg(x, out=out)
         for i, intv in enumerate(self.interv):
-            out += self.ddgddy[i] * (delta_y[i] * intv.ddyddx(x) + (intv.dydx(x)) ** 2)  # comment
+            out += self.ddgddy[i] * (delta_y[i] * intv.ddyddx(x) + (intv.dydx(x)) ** 2)
         return out
 
 

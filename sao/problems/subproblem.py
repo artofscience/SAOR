@@ -2,19 +2,23 @@ from sao.problems.problem import Problem
 from sao.intervening_variables import Linear
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.move_limit import Bound, MoveLimit
-from sao.util.tools import _parse_to_list
+from sao.util.tools import parse_to_list
+import numpy as np
 
 
 class Subproblem(Problem):
     def __init__(self, approximation=Taylor1(),
-                 limits=Bound(xmin=0, xmax=1)):  # TODO: Update the default movelimit to new movelimits
+                 limits=Bound(xmin=0, xmax=1)):
         super().__init__()
         self.approx = approximation
-        self.lims = _parse_to_list(limits)
+        self.set_limits(limits)
         self.alpha, self.beta = None, None
 
-    def set_limits(self, limits):
-        self.lims = _parse_to_list(limits)
+    def set_limits(self, *limits):
+        self.lims = parse_to_list(*limits)
+
+    def add_limits(self, *limits):
+        self.lims.extend(parse_to_list(*limits))
 
     def build(self, x, f, df, ddf=None):
         self.n, self.m = len(x), len(
@@ -24,8 +28,8 @@ class Subproblem(Problem):
         self.approx.update(x, f, df, ddf)
 
         # Update the local problem bounds
-        self.alpha = x * 0 - 1e+100
-        self.beta = x * 0 + 1e+100
+        self.alpha = np.full_like(x, +np.inf)
+        self.beta = np.full_like(x, -np.inf)
 
         # Enforce restriction on the possible step size within the subproblem.
         # The step is restricted by the chosen move limit strategy as well as
@@ -41,6 +45,10 @@ class Subproblem(Problem):
         # e.g. cross the lower/upper bounds in the MMA asymptotes.
         self.approx.clip(self.alpha)
         self.approx.clip(self.beta)
+
+        assert np.isfinite(self.alpha).all() and np.isfinite(self.beta).all(), \
+            "The bounds must be finite. Use at least one move-limit or bound."
+        # TODO: Possibly a check for finiteness of the bounds
 
     # TODO These might also be removed if the solver uses prob.approx.g instead of prob.g
     def g(self, x):

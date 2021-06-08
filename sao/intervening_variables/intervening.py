@@ -37,12 +37,14 @@ class Intervening(ABC):
 
         For details refer to the reference material provided at:
         `ReferenceFiles/TaylorExpansion.pdf`
+        `https://www.physicsforums.com/threads/is-the-derivative-equal-to-one-over-the-derivative-of-the-inverse.63886/`
         """
         return 1 / self.dydx(x)
 
     def ddxddy(self, x):
         """Evaluates the second derivative of the inverse mapping at x.
-
+        For details refer to the reference material provided at:
+        `http://www.math-principles.com/2014/03/second-derivative-problems-reciprocal.html`
         """
         return -self.ddyddx(x) / self.dydx(x) ** 3
 

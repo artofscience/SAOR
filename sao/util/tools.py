@@ -1,4 +1,4 @@
-def _parse_to_list(*args):
+def parse_to_list(*args):
     if len(args) == 0:
         return []
     elif len(args) == 1:
