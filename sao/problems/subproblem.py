@@ -36,6 +36,7 @@ class Subproblem(Problem):
         # the feasible range of the intervening variables. First the move
         # limits are applied to constraint the step size.
         for ml in self.lims:
+            ml.update(x, f, df, ddf)
             ml.clip(self.alpha)
             ml.clip(self.beta)
 

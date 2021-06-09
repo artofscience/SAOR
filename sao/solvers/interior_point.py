@@ -253,7 +253,8 @@ class InteriorPointX(InteriorPoint):
         """
 
         self.w = State(
-            self.x0,
+            # self.x0,
+            (self.beta + self.alpha) / 2,
             np.maximum(1 / (self.x0 - self.alpha), 1),
             np.maximum(1 / (self.beta - self.x0), 1),
             np.ones(self.m),
