@@ -72,7 +72,7 @@ class MoveLimit(GeneralMoveLimit):
     def __init__(self, move_limit=0.1, dx=1.0):
         """
         :param move_limit: The absolute move limit, in case dx is not given, or relative to dx
-        :param dx = xmax - xmin: Variable bound interval for relative stepsize
+        :param dx: = xmax - xmin: Variable bound interval for relative stepsize
         """
         """Stores the desired step-size (``trust region``)."""
         self.max_dx = abs(move_limit)*dx
@@ -95,9 +95,8 @@ class MoveLimitAdaptive(MoveLimit):
     where the factor is updated according to any detected oscillations
     """
     def __init__(self,
-                 xmin=-math.inf,
-                 xmax=math.inf,
                  move_limit=0.1,
+                 dx=1.0,
                  ml_init=0.5,
                  ml_incr=1.2,
                  ml_decr=0.7,
@@ -106,19 +105,20 @@ class MoveLimitAdaptive(MoveLimit):
         """
         :param xmin: Minimum bound (optional), used for relative movelimit
         :param xmax: Maximum bound (optional), used for relative movelimit
-        :param move_limit: Relative/absolute movelimit, depending if xmin and xmax are given or not
+        :param move_limit: Relative/absolute movelimit, depending if dx is given or not
+        :param dx: = xmax - xmin: Variable bound interval for relative stepsize
         :param ml_init: Initial factor of movelimit (max movelimit = factor * movelim)
         :param ml_incr: Increase factor for non-oscillations
         :param ml_decr: Decrease factor for oscillations
         :param ml_bound: Minimum factor
         :param oscillation_tol: Tolerance for detecting oscillations
         """
-        super().__init__(xmin=xmin, xmax=xmax, move_limit=move_limit)
-        self.ml_init = ml_init
-        self.ml_incr = ml_incr
-        self.ml_decr = ml_decr
-        self.ml_bound = ml_bound
-        self.osc_tol = oscillation_tol
+        super().__init__(move_limit=move_limit, dx=dx)
+        self.ml_init = abs(ml_init)
+        self.ml_incr = abs(ml_incr)
+        self.ml_decr = abs(ml_decr)
+        self.ml_bound = abs(ml_bound)
+        self.osc_tol = abs(oscillation_tol)
         self.factor = None
 
         # history variables
@@ -137,7 +137,7 @@ class MoveLimitAdaptive(MoveLimit):
         :return: self
         """
         # update stored variables from previous iterations
-        self.xold2, self.xold1, self.x = self.xold1, self.x, x  # TODO, do we need to make a deep copy for xold?
+        self.xold2, self.xold1, self.x = self.xold1, self.x, x.copy()  # TODO, do we need to make a deep copy for xold?
 
         if self.factor is None:
             self.factor = self.ml_init * np.ones_like(x)
@@ -166,6 +166,6 @@ class MoveLimitAdaptive(MoveLimit):
 
         # apply the move limits to xmin and xmax
         self.xmin = self.x - self.factor*self.max_dx
-        self.xmin = self.x + self.factor*self.max_dx
+        self.xmax = self.x + self.factor*self.max_dx
         return self
 

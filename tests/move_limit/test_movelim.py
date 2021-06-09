@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
-
-
-from sao.move_limits.move_limit import GeneralMoveLimit, Bound, MoveLimit
+from sao.move_limits.move_limit import GeneralMoveLimit, Bound, MoveLimit, MoveLimitAdaptive
 
 
 def test_generalmovelimit():
@@ -103,6 +101,69 @@ def test_movelimit_vector_relative():
     assert np.allclose(xcl-x, np.array([0.01, 0.003, 0.002, 0.028, -0.01, -0.01, -0.003]))
 
 
+def test_movelimit_adaptive():
+    x = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    dx1 = np.array([0.1, -0.05, 0.03, 0.5, 0.3, 0.01])
+    dx2 = np.array([-0.1, -0.01, -0.05, 0.3, 0.1, -0.1])
+
+    movelim = 0.1
+    v_init, v_incr, v_decr, v_bound = 0.5, 1.5, 0.5, 0.01
+    ml = MoveLimitAdaptive(movelim, ml_init=v_init, ml_incr=v_incr, ml_decr=v_decr, ml_bound=v_bound)
+    ml.update(x)
+    # Use the initial move limit
+    xcl = ml.clip(x+dx1)
+    assert np.allclose(xcl-x, np.array([0.05, -0.05, 0.03, 0.05, 0.05, 0.01]))
+
+    x += dx1
+    ml.update(x)
+    # Again use the initial move limit
+    xcl = ml.clip(x+dx2)
+    assert np.allclose(xcl-x, np.array([-0.05, -0.01, -0.05, 0.05, 0.05, -0.05]))
+
+    x += dx2
+    ml.update(x)
+    # Some limits have gone smaller, others larger
+    xcl = ml.clip(x+dx1)
+    assert np.allclose(xcl-x, np.array([0.025, -0.05, 0.025, 0.075, 0.075, 0.01]))
+
+    n_saturate_upper = np.ceil(np.log10(1/v_init) / np.log10(v_incr))
+    # The factors reach the upper bound (1.0) after 2 oscillations
+    x += dx1
+    ml.update(x)
+    xcl = ml.clip(x+dx2)
+    assert xcl[3]-x[3] == pytest.approx(movelim)
+    assert xcl[4]-x[4] == pytest.approx(movelim)
+
+    n_saturate_lower = int(np.ceil(np.log10(v_bound/v_init) / np.log10(v_decr)))
+    for i in range(n_saturate_lower-2):
+        dx = dx2 if i % 2 == 0 else dx1  # Alternate between adding dx2 and dx1
+        x += dx
+        ml.update(x)
+    dx = dx2 if (i+1) % 2 == 0 else dx1
+    xcl = ml.clip(x+dx)
+    assert abs(xcl[0]-x[0]) == pytest.approx(v_bound*movelim)
+    assert abs(xcl[2]-x[2]) == pytest.approx(v_bound*movelim)
+    assert abs(xcl[5]-x[5]) == pytest.approx(v_bound*movelim)
+
+    # Move from the smallest step to the largest step by doing steps in a single direction
+    n_small_to_large = int(np.ceil(np.log10(1.0/v_bound) / np.log10(v_incr)))
+    for i in range(n_small_to_large):
+        dx = 0.1
+        x += dx
+        ml.update(x)
+    xcl = ml.clip(x+1.0)  # All should be clipped at movelimit
+    assert min(xcl-x) == pytest.approx(movelim)
+
+    # Move from the largest step to the smalles step by doing steps in a single direction
+    n_large_to_small = int(np.ceil(np.log10(v_bound/1.0) / np.log10(v_decr)))
+    for i in range(n_large_to_small):
+        dx = -0.1 if i % 2 == 0 else 0.1
+        x += dx
+        ml.update(x)
+    xcl = ml.clip(x+1.0)  # All should be clipped at movelimit
+    assert max(xcl-x) == pytest.approx(v_bound*movelim)
+
+
 if __name__ == '__main__':
     test_generalmovelimit()
     test_bound_uniform()
@@ -111,4 +172,5 @@ if __name__ == '__main__':
     test_movelimit_uniform_relative()
     test_movelimit_vector_absolute()
     test_movelimit_vector_relative()
+    test_movelimit_adaptive()
 
