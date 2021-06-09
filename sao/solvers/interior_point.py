@@ -104,6 +104,7 @@ class InteriorPoint(PrimalDual, ABC):
     r: State = NotImplemented
     w: State = NotImplemented
     dw: State = NotImplemented
+    wold: State = NotImplemented
 
     @abstractmethod
     def residual(self):
@@ -138,6 +139,9 @@ class InteriorPoint(PrimalDual, ABC):
                 # Note: this requires solving a system of equations
                 self.get_newton_direction()
 
+                self.wold = deepcopy(self.w)  # TODO @max how it this handled?
+                # self.wold = self.w # why does this give same result?
+
                 # the setp size can be evaluated once ``dw`` is evaluated
                 step = self.get_step_size()
 
@@ -149,7 +153,7 @@ class InteriorPoint(PrimalDual, ABC):
 
                     # set a step in the Newton direction
                     # w^(l+1) = w^(l) + step^(l) * dw
-                    self.w += step * self.dw
+                    self.w = self.wold + step * self.dw
 
                     rnew, rmax = self.residual()
                     step /= 2
@@ -263,6 +267,7 @@ class InteriorPointX(InteriorPoint):
 
         self.r = deepcopy(self.w)
         self.dw = deepcopy(self.w)
+        self.wold = deepcopy(self.w)
 
     def residual(self):
         """Updates the residual and return its norm and maximum.

@@ -6,12 +6,13 @@ from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
 from Problems.topology_optimization_benchmark.selfweight import Selfweight
 from Problems.topology_optimization_benchmark.thermomech import Thermomech
-from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2
+from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2, Taylor2
 from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import MoveLimitIntervening, MoveLimitMMA
+from sao.move_limits.move_limit import Bound, MoveLimit
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
+from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.util.plotter import Plot, Plot2
 from sao.convergence_criteria.ObjChange import ObjectiveChange
 from sao.convergence_criteria.VarChange import VariableChange
@@ -47,19 +48,10 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                         approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
-    # subprob = Subproblem(intervening=Linear(),
-    #                      approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[Bound(xmin=0, xmax=1)])
 
-    # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectiveChange()
     criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -75,6 +67,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Optimization loop
     # while itte < 500:
+    # myopt = SvanbergIP(prob.n, prob.m)
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
@@ -90,14 +83,13 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
 
-        # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
-
         # Solve current subproblem
         solver = ipopt(subprob)
         x_k = solver.update()
-        solves += solver.itera
+
+        # Solve current subproblem
+        # out = myopt.subsolv(subprob)
+        # x_k = out[0]
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
@@ -108,7 +100,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     print(solves)
 
 
-def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
+def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=10):
     logger.info("Solving volume minimization subject to aggregated stress constraint")
 
     # Instantiate problem
@@ -118,8 +110,8 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
     # Instantiate a non-mixed approximation scheme
     # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
     #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
-                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[Bound(), MoveLimit()])
 
     # Initialize iteration counter and design
     itte = 0
@@ -132,7 +124,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
-
+    # myopt=SvanbergIP(prob.n,prob.m)
     # Optimization loop
     while itte < 500:
 
@@ -150,12 +142,14 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+        # if plotter2_flag:
+        #     plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
-        solves += solver.itera
+        # out = myopt.subsolv(subprob)
+        # x_k = out[0]
+        # solves += solver.itera
 
         itte += 1
 
@@ -692,10 +686,10 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 if __name__ == "__main__":
     # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
     # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
+    example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
     # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
     # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
+    # example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
     # Mixed optimizers
     # example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     # example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
