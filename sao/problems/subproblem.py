@@ -28,8 +28,8 @@ class Subproblem(Problem):
         self.approx.update(x, f, df, ddf)
 
         # Update the local problem bounds
-        self.alpha = np.full_like(x, +np.inf)
-        self.beta = np.full_like(x, -np.inf)
+        self.alpha = np.full_like(x, -np.inf)
+        self.beta = np.full_like(x, +np.inf)
 
         # Enforce restriction on the possible step size within the subproblem.
         # The step is restricted by the chosen move limit strategy as well as
