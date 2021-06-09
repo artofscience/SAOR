@@ -15,13 +15,13 @@ class GeneralMoveLimit:
     xmin = -np.inf
     xmax = np.inf
 
-    def update(self, x, f, df, ddf=None):
+    def update(self, x, *args, **kwargs):
         """
         Update function
         :param x: Current design vector
-        :param f: Function evaluation at x
-        :param df: First derivatives at x
-        :param ddf: Second derivatives at x
+        :param f: Function evaluation at x (optional)
+        :param df: First derivatives at x (optional)
+        :param ddf: Second derivatives at x (optional)
         :return: self
         """
         return self
@@ -69,16 +69,15 @@ class MoveLimit(GeneralMoveLimit):
     step size to obtain the corresponding lower and upper bounds of the
     variables.
     """
-    def __init__(self, move_limit=0.1, xmin=0.0, xmax=1.0):
+    def __init__(self, move_limit=0.1, dx=1.0):
         """
-        :param move_limit: The absolute move limit, in case xmin and xmax are not given, or relative to xmin and xmax
-        :param xmin: Minimum bound
-        :param xmax: Maximum bound
+        :param move_limit: The absolute move limit, in case dx is not given, or relative to dx
+        :param dx = xmax - xmin: Variable bound interval for relative stepsize
         """
         """Stores the desired step-size (``trust region``)."""
-        self.max_dx = abs(move_limit)*(xmax-xmin)
+        self.max_dx = abs(move_limit)*dx
 
-    def update(self, x, f, df, ddf=None):
+    def update(self, x, *args, **kwargs):
         self.xmin = x - self.max_dx
         self.xmax = x + self.max_dx
         return self
@@ -125,7 +124,7 @@ class MoveLimitAdaptive(MoveLimit):
         # history variables
         self.x, self.xold1, self.xold2 = None, None, None
 
-    def update(self, x, f, df, ddf=None):
+    def update(self, x, *args, **kwargs):
         """
         This method updates the allowable move limits from the current point.
         It has a similar structure to the asymptote update rule given by:
