@@ -132,3 +132,6 @@ dmypy.json
 .pyre/
 
 **/.DS_store
+
+# ignore automatically generated .rst documentation files
+docs/source/*.rst
