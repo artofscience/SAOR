@@ -4,7 +4,7 @@ from scipy.sparse.linalg import eigsh, splu, LinearOperator
 
 
 class Eigenvalue(MBBBeam):
-    def __init__(self, nelx, nely, volfrac=0.6, penal=3, rmin=2, n_eigenvalues=3, rho=1e-6):
+    def __init__(self, nelx, nely, volfrac=0.6, penal=3, rmin=2, n_eigenvalues=3, rho=1e-6, objective_scale=100):
         super().__init__(nelx, nely, volfrac, penal, rmin)
         self.unitL = 0.1/nelx
 
@@ -13,6 +13,8 @@ class Eigenvalue(MBBBeam):
 
         self.n_eigenvalues = n_eigenvalues
         self.rho = rho
+        self.objective_scale = objective_scale
+        self.g0fac = None
 
     def g(self, x):
         # Filter design variables
@@ -34,8 +36,11 @@ class Eigenvalue(MBBBeam):
         # print(f"eigenvalues found: {self.eigvals}")
         # Calculate responses
         g_j = np.empty(2)
-        g_j[0] = sum(1/self.eigvals)/100
-        g_j[1] = sum(xPhys[:]) / (self.volfrac * self.n) - 1
+        g_j[0] = sum(1/self.eigvals)
+        if self.g0fac is None:
+            self.g0fac = self.objective_scale/g_j[0]
+        g_j[0] *= self.g0fac
+        g_j[1] = (sum(xPhys[:]) / (self.volfrac * self.n) - 1)*10
         return g_j
 
     def dg(self, x):
@@ -45,7 +50,7 @@ class Eigenvalue(MBBBeam):
 
         ue = self.u[self.edofMat, :]
         dg_dsK = np.einsum("E,ijE,jk,ikE->i", dg_dlam, ue, self.KE, ue)
-        dg_dsM = np.einsum("E,ijE,ijE->i", -self.eigvals*dg_dlam*self.rho/4, ue, ue)
+        dg_dsM = np.einsum("E,ijE,ijE->i", -self.eigvals*dg_dlam*self.rho*self.unitL*self.unitL/4, ue, ue)
 
         dg_j[0, :] += dg_dsK*(1-self.Eps)*(0.1 + 0.9*self.penal*xPhys**(self.penal-1))
         dg_j[0, :] += dg_dsM*(1-self.Eps)
@@ -55,8 +60,8 @@ class Eigenvalue(MBBBeam):
 
         # Sensitivity filtering
         dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
-        dg_j[0, :] *= 0.01
-        dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
+        dg_j[0, :] *= self.g0fac
+        dg_j[1, :] = 10*np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
 
         return dg_j
 
