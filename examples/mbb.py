@@ -4,6 +4,7 @@ from Problems.topology_optimization_benchmark.compliance import Compliance
 from Problems.topology_optimization_benchmark.stress import Stress
 from Problems.topology_optimization_benchmark.mechanism import Mechanism
 from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
+from Problems.topology_optimization_benchmark.dynamic_compliance import DynamicCompliance
 from Problems.topology_optimization_benchmark.selfweight import Selfweight
 from Problems.topology_optimization_benchmark.thermomech import Thermomech
 from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2, Taylor2
@@ -99,6 +100,65 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     logger.info('Optimization loop converged!')
     print(solves)
 
+
+def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
+    logger.info("Solving dynamic compliance minimization subject to volume constraint")
+
+    # Instantiate problem
+    prob = DynamicCompliance(nelx, nely, volfrac, penal, rmin, omega=2500, plot_frf=True)
+    assert prob.n == nelx * nely
+
+    # Instantiate a non-mixed approximation scheme
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+    vis = None
+    solves = 0
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter2_flag = False
+    if plotter2_flag:
+        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
+
+    # Optimization loop
+    # while itte < 500:
+    # myopt = SvanbergIP(prob.n, prob.m)
+    while not criterion.converged:
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+
+        # Print current iteration and x_k
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
+            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
+        plotter.plot([f[0], f[1]])
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df)
+
+        # Solve current subproblem
+        solver = ipopt(subprob)
+        x_k = solver.update()
+
+        # Solve current subproblem
+        # out = myopt.subsolv(subprob)
+        # x_k = out[0]
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
+
+        itte += 1
+
+    logger.info('Optimization loop converged!')
+    print(solves)
 
 def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=10):
     logger.info("Solving volume minimization subject to aggregated stress constraint")
@@ -684,9 +744,11 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
+    # TODO: Running these examples should be improved. e.g. Create the `prob` object here and call a function `optimize(prob)`
     # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
     # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
+    example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
     # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
     # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     # example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
