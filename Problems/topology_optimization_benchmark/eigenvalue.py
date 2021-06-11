@@ -6,6 +6,7 @@ from scipy.sparse.linalg import eigsh, splu, LinearOperator
 class Eigenvalue(MBBBeam):
     def __init__(self, nelx, nely, volfrac=0.6, penal=3, rmin=2, n_eigenvalues=3, rho=1e-6):
         super().__init__(nelx, nely, volfrac, penal, rmin)
+        self.unitL = 0.1/nelx
 
         # Solution and RHS vectors
         self.u = np.zeros((self.ndof, n_eigenvalues))
@@ -19,9 +20,9 @@ class Eigenvalue(MBBBeam):
 
         # Assemble mass and stiffness matrix
         K = self.assemble_K(xPhys, interpolation='simplin')
-        M = self.assemble_M(xPhys, rho=self.rho)
+        M = self.assemble_M(xPhys, rho=self.rho, lx=self.unitL, ly=self.unitL)
         # Add a point mass
-        M.data[0, 0] += 5.0
+        # M.data[0, 0] += 5.0
         # M.data[0, 1] += 0.5
 
         Kinv = splu(K)

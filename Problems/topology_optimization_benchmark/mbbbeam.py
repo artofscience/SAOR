@@ -115,9 +115,10 @@ class MBBBeam(Problem, ABC):
         K = self.deleterowcol(K, self.fixed, self.fixed)  # FIXME: Here it is (was) converted back to coo?
         return K
 
-    def assemble_M(self, x, rho=1.0):
+    def assemble_M(self, x, rho=1.0, lx=1.0, ly=1.0, lz=1.0):
         x_scale = self.Eps + (1 - self.Eps) * x
-        sM = np.kron(x_scale, np.ones(8)*rho/4)
+        m_E = lx*ly*lz*rho  # Mass of one element
+        sM = np.kron(x_scale, np.ones(8)*m_E/4)
         xdiag = np.zeros(self.ndof)
         np.add.at(xdiag, self.edofMat.flatten(), sM)  # Assemble the diagonal
         return diags(xdiag[self.free])
