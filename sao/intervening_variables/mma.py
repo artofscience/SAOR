@@ -14,7 +14,7 @@ class MMA(Intervening):
         L_i := Lower asymptote (acts as a lower move-limit & adjusts the approximation's convexity)
     """
 
-    def __init__(self, xmin, xmax, **kwargs):
+    def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1, oscillation_tol=1e-10):
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
@@ -22,12 +22,13 @@ class MMA(Intervening):
         self.xmin, self.xmax = xmin, xmax
 
         # MMA parameter initialization
-        self.asyinit = kwargs.get('asyinit', 0.5)
-        self.asyincr = kwargs.get('asyincr', 1.2)
-        self.asydecr = kwargs.get('asydecr', 0.7)
-        self.asybound = kwargs.get('asydecr', 10.0)
-        self.albefa = kwargs.get('albefa', 0.1)
-        self.factor = self.asyinit * np.ones(len(xmin))
+        self.asyinit = asyinit
+        self.asyincr = asyincr
+        self.asydecr = asydecr
+        self.asybound = asybound
+        self.albefa = albefa
+        self.osc_tol = oscillation_tol
+        self.factor = None
         self.dx = xmax - xmin
 
         # A boolean indicator array that keeps track of the positive (and negative) values of the variables
@@ -35,47 +36,39 @@ class MMA(Intervening):
 
     def update(self, x, f, df, *args, **kwargs):
         """Update state of previous iterations."""
-        self.xold2 = self.xold1
-        self.xold1 = self.x
-        self.x = x
+        self.xold2, self.xold1, self.x = self.xold1, self.x, x.copy()
         self.positive = df >= 0         # size of [m_p, n_l]
         self.get_asymptotes()
 
     def get_asymptotes(self):
-        # Initial values of asymptotes
+        """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
+        if self.factor is None:
+            self.factor = self.asyinit * np.ones_like(self.x)
+
         if self.xold2 is None:
+            # Initial values of asymptotes
             self.low = self.x - self.factor * self.dx
             self.upp = self.x + self.factor * self.dx
-
-        # Update scheme for asymptotes
         else:
+            # Update scheme for asymptotes
             # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
             # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
 
             # check for oscillations in variables (if zzz > 0: no oscillations, if zzz < 0: oscillations)
-            zzz = (self.x - self.xold1) * (self.xold1 - self.xold2)
+            zzz = ((self.x - self.xold1) * (self.xold1 - self.xold2))/self.dx
 
-            # oscillating variables x_i are assigned a factor of asydecr and non-oscillating to asyincr
-            self.factor[zzz > 0] = self.asyincr
-            self.factor[zzz < 0] = self.asydecr
+            # oscillating variables x_i are increase or decrease the factor
+            self.factor[zzz > self.osc_tol] *= self.asyincr
+            self.factor[zzz < self.osc_tol] *= self.asydecr
+
+            # Clip the asymptote factor
+            minfactor = 1 / (self.asybound**2)
+            maxfactor = self.asybound
+            np.clip(self.factor, minfactor, maxfactor)
 
             # update lower and upper asymptotes
-            self.low = self.x - self.factor * (self.xold1 - self.low)
-            self.upp = self.x + self.factor * (self.upp - self.xold1)
-
-            # check min and max bounds of asymptotes, as they cannot be too close or far from the variable
-            lowmin = self.x - self.asybound * self.dx
-            lowmax = self.x - 1 / (self.asybound ** 2) * self.dx
-            uppmin = self.x + 1 / (self.asybound ** 2) * self.dx
-            uppmax = self.x + self.asybound * self.dx
-
-            # if given asymptotes cross boundaries put them to their max/min values (redundant?)
-            self.low = np.clip(self.low, lowmin, lowmax)
-            self.upp = np.clip(self.upp, uppmin, uppmax)
-
-        # # Fix asymptotes to constant values in order to test the influence of curvature in the responses
-        # self.low = self.xmin - 0.1 * self.dx
-        # self.upp = self.xmax + 0.1 * self.dx
+            self.low = self.x - self.factor * self.dx
+            self.upp = self.x + self.factor * self.dx
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
@@ -101,7 +94,14 @@ class MMA(Intervening):
         return zzl2, zzu2
 
     def clip(self, x):
-        l, u = self.get_move_limit()
+        """
+        Clips a vector x between the lower and upper asymptote, with minimum
+        safety distance `albefa` to the asymptotes.
+        :param x: The vector to be clipped
+        :return: Clipped vector (reference of x)
+        """
+        dist = self.albefa * self.factor * self.dx
+        l, u = self.low + dist, self.upp - dist
         return np.clip(x, l, u, out=x)
 
 
