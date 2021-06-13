@@ -31,6 +31,8 @@ class MMA(Intervening):
         self.factor = None
         self.dx = xmax - xmin
 
+        self.min_factor, self.max_factor = 1 / (self.asybound**2), self.asybound
+
         # A boolean indicator array that keeps track of the positive (and negative) values of the variables
         self.positive = None
 
@@ -43,7 +45,7 @@ class MMA(Intervening):
     def get_asymptotes(self):
         """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
         if self.factor is None:
-            self.factor = self.asyinit * np.ones_like(self.x)
+            self.factor = np.full_like(self.x, self.asyinit)
 
         if self.xold2 is None:
             # Initial values of asymptotes
@@ -54,17 +56,15 @@ class MMA(Intervening):
             # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
             # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
 
-            # check for oscillations in variables (if zzz > 0: no oscillations, if zzz < 0: oscillations)
-            zzz = ((self.x - self.xold1) * (self.xold1 - self.xold2))/self.dx
+            # check for oscillations in variables (if > 0: no oscillations, if < 0: oscillations)
+            oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2))/self.dx
 
             # oscillating variables x_i are increase or decrease the factor
-            self.factor[zzz > self.osc_tol] *= self.asyincr
-            self.factor[zzz < self.osc_tol] *= self.asydecr
+            self.factor[oscillation > +self.osc_tol] *= self.asyincr
+            self.factor[oscillation < -self.osc_tol] *= self.asydecr
 
             # Clip the asymptote factor
-            minfactor = 1 / (self.asybound**2)
-            maxfactor = self.asybound
-            np.clip(self.factor, minfactor, maxfactor)
+            np.clip(self.factor, self.min_factor, self.max_factor)
 
             # update lower and upper asymptotes
             self.low = self.x - self.factor * self.dx
