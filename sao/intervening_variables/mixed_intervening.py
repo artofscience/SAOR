@@ -36,8 +36,8 @@ class Mixed(Intervening):
         return self
 
     def add_intervening(self, inter: Intervening, var=Ellipsis, resp=Ellipsis):
-        which_var = [np.array([], dtype=int) for _ in range(self.nresp)]
-        which_resp = [False for _ in range(self.nresp)]
+        which_var = [np.array([], dtype=int)] * self.nresp
+        which_resp = [False] * self.nresp
 
         the_vars = np.unique(np.atleast_1d(self.all_var[var]))
         for i in np.atleast_1d(self.all_resp[resp]):
