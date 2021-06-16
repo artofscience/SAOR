@@ -18,7 +18,7 @@ class Mixed(Intervening):
         if default is not None:
             self.all_inter.append( (default, [True for _ in self.all_resp], [self.all_var for _ in range(self.nresp)]) )
 
-    def set_intervening(self, inter, var=Ellipsis, resp=Ellipsis):
+    def set_intervening(self, inter: Intervening, var=Ellipsis, resp=Ellipsis):
         which_var = [np.array([], dtype=int) for _ in range(self.nresp)]
         which_resp = [False for _ in range(self.nresp)]
 
