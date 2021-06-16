@@ -28,10 +28,9 @@ class Mixed(Intervening):
             which_resp[i] = True
             # Remove from existing intervening variables
             for dat in self.all_inter:
-                if not dat[1][i]:
-                    continue
-                dat[2][i] = np.setdiff1d(dat[2][i], the_vars, assume_unique=True)
-                dat[1][i] = len(dat[2][i]) > 0
+                if dat[1][i]:
+                    dat[2][i] = np.setdiff1d(dat[2][i], the_vars, assume_unique=True)
+                    dat[1][i] = len(dat[2][i]) > 0
 
         self.all_inter.append((inter, which_resp, which_var))
         return self
