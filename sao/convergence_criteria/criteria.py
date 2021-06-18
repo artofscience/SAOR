@@ -2,6 +2,7 @@
 import abc
 import math
 import operator
+import numpy as np
 
 
 class Criterion(abc.ABC):
@@ -96,30 +97,28 @@ class Criteria(Criterion):
 
 class ObjectiveChange(Criterion):
     """Keeps track of the relative objective changes between iterations."""
-    def __init__(self, f, tolerance=1e-4, scaled=False):
+    def __init__(self, objective, tolerance=1e-4, normalise=False):
         super().__init__()
-        self.objective = objective[0]
+        self.objective = objective
         self.tolerance = tolerance
-        self.previous = math.inf
-        self.scaled = scaled
+        self.previous = np.full_like(self.objective, np.inf)
+        self.normalise = normalise
 
     def __call__(self):
         """Evaluate the objective changes between iterations."""
         current = self.objective
 
         change = abs(current - self.previous)
-        if self.scaled:
-            # For the first iteration the previous value is still set to
-            # `math.inf`, resulting and infinite change and, after the next
-            # division, in a `NaN` value for the current change. However, this
-            # is handled correctly as the comparison operation with respect to
-            # the set tolerance returns `False` when comparing to `NaN`.
-            change /= abs(self.previous)
+        if self.normalise:
+            # If previous is `np.inf`, the change is already set to infinite,
+            # and the normalisation can be skipped to avoid division by `Inf`.
+            if not np.isinf(self.previous):
+                change /= abs(self.previous)
 
         self.done = bool(change < self.tolerance)
 
         # make sure to keep track of the previous iterations
-        self.previous = current
+        self.previous = current.copy()
 
 
 class VariableChange(Criterion):
@@ -161,7 +160,7 @@ class Feasibility(Criterion):
         is provided, that value is considered for all constraint functions.
         """
         super().__init__()
-        self.contraints = contraints
+        self.constraints = contraints
 
         # Test if the provided slack variables allow iteration, if not, the
         # single value is repeated for the required number of constraints.
@@ -169,7 +168,7 @@ class Feasibility(Criterion):
             _ = iter(slack)
             self.slack = slack
         except TypeError:
-            self.slack = [slack] * len(self.contraints)
+            self.slack = [slack] * len(self.constraints)
 
         err_msg = f"Wrong number of slack variables: {len(self.slack)}"
         assert len(self.slack) == len(self.constraints), err_msg
