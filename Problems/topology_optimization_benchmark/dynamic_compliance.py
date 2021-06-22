@@ -26,7 +26,7 @@ class DynamicCompliance(MBBBeam):
         self.omega = omega
         self.compute_eigenvalues = compute_eigenvalues
 
-        # Objective scaling
+        # Objective scaling_strategies
         self.objective_scale = objective_scale
         self.g0fac = None
 

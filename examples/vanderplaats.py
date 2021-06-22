@@ -14,6 +14,7 @@ from sao.convergence_criteria.VarChange import VariableChange
 from sao.convergence_criteria.KKT import KKT
 from sao.convergence_criteria.Feasibility import Feasibility
 from sao.convergence_criteria.Alltogether import Alltogether
+from sao.scaling_strategies.scaling import ObjectiveScaling
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -49,6 +50,9 @@ def example_vanderplaats(N):
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
+    # Instantiate the scaling_strategies strategy
+    scaling = ObjectiveScaling()
+
     # Instantiate plotter
     plotter = Plot(['objective', 'stress_1', 'geom_1', 'tip_disp', 'max_constr_violation'], path=".")
     plotter2_flag = False
@@ -66,6 +70,10 @@ def example_vanderplaats(N):
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
+
+        # Apply scaling strategy
+        scaling.update_factor(f)
+        f, df = scaling.factor * f, (df.T * scaling.factor).T       # TODO: perhaps the double `.T` can be avoided
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
@@ -86,7 +94,6 @@ def example_vanderplaats(N):
         # x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
         solver = ipopt(subprob, epsimin=1e-6)
         x_k = solver.update()
-        print(solver.iter)
         lam = solver.w.lam
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
