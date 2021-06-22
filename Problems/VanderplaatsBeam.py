@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-## CLASS: This is the Vanderplaats cantilever beam by Dirk (scaled objective as: g_0' = 1e-3 * g_0)
+## CLASS: This is the Vanderplaats cantilever beam by Dirk (scaled objective as: g_0' = self.scale * g_0)
 class Vanderplaats(Problem):
 
     def __init__(self, N):
@@ -12,6 +12,9 @@ class Vanderplaats(Problem):
 
         # Number of segments
         self.N = N
+
+        # Scaling factor
+        self.scale = 1e2
 
         # Number of variables: b,h of each segment
         self.n = 2 * self.N
@@ -46,7 +49,7 @@ class Vanderplaats(Problem):
             h = x_k[self.N + i]         # get height
 
             # Weight objective
-            g[0] = g[0] + self.S * b * h * 1e-3
+            g[0] = g[0] + self.S * b * h * self.scale
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
@@ -82,8 +85,8 @@ class Vanderplaats(Problem):
             h = x_k[self.N + i]     # get height
 
             # Derivatives of objective
-            dg[0, i] = self.S * h * 1e-3
-            dg[0, self.N + i] = self.S * b * 1e-3
+            dg[0, i] = self.S * h * self.scale
+            dg[0, self.N + i] = self.S * b * self.scale
 
             # Force moment
             M = self.P * (self.L - (i + 1) * self.S + self.S)
