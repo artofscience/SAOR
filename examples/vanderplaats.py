@@ -3,12 +3,17 @@ import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, ConLin, MMA, ReciSquared, ReciCubed, MMASquared
-from sao.move_limits.move_limit import MoveLimitIntervening
+from sao.move_limits.move_limit import MoveLimit, Bound
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.util.plotter import Plot, Plot2
+from sao.util.plotter import Plot, Plot2, Plot3
+from sao.convergence_criteria.ObjChange import ObjectiveChange
+from sao.convergence_criteria.VarChange import VariableChange
+from sao.convergence_criteria.KKT import KKT
+from sao.convergence_criteria.Feasibility import Feasibility
+from sao.convergence_criteria.Alltogether import Alltogether
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -31,24 +36,32 @@ def example_vanderplaats(N):
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMASquared(prob.xmin, prob.xmax)),
-                         limits=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
-    xold1 = np.zeros_like(x_k)
-    vis = None
-    solves = 0
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
+    plotter = Plot(['objective', 'stress_1', 'geom_1', 'tip_disp', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
+    # Initialize iteration counter and design
+    itte = 0
+    x_k = prob.x0.copy()
+    vis = None
+
     # Optimization loop
-    while np.linalg.norm(x_k - xold1) > 1e-3:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -57,9 +70,10 @@ def example_vanderplaats(N):
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |  constr2: {:^6.3f}  |  constr3: {:^6.3f}'.format(
-                itte, f[0], f[1], f[2], f[3]))
-        plotter.plot([f[0], f[1]])
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  stress1: {:^6.3f}  |  geom1: {:^6.3f}  |  '
+            'tip_disp: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], f[1 + N], f[-1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], f[1 + N], f[-1], max(0, max(f[1:]))])
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -69,17 +83,18 @@ def example_vanderplaats(N):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        # x, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-        solver = ipopt(subprob, epsimin=1e-9, x0=x_k)
-        x = solver.update()
-        solves += solver.itera
-        xold1 = x_k.copy()
-        x_k = x.copy()
+        # x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        solver = ipopt(subprob, epsimin=1e-6)
+        x_k = solver.update()
+        print(solver.iter)
+        lam = solver.w.lam
+
+        # Assess convergence (give the correct keyword arguments for the criterion you choose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         itte += 1
 
     logger.info('Optimization loop converged!')
-    print(solves)
 
 
 def example_vanderplaats_mixed(N):
@@ -187,5 +202,5 @@ def example_vanderplaats_mixed(N):
 
 
 if __name__ == "__main__":
-    # example_vanderplaats(100)
     example_vanderplaats(100)
+    # example_vanderplaats_mixed(100)
