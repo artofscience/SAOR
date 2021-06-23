@@ -155,13 +155,13 @@ class Plot2:
                                           label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
 
                 # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
-                if subprob.inter.__class__.__name__ == 'MMA':
-                    # L_i = plt.axvline(x=subprob.inter.low[i], color='g', label=f'$L_{i}^{{(k)}}$')
-                    # U_i = plt.axvline(x=subprob.inter.upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
+                if subprob.approx.interv[0].__class__.__name__ == 'MMA':
+                    # L_i = plt.axvline(x=subprob.approx.interv[0].low[i], color='g', label=f'$L_{i}^{{(k)}}$')
+                    # U_i = plt.axvline(x=subprob.approx.interv[0].upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
 
                     # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
                     for k in range(0, self.x.shape[1]):
-                        if (self.x[i, k] <= 1.01 * subprob.inter.low[i]) or (self.x[i, k] >= 0.99 * subprob.inter.upp[i]):
+                        if (self.x[i, k] <= 1.01 * subprob.approx.interv[0].low[i]) or (self.x[i, k] >= 0.99 * subprob.approx.interv[0].upp[i]):
                             approx_response_array[j, k] = np.NaN
 
                 # Alternate between red and blue plots to tell them apart easily
@@ -174,9 +174,9 @@ class Plot2:
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='o', markersize=9)
-                    alpha = plt.axvline(x=subprob.ml.alpha[i], color='b', linestyle=(0, (3, 8)),
+                    alpha = plt.axvline(x=subprob.lims[1].xmin[i], color='b', linestyle=(0, (3, 8)),
                                         label=fr'$\alpha_{i}^{{({itte})}}$')
-                    beta = plt.axvline(x=subprob.ml.beta[i], color='b', linestyle=(0, (3, 8, 1, 8)),
+                    beta = plt.axvline(x=subprob.lims[1].xmax[i], color='b', linestyle=(0, (3, 8, 1, 8)),
                                        label=fr'$\beta_{i}^{{({itte})}}$')
                 else:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'r--',
@@ -187,9 +187,9 @@ class Plot2:
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='s', markersize=9)
-                    alpha = plt.axvline(x=subprob.ml.alpha[i], color='r', linestyle=(0, (3, 8)),
+                    alpha = plt.axvline(x=subprob.lims[1].xmin[i], color='r', linestyle=(0, (3, 8)),
                                         label=fr'$\alpha_{i}^{{({itte})}}$')
-                    beta = plt.axvline(x=subprob.ml.beta[i], color='r', linestyle=(0, (3, 8, 1, 8)),
+                    beta = plt.axvline(x=subprob.lims[1].xmax[i], color='r', linestyle=(0, (3, 8, 1, 8)),
                                        label=fr'$\beta_{i}^{{({itte})}}$')
 
                 # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
@@ -205,7 +205,7 @@ class Plot2:
                 ax.set(xlabel=f'$x_{i}$', ylabel=f'$g_{j}$',
                        # xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
                        ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)),
-                       title='%s: {} - {} \n  $iter = {}$'.format(subprob.inter.__class__.__name__,
+                       title='%s: {} - {} \n  $iter = {}$'.format(subprob.approx.interv[0].__class__.__name__,
                                                                   subprob.approx.__class__.__name__,
                                                                   itte)
                              % prob.__class__.__name__)
@@ -302,13 +302,13 @@ class Plot2:
                 z_approx[:, k2, k1] = subprob.g(x_curr)
 
         # For MMA family: Force response values farther than asymptotes to NaN
-        if subprob.inter.__class__.__name__ == 'MMA':
+        if subprob.approx.interv[0].__class__.__name__ == 'MMA':
             for i in range(0, prob.m + 1):  # for every response -g_j-
                 for k2 in range(0, self.x.shape[1]):
-                    if (self.x[1, k2] < 1.01 * subprob.inter.low[1]) or (self.x[1, k2] > 0.99 * subprob.inter.upp[1]):
+                    if (self.x[1, k2] < 1.01 * subprob.approx.interv[0].low[1]) or (self.x[1, k2] > 0.99 * subprob.approx.interv[0].upp[1]):
                         z_approx[:, k2, :] = np.NaN
                 for k1 in range(0, self.x.shape[1]):
-                    if (self.x[0, k1] < 1.01 * subprob.inter.low[0]) or (self.x[0, k1] > 0.99 * subprob.inter.upp[0]):
+                    if (self.x[0, k1] < 1.01 * subprob.approx.interv[0].low[0]) or (self.x[0, k1] > 0.99 * subprob.approx.interv[0].upp[0]):
                         z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde
@@ -332,7 +332,7 @@ class Plot2:
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
-            subprob.inter.__class__.__name__, subprob.approx.__class__.__name__, self.iter_contour), fontsize=20)
+            subprob.approx.interv[0].__class__.__name__, subprob.approx.__class__.__name__, self.iter_contour), fontsize=20)
         ax_approx.set_xlabel('$x_0$', fontsize=18)
         ax_approx.set_ylabel('$x_1$', fontsize=18)
         cbar = fig_approx.colorbar(obj_approx, shrink=0.5, aspect=8)

@@ -31,3 +31,4 @@ class QuadPoly1D:
         ddg_j = np.empty((self.m + 1, self.n))
         ddg_j[0, 0] = 1.016 * x[0]**3 - 14.4948 * x[0]**2 + 63.7794 * x[0] - 83.9174
         ddg_j[1, 0] = -6.0 * (x[0] - 5.0)
+        return ddg_j

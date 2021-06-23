@@ -75,7 +75,6 @@ class SvanbergIP:
                 d2psi_dx2 = (dg_j_tilde2_value[0, :] + np.dot(lam, dg_j_tilde2_value[1:, :]))
 
                 # Calculation of right hand sides of partially reduced system (Svanberg1998/page 16)
-                print(x - subprob.alpha)
                 delx = dpsi_dx - epsi / (x - subprob.alpha) + epsi / (subprob.beta - x)
                 dely = c + d * y - lam - epsi / y
                 delz = a0 - np.dot(a, lam) - epsi / z
@@ -170,7 +169,6 @@ class SvanbergIP:
             # Decrease epsilon with factor 10
             epsi *= 0.1
 
-        # print(itera)
         return x, y, z, lam, xsi, eta, mu, zet, s
 
     ## Calculates the residual of the relaxed KKT conditions
@@ -198,6 +196,6 @@ class SvanbergIP:
         residu = np.hstack((rex, rexsi, reeta, relam, res, rey, remu, rez, rezet))
 
         # Euclidean norm calculation
-        # resinew = np.sqrt(np.dot(residu.T, residu))
         resinew = np.linalg.norm(residu)
+
         return resinew, residu

@@ -77,7 +77,11 @@ class Taylor2(Taylor1):
     .. math::
         \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}(x - x_0) + \frac{1}{2}\left.\frac{d^2g}{dx^2}\right|_{x_0}(x - x_0)^2
 
-    # TODO description with intervening variable
+     With intervening variable:
+    .. math::
+        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}\left.\frac{dx}{dy}\right|_{y_0}(y(x) - y(x_0))
+                              + \frac{1}{2}(\left.\frac{d^2g}{dx^2}\right|_{x_0}(\left.\frac{dx}{dy}\right|_{y(x_0)})^2
+                              + \left.\frac{dg}{dx}\right|_{x_0}\left.\frac{d^2x}{dy^2}\right|_{y(x_0)})(y(x) - y(x_0))^2
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

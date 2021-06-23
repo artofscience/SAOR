@@ -1,18 +1,20 @@
 import numpy as np
 import logging
 from Problems.QuadPoly1D import QuadPoly1D
-from sao.approximations.taylor import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
-from sao.intervening_variables import Linear, ConLin, MMA
-from sao.move_limits.move_limit import Movelimit, MoveLimitMMA
+from sao.approximations.taylor import Taylor1, Taylor2
+from sao.intervening_variables import Linear, ConLin, MMA, ReciSquared, ReciCubed, MMASquared
+from sao.move_limits.move_limit import MoveLimit, Bound
 from sao.problems.subproblem import Subproblem
 from sao.problems.mixed import Mixed
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.util.plotter import Plot, Plot2, Plot3
 from sao.convergence_criteria.ObjChange import ObjectiveChange
 from sao.convergence_criteria.VarChange import VariableChange
 from sao.convergence_criteria.KKT import KKT
 from sao.convergence_criteria.Feasibility import Feasibility
 from sao.convergence_criteria.Alltogether import Alltogether
+from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -34,9 +36,8 @@ def example_poly():
     prob = QuadPoly1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                         approximation=Taylor1(),
-                         ml=Movelimit(xmin=prob.xmin, xmax=prob.xmax, move_limit=15.0))
+    subprob = Subproblem(approximation=Taylor2(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
