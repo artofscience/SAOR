@@ -80,8 +80,8 @@ class Taylor2(Taylor1):
      With intervening variable:
     .. math::
         \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}\left.\frac{dx}{dy}\right|_{y(x_0)}(y(x) - y(x_0))
-                              + \frac{1}{2}\left(\left.\frac{d^2g}{dx^2}\right|_{x_0}\left(\left.\frac{dx}{dy}\right|_{y(x_0)}\right)^2
-                              + \left.\frac{dg}{dx}\right|_{x_0}\left.\frac{d^2x}{dy^2}\right|_{y(x_0)}\right)(y(x) - y(x_0))^2
+                       + \frac{1}{2}\left(\left.\frac{d^2g}{dx^2}\right|_{x_0}\left(\left.\frac{dx}{dy}\right|_{y(x_0)}\right)^2
+                       + \left.\frac{dg}{dx}\right|_{x_0}\left.\frac{d^2x}{dy^2}\right|_{y(x_0)}\right)(y(x) - y(x_0))^2
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
