@@ -17,7 +17,7 @@ class Taylor1(Approximation):
     .. math::
         \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}\frac{dx}{dy}(y(x) - y(x_0))
     """
-    def __init__(self, intervening=Linear()):
+    def __init__(self, intervening=Linear(), *args, **kwargs):
         """Initialize the approximation, with optinal intervening variable object"""
         self.interv = parse_to_list(intervening)
         self.g0 = None
@@ -86,11 +86,20 @@ class Taylor2(Taylor1):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ddgddy = None
+        self.force_convex = kwargs.get('force_convex', True)
 
     def update(self, x, f, df, ddf=None):
         super().update(x, f, df, ddf)
         assert ddf is not None, "Second order taylor needs second order information"
         self.ddgddy = [ddf * intv.dxdy(x) ** 2 + df * intv.ddxddy(x) for intv in self.interv]
+
+        # Enforce convexity on ddgddy
+        if self.force_convex:
+            self.enforce_convexity()
+
+    def enforce_convexity(self):
+        for intv in range(len(self.ddgddy)):
+            self.ddgddy[intv][self.ddgddy[intv] < 0] = 0
 
     def g(self, x, out=None):
         delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class Approximation(ABC):
 
     def update(self, x, f, df, ddf=None):

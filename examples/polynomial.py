@@ -36,7 +36,7 @@ def example_poly():
     prob = QuadPoly1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor2(MMA(prob.xmin, prob.xmax)))
+    subprob = Subproblem(approximation=Taylor2(MMA(prob.xmin, prob.xmax), force_convex=False))
     subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
