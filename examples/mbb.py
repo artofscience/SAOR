@@ -20,6 +20,7 @@ from sao.convergence_criteria.VarChange import VariableChange
 from sao.convergence_criteria.KKT import KKT
 from sao.convergence_criteria.Feasibility import Feasibility
 from sao.convergence_criteria.Alltogether import Alltogether
+from sao.scaling_strategies.scaling import ObjectiveScaling, ResponseScaling
 # from line_profiler import LineProfiler
 
 np.set_printoptions(precision=4)
@@ -52,6 +53,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
                          limits=[Bound(xmin=0, xmax=1)])
 
+    # Instantiate the convergence criterion
     criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
@@ -67,7 +69,6 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    # while itte < 500:
     # myopt = SvanbergIP(prob.n, prob.m)
     while not criterion.converged:
 
@@ -87,8 +88,6 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         # Solve current subproblem
         solver = ipopt(subprob)
         x_k = solver.update()
-
-        # Solve current subproblem
         # out = myopt.subsolv(subprob)
         # x_k = out[0]
 
@@ -112,6 +111,7 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
                          limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
 
+    # Instantiate the convergence criterion
     criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
@@ -127,7 +127,6 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    # while itte < 500:
     # myopt = SvanbergIP(prob.n, prob.m)
     while not criterion.converged:
 
@@ -147,8 +146,6 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         # Solve current subproblem
         solver = ipopt(subprob)
         x_k = solver.update()
-
-        # Solve current subproblem
         # out = myopt.subsolv(subprob)
         # x_k = out[0]
 
@@ -160,6 +157,7 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     logger.info('Optimization loop converged!')
     print(solves)
 
+
 def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=10):
     logger.info("Solving volume minimization subject to aggregated stress constraint")
 
@@ -168,10 +166,11 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(), MoveLimit()])
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+
+    # Instantiate the convergence criterion
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -184,9 +183,10 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
-    # myopt=SvanbergIP(prob.n,prob.m)
+
     # Optimization loop
-    while itte < 500:
+    # myopt = SvanbergIP(prob.n, prob.m)
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -205,16 +205,21 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1
         # if plotter2_flag:
         #     plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
+        # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
         # out = myopt.subsolv(subprob)
         # x_k = out[0]
         # solves += solver.itera
 
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
+
         itte += 1
 
     logger.info('Optimization loop converged!')
     print(solves)
+
 
 def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01, kout=0.01):
     logger.info("Solving displacement minimization subject to volume constraint")
@@ -224,10 +229,11 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    # subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax))
-    subprob = Subproblem(intervening=Linear(), approximation=NonSphericalTaylor2(),
-                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+
+    # Instantiate the convergence criterion
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -242,7 +248,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -261,9 +267,12 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
         if plotter2_flag:
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
+        # Solve current subproblem
         solver = ipopt(subprob, x0=x_k)
         x_k = solver.update()
-        solves += solver.itera
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
 
         itte += 1
 
@@ -279,10 +288,11 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=MMA(prob.xmin, prob.xmax), approximation=Taylor1(),
-                         ml=MoveLimitIntervening(xmin=prob.xmin, xmax=prob.xmax, move_limit=1.0))
-    # subprob = Subproblem(intervening=Linear(), approximation=Taylor1(),
-    #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+
+    # Instantiate the convergence criterion
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
 
     # Initialize iteration counter and design
     itte = 0
@@ -297,7 +307,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(9, prob.n, 60))
 
     # Optimization loop
-    while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -318,7 +328,9 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
         solver = ipopt(subprob)
         x_k = solver.update()
-        solves += solver.itera
+
+        # Assess convergence (give the correct keyword arguments for the criterion you chose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
 
         itte += 1
 
@@ -334,12 +346,11 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=Linear(),
-                         approximation=Taylor1(),
-                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax, move_limit=0.2))
-    # subprob = Subproblem(intervening=Linear(),
-    #                      approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+
+    # Instantiate the convergence criterion
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
@@ -361,7 +372,6 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    # while itte < 500:
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
@@ -384,7 +394,6 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
         # Solve current subproblem
         solver = ipopt(subprob)
         x_k = solver.update()
-        solves += solver.iter
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
@@ -403,12 +412,11 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(intervening=Linear(),
-                         approximation=Taylor1(),
-                         ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax, move_limit=0.1))
-    # subprob = Subproblem(intervening=Linear(),
-    #                      approximation=NonSphericalTaylor2(),
-    #                      ml=MoveLimitMMA(xmin=prob.xmin, xmax=prob.xmax))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+
+    # Instantiate the convergence criterion
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
@@ -416,6 +424,9 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+
+    # Instantiate the scaling_strategies strategy
+    scaling = ObjectiveScaling()
 
     # Initialize iteration counter and design
     itte = 0
@@ -430,12 +441,15 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    # while itte < 500:
     while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
+
+        # Apply scaling strategy
+        scaling.update(f, df)
+        f, df = scaling.factor * f, (df.T * scaling.factor).T
 
         # Print current iteration and x_k
         vis = prob.visualize(x_k, itte, vis)
@@ -453,7 +467,6 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
         # Solve current subproblem
         solver = ipopt(subprob)
         x_k = solver.update()
-        solves += solver.iter
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         criterion.assess_convergence(x_k=x_k, f=f, iter=itte)
@@ -746,12 +759,14 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 if __name__ == "__main__":
     # TODO: Running these examples should be improved. e.g. Create the `prob` object here and call a function `optimize(prob)`
     # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
-    # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
-    # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
-    # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
+    example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
+    example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
+    example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_self_weight(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
+    example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
+
     # Mixed optimizers
     # example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     # example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)

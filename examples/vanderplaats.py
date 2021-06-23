@@ -14,7 +14,7 @@ from sao.convergence_criteria.VarChange import VariableChange
 from sao.convergence_criteria.KKT import KKT
 from sao.convergence_criteria.Feasibility import Feasibility
 from sao.convergence_criteria.Alltogether import Alltogether
-from sao.scaling_strategies.scaling import ObjectiveScaling, ResponseScaling
+from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ def example_vanderplaats(N):
         df = prob.dg(x_k)
 
         # Apply scaling strategy
-        scaling.update_factor(f, df)
+        scaling.update(f, df)
         f, df = scaling.factor * f, (df.T * scaling.factor).T       # TODO: perhaps the double `.T` can be avoided
 
         # Print current iteration and x_k

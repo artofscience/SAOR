@@ -13,7 +13,7 @@ class Vanderplaats(Problem):
         # Number of segments
         self.N = N
 
-        # Scaling factor
+        # Scaling factor (good scaling: 1e-3  |  bad scaling: 1e2)
         self.scale = 1e2
 
         # Number of variables: b,h of each segment
