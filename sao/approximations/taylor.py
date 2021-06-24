@@ -15,7 +15,7 @@ class Taylor1(Approximation):
 
     With intervening variable:
     .. math::
-        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}\frac{dx}{dy}(y(x) - y(x_0))
+        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}\left.\frac{dx}{dy}\right|_{y(x_0)}(y(x) - y(x_0))
     """
     def __init__(self, intervening=Linear(), *args, **kwargs):
         """Initialize the approximation, with optinal intervening variable object"""

@@ -50,8 +50,8 @@ def example_vanderplaats(N):
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate the scaling_strategies strategy
-    scaling = ResponseScaling()
+    # Instantiate the scaling strategy
+    scaling = InitialObjectiveScaling()
 
     # Instantiate plotter
     plotter = Plot(['objective', 'stress_1', 'geom_1', 'tip_disp', 'max_constr_violation'], path=".")
