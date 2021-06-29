@@ -55,7 +55,7 @@ class Intervening(ABC):
         of the intervening variable, for instance to keep track of information
         at previous iterations etc.
         """
-        pass
+        return self
 
     def clip(self, x):
         """Default clipping is none."""
