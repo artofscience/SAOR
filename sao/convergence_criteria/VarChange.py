@@ -28,4 +28,5 @@ class VariableChange(ConvergenceCriterion):
             VarChange_norm = np.linalg.norm((self.x_k - self.xold1) / (self.xmax - self.xmin))
         else:
             VarChange_norm = 1.0              # large value in order to continue loop
+        self.value = VarChange_norm           # so you can access the criterion's value for logging/plotting purposes
         return VarChange_norm

@@ -13,6 +13,7 @@ class Subproblem(Problem):
         self.approx = approximation
         self.set_limits(limits)
         self.alpha, self.beta = None, None
+        self.lims = [limits]
 
     def set_limits(self, *limits):
         self.lims = parse_to_list(*limits)

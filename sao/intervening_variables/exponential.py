@@ -1,6 +1,7 @@
 from .intervening import Intervening
 import numpy as np
 
+
 class Exponential(Intervening):
     """A generic exponential intervening variable y = x^p.
 

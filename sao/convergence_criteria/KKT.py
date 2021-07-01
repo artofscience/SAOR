@@ -27,4 +27,5 @@ class KKT(ConvergenceCriterion):
                        if 1.001 * self.xmin[index] < value < 0.99 * self.xmax[index]]
         KKT_reduced = df[0, KKT_red_idx] + np.dot(lam.T, df[1:, KKT_red_idx])
         KKT_res = np.linalg.norm(KKT_reduced)
+        self.value = KKT_res
         return KKT_res

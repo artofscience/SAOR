@@ -25,4 +25,5 @@ class ObjectiveChange(ConvergenceCriterion):
                 ObjChange_abs = abs((self.f[0] - self.fold1[0]))
         else:
             ObjChange_abs = 1.0       # large value in order to continue loop
+        self.value = ObjChange_abs
         return ObjChange_abs
