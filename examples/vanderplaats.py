@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import Linear, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, Mixed
+from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, Mixed
 from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -101,10 +101,10 @@ def example_vanderplaats_mixed(N):
 
     # Instantiate a mixed intervening variable
     mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(ConLin(), var=np.arange(0, N), resp=np.arange(1, N + 1))
+    mix.set_intervening(Reciprocal(), var=np.arange(0, N), resp=np.arange(1, N + 1))
     mix.set_intervening(ReciSquared(), var=np.arange(N, prob.n), resp=np.arange(1, N + 1))
-    mix.set_intervening(ConLin(), var=np.arange(0, N), resp=[prob.n])
-    mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=[prob.n])
+    mix.set_intervening(Reciprocal(), var=np.arange(0, N), resp=[prob.n + 1])
+    mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=[prob.n + 1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))

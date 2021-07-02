@@ -14,7 +14,7 @@ class Vanderplaats(Problem):
         self.N = N
 
         # Scaling factor
-        self.scale = 1e-1
+        self.scale = 1e-2
 
         # Number of variables: b,h of each segment
         self.n = 2 * self.N
@@ -102,7 +102,7 @@ class Vanderplaats(Problem):
             dg[1 + i, self.N + i] = - (12 * M) / (self.sig_max * b * h ** 3)
 
             # Geometric constraint sensitivities
-            dg[1 + self.N + i, i] = -20
+            dg[1 + self.N + i, i] = -20.
             dg[1 + self.N + i, self.N + i] = 1.
 
             # Left displacement
