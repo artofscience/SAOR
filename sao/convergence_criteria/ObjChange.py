@@ -7,6 +7,7 @@ class ObjectiveChange(ConvergenceCriterion):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.f, self.fold1 = None, None
+        self.value = None                       # For logging/plotting purposes
 
     def get_response(self, **kwargs):
         """ A method that calculates the response of the current convergence criterion.

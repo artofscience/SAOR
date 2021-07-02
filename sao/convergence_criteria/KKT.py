@@ -11,6 +11,7 @@ class KKT(ConvergenceCriterion):
         super().__init__(**kwargs)
         self.xmin = kwargs.get('xmin', None)
         self.xmax = kwargs.get('xmax', None)
+        self.value = None                       # For logging/plotting purposes
 
     def get_response(self, **kwargs):
         """

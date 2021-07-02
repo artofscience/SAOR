@@ -12,6 +12,7 @@ class VariableChange(ConvergenceCriterion):
         self.xmin = kwargs.get('xmin', None)
         self.xmax = kwargs.get('xmax', None)
         self.x_k, self.xold1 = None, None
+        self.value = None                       # For logging/plotting purposes
 
     def get_response(self, **kwargs):
         """

@@ -49,7 +49,7 @@ def example_vanderplaats(N):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'stress_1', 'tip_disp', 'design_change_norm', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -121,8 +121,8 @@ def example_vanderplaats_mixed(N):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'stress_1', 'geom_1', 'tip_disp', 'max_constr_violation'], path=".")
-    plotter2_flag = False
+    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
@@ -166,4 +166,4 @@ def example_vanderplaats_mixed(N):
 
 if __name__ == "__main__":
     # example_vanderplaats(100)
-    example_vanderplaats_mixed(100)
+    example_vanderplaats_mixed(3)

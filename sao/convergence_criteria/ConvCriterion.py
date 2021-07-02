@@ -12,7 +12,6 @@ class ConvergenceCriterion(ABC):
         self.converged = False
         self.tolerance = 1e-4                       # The tolerance for the convergence criterion
         self.max_ite_opt = 500                      # Maximum number of optimization iterations
-        self.value = None                           # For logging/plotting purposes
 
     def get_response(self, **kwargs):
         """
