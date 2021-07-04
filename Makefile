@@ -17,7 +17,6 @@ test:
 
 .PHONY: docs
 docs:
-	sphinx-apidoc -f -o docs/source ../sao/
 	sphinx-build -b html docs/source/ docs/build/
 
 .PHONY: docsclean

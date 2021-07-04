@@ -3,11 +3,14 @@
 Documentation
 =============
 
+General introduction to ``SAO``.
+
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: Contents:
 
-    modules
+    examples
+    sao
 
 Indices and tables
 ==================

@@ -134,4 +134,4 @@ dmypy.json
 **/.DS_store
 
 # ignore automatically generated .rst documentation files
-docs/source/*.rst
+docs/templatedir
