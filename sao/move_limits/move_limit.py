@@ -42,7 +42,7 @@ class GeneralMoveLimit:
 
 class Bound(GeneralMoveLimit):
     """
-     The simplest move limit strategy that always clips the global bounds of
+    The simplest move limit strategy that always clips the global bounds of
     the problem, i.e. no restrictions are made on the possible steps size.
     """
 
