@@ -27,7 +27,7 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def example_poly():
+def plot_approx():
     logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
@@ -49,7 +49,7 @@ def example_poly():
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
-    plotter2_flag = False
+    plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
@@ -89,72 +89,5 @@ def example_poly():
     logger.info('Optimization loop converged!')
 
 
-def example_poly_mixed():
-    logger.info("Solving test_poly using Ipopt Svanberg")
-
-    # Instantiate problem
-    prob = QuadPoly2()
-
-    # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[0, 1])
-
-    # Instantiate a mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.5)])
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
-    plotter3_flag = True
-    if plotter3_flag:
-        plotter3 = Plot3(prob)
-
-    # Initialize iteration counter and design
-    itte = 0
-    x_k = prob.x0.copy()
-
-    # Optimization loop
-    while not criterion.converged:
-
-        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
-        f = prob.g(x_k)
-        df = prob.dg(x_k)
-        ddf = None
-
-        # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
-
-        # Plot current approximation
-        if plotter3_flag:
-            plotter3.plot_pair(x_k, f, prob, subprob, itte)
-
-        # Call solver (x_k, g and dg are within approx instance)
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-
-        # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
-
-        # Print & Plot
-        logger.info(
-            'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, np.array2string(x_k[0]), f[0], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
-
-        itte += 1
-
-    logger.info('Optimization loop converged!')
-
-
 if __name__ == "__main__":
-    # example_poly()
-    example_poly_mixed()
+    plot_approx()

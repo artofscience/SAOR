@@ -42,9 +42,9 @@ def example_vanderplaats(N):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
@@ -93,7 +93,7 @@ def example_vanderplaats(N):
 
 
 def example_vanderplaats_mixed(N):
-    logger.info("Solving Vanderplaats using y=MixedScheme and solver=Ipopt Svanberg")
+    logger.info("Solving Vanderplaats using y=Mixed and solver=Ipopt Svanberg")
 
     # Instantiate problem
     prob = Vanderplaats(N)
@@ -108,23 +108,23 @@ def example_vanderplaats_mixed(N):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimitAdaptive(move_limit=5.0)])
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
-    plotter2_flag = True
-    if plotter2_flag:
-        plotter2 = Plot2(prob)
+    plotter3_flag = False
+    if plotter3_flag:
+        plotter3 = Plot3(prob)
 
     # Initialize iteration counter and design
     itte = 0
@@ -142,8 +142,8 @@ def example_vanderplaats_mixed(N):
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+        if plotter3_flag:
+            plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
@@ -165,5 +165,5 @@ def example_vanderplaats_mixed(N):
 
 
 if __name__ == "__main__":
-    # example_vanderplaats(100)
-    example_vanderplaats_mixed(3)
+    example_vanderplaats(10)
+    example_vanderplaats_mixed(10)

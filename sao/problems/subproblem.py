@@ -22,8 +22,7 @@ class Subproblem(Problem):
         self.lims.extend(parse_to_list(*limits))
 
     def build(self, x, f, df, ddf=None):
-        self.n, self.m = len(x), len(
-            f) - 1  # to fit Stijn's solvers # TODO We do not need these, they can just be obtained from len(x) in the subsolver
+        self.n, self.m = len(x), len(f) - 1  # to fit Stijn's solvers # TODO Get from len(x) in the subsolver
 
         # Update the approximation
         self.approx.update(x, f, df, ddf)
