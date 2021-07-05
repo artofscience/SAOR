@@ -90,14 +90,14 @@ def example_poly():
 
 
 def example_poly_mixed():
-    logger.info("Solving test_poly using Ipopt Svanberg")
+    logger.info("Solving test_poly using y=Mixed and Ipopt Svanberg")
 
     # Instantiate problem
     prob = QuadPoly2()
 
     # Instantiate a mixed intervening variable
     mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[0, 1])
+    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))

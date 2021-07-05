@@ -57,7 +57,7 @@ class MMA(Intervening):
             # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
 
             # check for oscillations in variables (if > 0: no oscillations, if < 0: oscillations)
-            oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2))/self.dx
+            oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2)) / self.dx
 
             # oscillating variables x_i are increase or decrease the factor
             self.factor[oscillation > +self.osc_tol] *= self.asyincr

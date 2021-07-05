@@ -99,7 +99,7 @@ def example_truss2d_mixed():
 
     # Instantiate a mixed intervening variable
     mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0, 1], resp=[2])
+    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0, 1], resp=[0, 1, 2])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
