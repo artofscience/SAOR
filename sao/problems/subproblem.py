@@ -7,13 +7,12 @@ import numpy as np
 
 
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(),
-                 limits=Bound(xmin=0, xmax=1)):
+    def __init__(self, approximation=Taylor1(), limits=Bound(xmin=0, xmax=1)):
         super().__init__()
         self.approx = approximation
         self.set_limits(limits)
         self.alpha, self.beta = None, None
-        self.lims = [limits]
+        self.lims = parse_to_list(limits)
 
     def set_limits(self, *limits):
         self.lims = parse_to_list(*limits)

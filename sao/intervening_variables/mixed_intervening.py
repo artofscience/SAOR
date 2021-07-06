@@ -52,9 +52,9 @@ class Mixed(Intervening):
         out = np.zeros((self.nresp, x.shape[0]))
         for intv, which_resp, which_var in self.all_inter:
             y_all = intv.y(x)
-            for i, r in enumerate(self.all_resp[which_resp]):
+            for r in self.all_resp[which_resp]:
                 if y_all.ndim > 1:
-                    out[r, which_var[r]] += y_all[i, which_var[r]]
+                    out[r, which_var[r]] += y_all[r, which_var[r]]            # y_all[i, which_var[r]]
                 else:
                     out[r, which_var[r]] += y_all[which_var[r]]
         return out
@@ -64,9 +64,9 @@ class Mixed(Intervening):
         out = np.zeros((self.nresp, x.shape[0]))
         for intv, which_resp, which_var in self.all_inter:
             dy_all = intv.dydx(x)
-            for i, r in enumerate(self.all_resp[which_resp]):
+            for r in self.all_resp[which_resp]:
                 if dy_all.ndim > 1:
-                    out[r, which_var[r]] += dy_all[i, which_var[r]]
+                    out[r, which_var[r]] += dy_all[r, which_var[r]]            # dy_all[i, which_var[r]]
                 else:
                     out[r, which_var[r]] += dy_all[which_var[r]]
         return out
@@ -76,9 +76,9 @@ class Mixed(Intervening):
         out = np.zeros((self.nresp, x.shape[0]))
         for intv, which_resp, which_var in self.all_inter:
             ddy_all = intv.ddyddx(x)
-            for i, r in enumerate(self.all_resp[which_resp]):
+            for r in self.all_resp[which_resp]:
                 if ddy_all.ndim > 1:
-                    out[r, which_var[r]] += ddy_all[i, which_var[r]]
+                    out[r, which_var[r]] += ddy_all[r, which_var[r]]            # ddy_all[i, which_var[r]]
                 else:
                     out[r, which_var[r]] += ddy_all[which_var[r]]
         return out

@@ -49,7 +49,7 @@ def example_poly():
 
     # Instantiate plotter
     plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
-    plotter2_flag = False
+    plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
@@ -66,7 +66,7 @@ def example_poly():
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
+        subprob.build(x_k, f, df, ddf)
 
         # Plot current approximation
         if plotter2_flag:
@@ -129,10 +129,10 @@ def example_poly_mixed():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        ddf = None
+        ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
+        subprob.build(x_k, f, df, ddf)
 
         # Plot current approximation
         if plotter3_flag:

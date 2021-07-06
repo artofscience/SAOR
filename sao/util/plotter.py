@@ -303,14 +303,15 @@ class Plot2:
                 z_approx[:, k2, k1] = subprob.g(x_curr)
 
         # For MMA family: Force response values farther than asymptotes to NaN
-        if subprob.inter.__class__.__name__ == 'MMA':
-            for i in range(0, prob.m + 1):  # for every response -g_j-
-                for k2 in range(0, self.x.shape[1]):
-                    if (self.x[1, k2] < 1.01 * subprob.inter.low[1]) or (self.x[1, k2] > 0.99 * subprob.inter.upp[1]):
-                        z_approx[:, k2, :] = np.NaN
-                for k1 in range(0, self.x.shape[1]):
-                    if (self.x[0, k1] < 1.01 * subprob.inter.low[0]) or (self.x[0, k1] > 0.99 * subprob.inter.upp[0]):
-                        z_approx[:, :, k1] = np.NaN
+        for intv in subprob.approx.interv:
+            if intv.__class__.__name__ == 'MMA':
+                for i in range(0, prob.m + 1):  # for every response -g_j-
+                    for k2 in range(0, self.x.shape[1]):
+                        if (self.x[1, k2] < 1.01 * intv.low[1]) or (self.x[1, k2] > 0.99 * intv.upp[1]):
+                            z_approx[:, k2, :] = np.NaN
+                    for k1 in range(0, self.x.shape[1]):
+                        if (self.x[0, k1] < 1.01 * intv.low[0]) or (self.x[0, k1] > 0.99 * intv.upp[0]):
+                            z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde
         self.fig.append(plt.subplots(1, 1)[0])
@@ -333,7 +334,8 @@ class Plot2:
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
-            subprob.inter.__class__.__name__, subprob.approx.__class__.__name__, self.iter_contour), fontsize=20)
+            subprob.approx.interv[0].__class__.__name__,
+            subprob.approx.__class__.__name__, self.iter_contour), fontsize=20)
         ax_approx.set_xlabel('$x_0$', fontsize=18)
         ax_approx.set_ylabel('$x_1$', fontsize=18)
         cbar = fig_approx.colorbar(obj_approx, shrink=0.5, aspect=8)
@@ -569,18 +571,15 @@ class Plot3(Plot2):
                 z_approx[:, k2, k1] = subprob.g(x_curr)
 
         # For MMA family: Force response values farther than asymptotes to NaN
-        for p in range(0, len(subprob.responses.keys())):
-            for l in range(0, len(subprob.variables.keys())):
-                if subprob[p, l].inter.__class__.__name__ == 'MMA':
-                    for i in range(0, subprob[p, l].m + 1):
-                        for k2 in range(0, self.x.shape[1]):
-                            if (self.x[1, k2] < 1.01 * subprob[p, l].inter.low[1]) or \
-                                    (self.x[1, k2] > 0.99 * subprob[p, l].inter.upp[1]):
-                                z_approx[:, k2, :] = np.NaN
-                        for k1 in range(0, self.x.shape[1]):
-                            if (self.x[0, k1] < 1.01 * subprob[p, l].inter.low[0]) or \
-                                    (self.x[0, k1] > 0.99 * subprob[p, l].inter.upp[0]):
-                                z_approx[:, :, k1] = np.NaN
+        for intv in subprob.approx.interv[0].all_inter:
+            if intv[0].__class__.__name__ == 'MMA':
+                # for i in range(0, subprob[p, l].m + 1):
+                for k2 in range(0, self.x.shape[1]):
+                    if (self.x[1, k2] < 1.01 * intv[0].low[1]) or (self.x[1, k2] > 0.99 * intv[0].upp[1]):
+                        z_approx[:, k2, :] = np.NaN
+                for k1 in range(0, self.x.shape[1]):
+                    if (self.x[0, k1] < 1.01 * intv[0].low[0]) or (self.x[0, k1] > 0.99 * intv[0].upp[0]):
+                        z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde
         self.fig.append(plt.subplots(1, 1)[0])
@@ -603,7 +602,9 @@ class Plot3(Plot2):
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {}, iter = {}'.format(
-            subprob.__class__.__name__, self.iter_contour), fontsize=20)
+            subprob.approx.interv[0].__class__.__name__,
+            subprob.approx.__class__.__name__,
+            self.iter_contour), fontsize=20)
         ax_approx.set_xlabel('$x_0$', fontsize=18)
         ax_approx.set_ylabel('$x_1$', fontsize=18)
         cbar = fig_approx.colorbar(obj_approx, shrink=0.5, aspect=8)

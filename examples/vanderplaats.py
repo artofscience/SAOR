@@ -73,7 +73,7 @@ def example_vanderplaats(N):
         if plotter2_flag:
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
-        # Call solver (x_k, g and dg are within approx instance)
+        # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
@@ -145,7 +145,7 @@ def example_vanderplaats_mixed(N):
         if plotter3_flag:
             plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
-        # Call solver (x_k, g and dg are within approx instance)
+        # Solve current subproblem
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
