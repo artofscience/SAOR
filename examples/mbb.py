@@ -211,7 +211,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1
         criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         # Print & Plot
-        vis = prob.visualize_field(x_k, itte, vis)
+        vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
         logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
                     'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
             itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
