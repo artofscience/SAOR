@@ -13,7 +13,7 @@ from sao.move_limits.move_limit import Bound, MoveLimit
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.util.plotter import Plot, Plot2
+from sao.util.plotter import Plot, Plot2, Plot3
 from sao.convergence_criteria.ObjChange import ObjectiveChange
 from sao.convergence_criteria.VarChange import VariableChange
 from sao.convergence_criteria.KKT import KKT
@@ -49,7 +49,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -110,7 +110,7 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(xmin=0, xmax=1), MoveLimit(0.1)])
+                         limits=[Bound(xmin=0, xmax=1), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -162,7 +162,7 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     logger.info('Optimization loop converged!')
 
 
-def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=10):
+def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1):
     logger.info("Solving volume minimization subject to aggregated stress constraint")
 
     # Instantiate problem
@@ -171,7 +171,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.3)])
+                         limits=[Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -223,6 +223,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=4, max_stress=1
     logger.info('Optimization loop converged!')
 
 
+# TODO: uniform initial design ends at a local minimum where g_0 = 0.0
 def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01, kout=0.01):
     logger.info("Solving displacement minimization subject to volume constraint")
 
@@ -340,7 +341,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
             criterion.value, max(0, max(f[1:]))))
         plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
 
-    itte += 1
+        itte += 1
 
     logger.info('Optimization loop converged!')
 
@@ -404,7 +405,6 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
         itte += 1
 
     logger.info('Optimization loop converged!')
-    print(solves)
 
 
 def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0, gravity=1.0):
@@ -466,7 +466,6 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
         itte += 1
 
     logger.info('Optimization loop converged!')
-    print(solves)
 
 
 def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
@@ -476,137 +475,136 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     prob = Compliance(nelx, nely, volfrac, penal, rmin)
     assert prob.n == nelx * nely
 
-    # Define variable and response sets as dictionaries
-    var_set = {0: np.arange(0, prob.n)}
-    resp_set = {0: np.array([0]),
-                1: np.array([1])}
+    # Instantiate a mixed intervening variable
+    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix.set_intervening(Linear(), var=np.arange(0, prob.n), resp=[1])
 
     # Instantiate a mixed approximation scheme
-    subprob_map = {
-                   (0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
-                                                      xmax=prob.xmax[var_set[0]],
-                                                      move_limit=1.0)),
-                   (1, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
-                                                      xmax=prob.xmax[var_set[0]],
-                                                      move_limit=1.0))
-                   }
+    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
-    # Instantiate a mixed scheme
-    subprob = Mixed(subprob_map, var_set, resp_set)
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'],
+                   path=".")
+    plotter3_flag = False
+    if plotter3_flag:
+        plotter3 = Plot3(prob)
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
     vis = None
-    solves = 0
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2_flag = False
-    if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
 
-        # Print current iteration and x_k
-        vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
-
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+        if plotter3_flag:
+            plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        solver = ipopt(subprob)
-        x_k = solver.update()
-        solves += solver.itera
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you choose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+
+        # Print & Plot
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  volume_constr: {:^6.3f}  |  '
+            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
 
         itte += 1
 
     logger.info('Optimization loop converged!')
-    print(solves)
 
 
 def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
-    logger.info("Solving compliance minimization subject to aggregated stress constraint with y=Mixed")
+    logger.info("Solving weight minimization subject to aggregated stress constraint with y=Mixed")
 
     # Instantiate problem
     prob = Stress(nelx, nely, volfrac, penal, rmin, max_stress=max_stress)
     assert prob.n == nelx * nely
 
-    # Define variable and response sets as dictionaries
-    var_set = {0: np.arange(0, prob.n)}
-    resp_set = {0: np.array([0]),
-                1: np.array([1])}
+    # Instantiate a mixed intervening variable
+    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix.set_intervening(Linear(), var=np.arange(0, prob.n), resp=[0])
 
     # Instantiate a mixed approximation scheme
-    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
-                   (1, 0): Subproblem(intervening=Linear(),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
-                                                      xmax=prob.xmax[var_set[0]]))}
+    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
-    # Instantiate a mixed scheme
-    subprob = Mixed(subprob_map, var_set, resp_set)
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'stress_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter3_flag = False
+    if plotter3_flag:
+        plotter3 = Plot3(prob)
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
     vis = None
-    solves = 0
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2_flag = False
-    if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
 
-        # Print current iteration and x_k
-        vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
-
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+        if plotter3_flag:
+            plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        solver = ipopt(subprob, x0=x_k)
-        x_k = solver.update()
-        solves += solver.itera
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you choose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+
+        # Print & Plot
+        vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  stress_constr: {:^6.3f}  |  '
+            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
 
         itte += 1
 
     logger.info('Optimization loop converged!')
-    print(solves)
 
 
 def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01, kout=0.001):
@@ -616,65 +614,66 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
     prob = Mechanism(nelx, nely, volfrac, penal, rmin, kin=kin, kout=kout)
     assert prob.n == nelx * nely
 
-    # Define variable and response sets as dictionaries
-    var_set = {0: np.arange(0, prob.n)}
-    resp_set = {0: np.array([0]),
-                1: np.array([1])}
+    # Instantiate a mixed intervening variable
+    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix.set_intervening(Linear(), var=np.arange(0, prob.n), resp=[1])
 
     # Instantiate a mixed approximation scheme
-    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]])),
-                   (1, 0): Subproblem(intervening=Linear(),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                      xmax=prob.xmax[var_set[0]]))}
+    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
-    # Instantiate a mixed scheme
-    subprob = Mixed(subprob_map, var_set, resp_set)
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter3_flag = False
+    if plotter3_flag:
+        plotter3 = Plot3(prob)
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
     vis = None
-    solves = 0
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2_flag = False
-    if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
 
-        # Print current iteration and x_k
-        vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
-
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+        if plotter3_flag:
+            plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        solver = ipopt(subprob, x0=x_k)
-        x_k = solver.update()
-        solves += solver.itera
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you choose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+
+        # Print & Plot
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  volume_constr: {:^6.3f}  |  '
+            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
 
         itte += 1
 
     logger.info('Optimization loop converged!')
-    print(solves)
 
 
 def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
@@ -684,81 +683,80 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     prob = Eigenvalue(nelx, nely, volfrac, penal, rmin)
     assert prob.n == nelx * nely
 
-    # Define variable and response sets as dictionaries
-    var_set = {0: np.arange(0, prob.n)}
-    resp_set = {0: np.array([0]),
-                1: np.array([1])}
+    # Instantiate a mixed intervening variable
+    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix.set_intervening(Linear(), var=np.arange(0, prob.n), resp=[1])
 
     # Instantiate a mixed approximation scheme
-    subprob_map = {(0, 0): Subproblem(intervening=MMA(prob.xmin, prob.xmax),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitIntervening(xmin=prob.xmin[var_set[0]],
-                                                              xmax=prob.xmax[var_set[0]],
-                                                              move_limit=(prob.xmax - prob.xmin))),
-                   (1, 0): Subproblem(intervening=Linear(),
-                                      approximation=Taylor1(),
-                                      ml=MoveLimitMMA(xmin=prob.xmin[var_set[0]],
-                                                      xmax=prob.xmax[var_set[0]],
-                                                      move_limit=(prob.xmax - prob.xmin))
-                                      )}
+    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
-    # Instantiate a mixed scheme
-    subprob = Mixed(subprob_map, var_set, resp_set)
+    # Instantiate solver
+    solver = SvanbergIP(prob.n, prob.m)
+
+    # Instantiate convergence criterion
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = ObjectiveChange()
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Feasibility()
+    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+
+    # Instantiate plotter
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter3_flag = False
+    if plotter3_flag:
+        plotter3 = Plot3(prob)
 
     # Initialize iteration counter and design
     itte = 0
     x_k = prob.x0.copy()
     vis = None
-    solves = 0
-
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1'], path=".")
-    plotter2_flag = False
-    if plotter2_flag:
-        plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while itte < 500:
+    while not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
 
-        # Print current iteration and x_k
-        vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  vol: {:>6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0])))
-        plotter.plot([f[0], f[1]])
-
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
 
         # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+        if plotter3_flag:
+            plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        solver = ipopt(subprob, x0=x_k)
-        x_k = solver.update()
-        solves += solver.itera
+        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+
+        # Assess convergence (give the correct keyword arguments for the criterion you choose)
+        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+
+        # Print & Plot
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  volume_constr: {:^6.3f}  |  '
+            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
 
         itte += 1
 
     logger.info('Optimization loop converged!')
-    print(solves)
 
 
 if __name__ == "__main__":
-    # TODO: Running these examples should be improved. e.g. Create the `prob` object here and call a function `optimize(prob)`
+    # TODO: Create the `prob` object here and call a function `optimize(prob) to improve running these examples`
     # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
-    # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
-    # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
-    # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
+    example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
+    example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
+
     # Mixed optimizers
-    # example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
-    # example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
-    # example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
+    example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
+    example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
