@@ -601,10 +601,9 @@ class Plot3(Plot2):
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
         # Figure properties
-        ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {}, iter = {}'.format(
+        ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
             subprob.approx.interv[0].__class__.__name__,
-            subprob.approx.__class__.__name__,
-            self.iter_contour), fontsize=20)
+            subprob.approx.__class__.__name__, self.iter_contour), fontsize=20)
         ax_approx.set_xlabel('$x_0$', fontsize=18)
         ax_approx.set_ylabel('$x_1$', fontsize=18)
         cbar = fig_approx.colorbar(obj_approx, shrink=0.5, aspect=8)

@@ -95,5 +95,7 @@ class Mixed(Intervening):
         return self
 
     def clip(self, x):
-        """Default clipping is none."""
+        """Make constituent clips."""
+        for intv, _, _ in self.all_inter:
+            intv.clip(x)
         return x

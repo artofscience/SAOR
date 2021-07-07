@@ -96,12 +96,12 @@ def example_poly_mixed():
     prob = QuadPoly2()
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    # mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.5)])
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

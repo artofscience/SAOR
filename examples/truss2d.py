@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from Problems.Li2015_Fig4 import Li2015Fig4
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, Mixed
+from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, Exponential, Mixed
 from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -98,8 +98,9 @@ def example_truss2d_mixed():
     prob = Li2015Fig4()
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0, 1], resp=[1, 2])
+    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix.set_intervening(Linear(), var=[0], resp=[0])
+    # mix.set_intervening(Exponential(2), var=[1], resp=[0])      # MMA(prob.xmin, prob.xmax)
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
