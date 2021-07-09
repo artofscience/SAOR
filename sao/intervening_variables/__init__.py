@@ -8,6 +8,5 @@ from .mixed_intervening import Mixed
 
 __all__ = [
         'Linear', 'ConLin', 'Exponential', 'Reciprocal', 'ReciSquared',
-        'ReciCubed', 'ReciFit', 'Bezier', 'PolyFit',
-        'MMA', 'MMASquared', 'Mixed'
+        'ReciCubed', 'ReciFit', 'MMA', 'MMASquared', 'Mixed'
 ]
