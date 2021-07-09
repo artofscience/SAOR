@@ -34,16 +34,16 @@ def example_poly():
     prob = QuadPoly2()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob = Subproblem(approximation=Taylor1(MMASquared(prob.xmin, prob.xmax)))
     subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
@@ -66,7 +66,7 @@ def example_poly():
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df, ddf)
+        subprob.build(x_k, f, df)
 
         # Plot current approximation
         if plotter2_flag:
@@ -156,5 +156,5 @@ def example_poly_mixed():
 
 
 if __name__ == "__main__":
-    # example_poly()
+    example_poly()
     example_poly_mixed()

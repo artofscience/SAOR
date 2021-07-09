@@ -156,7 +156,7 @@ class Plot2:
 
                 # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
                 for intv in subprob.approx.interv:
-                    if intv.__class__.__name__ == 'MMA':
+                    if 'MMA' in intv.__class__.__name__:
                         # L_i = plt.axvline(x=intv[0].low[i], color='g', label=f'$L_{i}^{{(k)}}$')
                         # U_i = plt.axvline(x=intv[0].upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
 
@@ -304,7 +304,7 @@ class Plot2:
 
         # For MMA family: Force response values farther than asymptotes to NaN
         for intv in subprob.approx.interv:
-            if intv.__class__.__name__ == 'MMA':
+            if 'MMA' in intv.__class__.__name__:
                 for i in range(0, prob.m + 1):  # for every response -g_j-
                     for k2 in range(0, self.x.shape[1]):
                         if (self.x[1, k2] < 1.01 * intv.low[1]) or (self.x[1, k2] > 0.99 * intv.upp[1]):
@@ -423,7 +423,7 @@ class Plot3(Plot2):
 
                 # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
                 for intv in subprob.approx.interv[0].all_inter:
-                    if intv[0].__class__.__name__ == 'MMA':
+                    if 'MMA' in intv[0].__class__.__name__:
                         # L_i = plt.axvline(x=intv[0].low[i], color='g', label=f'$L_{i}^{{(k)}}$')
                         # U_i = plt.axvline(x=intv[0].upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
 
@@ -572,7 +572,7 @@ class Plot3(Plot2):
 
         # For MMA family: Force response values farther than asymptotes to NaN
         for intv in subprob.approx.interv[0].all_inter:
-            if intv[0].__class__.__name__ == 'MMA':
+            if 'MMA' in intv[0].__class__.__name__:
                 # for i in range(0, subprob[p, l].m + 1):
                 for k2 in range(0, self.x.shape[1]):
                     if (self.x[1, k2] < 1.01 * intv[0].low[1]) or (self.x[1, k2] > 0.99 * intv[0].upp[1]):
