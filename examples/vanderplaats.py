@@ -100,15 +100,16 @@ def example_vanderplaats_mixed(N):
     assert prob.n == 2 * N
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(Reciprocal(), var=np.arange(0, N), resp=np.arange(1, N + 1))
-    mix.set_intervening(ReciSquared(), var=np.arange(N, prob.n), resp=np.arange(1, N + 1))
-    mix.set_intervening(Reciprocal(), var=np.arange(0, N), resp=[prob.n + 1])
-    mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=[prob.n + 1])
+    mix = Mixed(prob.n, prob.m + 1, default=MMASquared(prob.xmin, prob.xmax))
+    # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=np.arange(1, N + 1))
+    # mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=np.arange(1, N + 1))
+    # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=[prob.m])
+    # mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=[prob.m])
+    # mix.set_intervening(Linear(), var=np.arange(0, prob.n) , resp=np.arange(N+1, prob.m))
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimitAdaptive(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -165,5 +166,5 @@ def example_vanderplaats_mixed(N):
 
 
 if __name__ == "__main__":
-    example_vanderplaats(10)
+    # example_vanderplaats(10)
     example_vanderplaats_mixed(10)

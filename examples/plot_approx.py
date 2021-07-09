@@ -1,18 +1,14 @@
+import colorsys
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+import pathlib
 import logging
-from Problems.Polynomial_1D import QuadPoly1, QuadPoly2
+from Problems.Polynomial_1D import QuadPoly2
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, Mixed
-from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
 from sao.problems.subproblem import Subproblem
-from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.util.plotter import Plot, Plot2, Plot3
-from sao.convergence_criteria.ObjChange import ObjectiveChange
-from sao.convergence_criteria.VarChange import VariableChange
-from sao.convergence_criteria.KKT import KKT
-from sao.convergence_criteria.Feasibility import Feasibility
-from sao.convergence_criteria.Alltogether import Alltogether
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -27,64 +23,156 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
+class PlotApprox:
+    def __init__(self, prob, **kwargs):
+        self.iter_pair = 0
+        self.x = np.linspace(prob.xmin, prob.xmax, 50).T
+        self.resp = kwargs.get('responses', np.arange(0, prob.m + 1))
+        self.vars = kwargs.get('variables', np.arange(0, prob.n))
+        self.fig = []
+        self.fig_idx = {}
+
+    def plot_approximation(self, x_k, f, prob, subprob):
+        # Create a list of figures to plot on
+        if self.iter_pair == 0:
+            for i in self.vars:
+                for j in self.resp:
+                    self.fig.append(plt.subplots(1, 1)[0])
+                    self.fig_idx[j, i] = plt.gcf().number
+
+        # Initialize plotting arrays for g_j(x_curr) and g_j_tilde(x_curr)
+        prob_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
+        approx_response_array = np.empty([subprob.m + 1, self.x.shape[1]])
+
+        # For all design vars x_i
+        for i in self.vars:
+
+            # Make x_curr = x_k so that all design vars remain equal to x_k apart from the one you sweep
+            x_curr = x_k.copy()
+
+            # Sweep design variable x_curr[i, 1], while keeping all others ejual to the approx.x_k
+            for k in range(0, self.x.shape[1]):
+
+                # Update current point x_curr
+                x_curr[i] = self.x[i, k].copy()
+
+                # Run problem at x_curr for plotting purposes, i.e. calculate g_j(x_curr)
+                prob_response_array[:, k] = prob.g(x_curr)
+
+                # Store g_j_tilde(x_curr) to an array for plotting purposes
+                approx_response_array[:, k] = subprob.g(x_curr)
+
+            # For all responses g_j
+            for j in self.resp:
+
+                # Get current figure and axes handles
+                plt.figure(self.fig_idx[j, i])
+                ax = plt.gca()
+
+                # Get maximum values for y-axis so it keeps a nice scale
+                y_min = min(prob_response_array[j, :])
+                y_max = max(prob_response_array[j, :])
+
+                # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
+                for intv in subprob.approx.interv:
+                    if intv.__class__.__name__ == 'MMA':
+                        # L_i = plt.axvline(x=intv[0].low[i], color='g', label=f'$L_{i}^{{(k)}}$')
+                        # U_i = plt.axvline(x=intv[0].upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
+
+                        # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
+                        for k in range(0, self.x.shape[1]):
+                            if (self.x[i, k] <= 1.01 * intv.low[i]) or (self.x[i, k] >= 0.99 * intv.upp[i]):
+                                approx_response_array[j, k] = np.NaN
+                    elif intv.__class__.__name__ == 'Reciprocal':
+                        for k in range(0, self.x.shape[1]):
+                            if self.x[i, k] <= 0:
+                                approx_response_array[j, k] = np.NaN
+
+                # First plot
+                if self.iter_pair == 0:
+
+                    # Plot Taylor expansion point
+                    exp_point = plt.plot(x_k[i], f[j],
+                                         label='$x^{(k)}$' + '$ = {}$'.format(np.around(x_k[i], decimals=4)),
+                                         color='k', marker='o', markersize=9)
+
+                    # Plot exact response
+                    exact_resp = plt.plot(self.x[i, :], prob_response_array[j, :], 'k',
+                                          label='$g~[x]$')
+
+                    # Plot approximate response
+                    approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :],
+                                            'b--', label=r'$\tilde{g}_{lin}~[x]$')
+
+                # Second plot
+                elif self.iter_pair == 1:
+                    approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :],
+                                            'r--', label=r'$\tilde{g}_{T2}~[x]$')
+
+                # Third plot
+                elif self.iter_pair == 2:
+                    approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :],
+                                            'y--', label=r'$\tilde{g}_{rec}~[x]$')
+
+                # Fourth plot
+                elif self.iter_pair == 3:
+                    approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :],
+                                            'c--', label=r'$\tilde{g}_{mma}~[x]$')
+
+                # Plot details (labels, title, x_limit, y_limit, fontsize, legend, etc)
+                x_min = self.x[i, 0].copy()
+                x_max = self.x[i, -1].copy()
+
+                # Print approximation name for each pair of {x_i, g_j} and set limits for x and y axes
+                ax.set(xlabel='$x$', ylabel='$g$',
+                       # xlim=(x_min - 0.01 * (x_max - x_min), x_max + 0.01 * (x_max - x_min)),
+                       ylim=(y_min - 0.01 * (y_max - y_min), y_max + 0.01 * (y_max - y_min)))
+
+                # FontSize for title, xlabel and ylabel set to 20
+                for item in ([ax.title, ax.xaxis.label, ax.yaxis.label]):
+                    item.set_fontsize(20)
+                plt.grid(True)
+                plt.legend(loc='upper left')
+                plt.show(block=False)
+
+        self.iter_pair += 1
+
+
 def plot_approx():
     logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
     prob = QuadPoly2()
 
-    # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # Instantiate subproblems
+    subprob1 = Subproblem(approximation=Taylor1(Linear()))
+    subprob2 = Subproblem(approximation=Taylor2(Linear()))
+    subprob3 = Subproblem(approximation=Taylor1(Reciprocal()))
+    subprob4 = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
-    plotter2_flag = True
-    if plotter2_flag:
-        plotter2 = Plot2(prob)
+    plotter = PlotApprox(prob, variables=np.array([0]), responses=np.array([0]))
 
     # Initialize iteration counter and design
     itte = 0
-    x_k = prob.x0.copy()
+    x_k = np.array([0.5])
 
-    # Optimization loop
-    while not criterion.converged:
+    # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
+    f = prob.g(x_k)
+    df = prob.dg(x_k)
+    ddf = prob.ddg(x_k)
 
-        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
-        f = prob.g(x_k)
-        df = prob.dg(x_k)
-        ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
+    # Build approximate sub-problem at X^(k)
+    subprob1.build(x_k, f, df)
+    subprob2.build(x_k, f, df, ddf)
+    subprob3.build(x_k, f, df)
+    subprob4.build(x_k, f, df)
 
-        # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
-
-        # Plot current approximation
-        if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
-
-        # Call solver (x_k, g and dg are within approx instance)
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-
-        # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
-
-        # Print & Plot
-        logger.info(
-            'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, np.array2string(x_k[0]), f[0], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
-
-        itte += 1
+    # Plot current approximation
+    plotter.plot_approximation(x_k, f, prob, subprob1)
+    plotter.plot_approximation(x_k, f, prob, subprob2)
+    plotter.plot_approximation(x_k, f, prob, subprob3)
+    plotter.plot_approximation(x_k, f, prob, subprob4)
 
     logger.info('Optimization loop converged!')
 
