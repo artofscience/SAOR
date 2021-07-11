@@ -18,6 +18,12 @@ class Mixed(Intervening):
         if default is not None:
             self.all_inter = [(self.default, [True] * self.nresp, [self.all_var] * self.nresp)]
 
+    @property
+    def intervening_variables(self):
+        """Yields the intervening variables."""
+        for int_variable, _, _ in self.all_inter:
+            yield int_variable
+
     def set_intervening(self, inter: Intervening, var=Ellipsis, resp=Ellipsis):
         which_var = [np.array([], dtype=int)] * self.nresp
         which_resp = [False] * self.nresp
@@ -88,12 +94,12 @@ class Mixed(Intervening):
         of the intervening variable, for instance to keep track of information
         at previous iterations etc.
         """
-        for intv, _, _ in self.all_inter:
+        for intv in self.intervening_variables:
             intv.update(*args, **kwargs)
         return self
 
     def clip(self, x):
-        """Make constituent clips."""
-        for intv, _, _ in self.all_inter:
+        """Clips ``x`` with bounds of each intervening variable."""
+        for intv in self.intervening_variables:
             intv.clip(x)
         return x
