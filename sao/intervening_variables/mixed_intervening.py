@@ -46,42 +46,40 @@ class Mixed(Intervening):
         self.all_inter.append((inter, which_resp, which_var))
         return self
 
-    def y(self, x):
-        """Evaluates the mapping y = f(x)."""
-        assert x.ndim == 1, "Only for 1-dimensional x"
+    def evaluate_for_each_response(self, x, fn: callable):
+        """Evaluates a function for each response and collects its output.
+
+        Allocates the output of size ``number of reponses`` by ``number of
+        design variables`` and populates the output by evaluating a callable
+        function for each intervening variable given the current ``x``.
+        """
         out = np.zeros((self.nresp, x.shape[0]))
         for intv, which_resp, which_var in self.all_inter:
-            y_all = intv.y(x)
+            y_all = fn(intv, x)
             for r in self.all_resp[which_resp]:
                 if y_all.ndim > 1:
-                    out[r, which_var[r]] += y_all[r, which_var[r]]            # y_all[i, which_var[r]]
+                    out[r, which_var[r]] += y_all[r, which_var[r]]
                 else:
                     out[r, which_var[r]] += y_all[which_var[r]]
         return out
 
+    def y(self, x):
+        """Evaluates the mapping y = f(x)."""
+        def y_of_x(cls, x):
+            return cls.y(x)
+        return self.evaluate_for_each_response(x, y_of_x)
+
     def dydx(self, x):
         """Evaluates the first derivative of the mapping at x."""
-        out = np.zeros((self.nresp, x.shape[0]))
-        for intv, which_resp, which_var in self.all_inter:
-            dy_all = intv.dydx(x)
-            for r in self.all_resp[which_resp]:
-                if dy_all.ndim > 1:
-                    out[r, which_var[r]] += dy_all[r, which_var[r]]            # dy_all[i, which_var[r]]
-                else:
-                    out[r, which_var[r]] += dy_all[which_var[r]]
-        return out
+        def dy_of_x(cls, x):
+            return cls.dydx(x)
+        return self.evaluate_for_each_response(x, dy_of_x)
 
     def ddyddx(self, x):
         """Evaluates the second derivatives of the mapping at x."""
-        out = np.zeros((self.nresp, x.shape[0]))
-        for intv, which_resp, which_var in self.all_inter:
-            ddy_all = intv.ddyddx(x)
-            for r in self.all_resp[which_resp]:
-                if ddy_all.ndim > 1:
-                    out[r, which_var[r]] += ddy_all[r, which_var[r]]            # ddy_all[i, which_var[r]]
-                else:
-                    out[r, which_var[r]] += ddy_all[which_var[r]]
-        return out
+        def ddy_of_x(cls, x):
+            return cls.ddyddx(x)
+        return self.evaluate_for_each_response(x, ddy_of_x)
 
     def update(self, *args, **kwargs):
         """Perform inplace updates of the state of the intervening variable.
