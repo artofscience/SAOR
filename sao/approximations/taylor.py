@@ -10,12 +10,14 @@ class Taylor1(Approximation):
     intervening variables.
 
     Without intervening variable:
+
     .. math::
-        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}(x - x_0)
+        \\tilde{g}(x) = g(x_0) + \\left.\\frac{dg}{dx}\\right|_{x_0}(x - x_0)
 
     With intervening variable:
+
     .. math::
-        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}\frac{dx}{dy}(y(x) - y(x_0))
+        \\tilde{g}(x) = g(x_0) + \\left.\\frac{dg}{dx}\\right|_{x_0}\\frac{dx}{dy}(y(x) - y(x_0))
     """
     def __init__(self, intervening=Linear()):
         """Initialize the approximation, with optinal intervening variable object"""
@@ -73,9 +75,10 @@ class Taylor2(Taylor1):
     """
     Second order Taylor-approximation, with optional use of intervening variables
 
-     Without intervening variable:
+    Without intervening variable:
+
     .. math::
-        \tilde{g}(x) = g(x_0) + \left.\frac{dg}{dx}\right|_{x_0}(x - x_0) + \frac{1}{2}\left.\frac{d^2g}{dx^2}\right|_{x_0}(x - x_0)^2
+        \\tilde{g}(x) = g(x_0) + \\left.\\frac{dg}{dx}\\right|_{x_0}(x - x_0) + \\frac{1}{2}\\left.\\frac{d^2g}{dx^2}\\right|_{x_0}(x - x_0)^2
 
     # TODO description with intervening variable
     """

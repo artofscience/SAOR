@@ -1,12 +1,16 @@
-SAO
-===
+.. Sequential Approximate Optimisation
+
+Documentation
+=============
+
+General introduction to ``SAO``.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 1
+    :caption: Contents:
 
-   reference
-
+    examples
+    sao
 
 Indices and tables
 ==================
@@ -14,3 +18,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+

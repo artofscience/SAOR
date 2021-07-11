@@ -1,5 +1,5 @@
 from abc import ABC
-from gradient_based_optimizer import GBOpt
+from .gradient_based_optimizer import GBOpt
 import warnings
 
 

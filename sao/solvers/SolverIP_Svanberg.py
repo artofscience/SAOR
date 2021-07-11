@@ -16,12 +16,21 @@ class SvanbergIP:
         """
         This function subsolv solves the approximate subproblem P_NLP_tilde:
 
-        minimize              SUM[ g_0_tilde ] + a0*z + + SUM[ ci*yi + 0.5*di*(yi)^2 ]
+        minimize
 
-        subject to            SUM[ g_i_tilde ] - ai*z - yi <= bi,
-                              alpha_j <=  xj <=  beta_j,
-                              yi >= 0,
-                              z >= 0.
+        .. math::
+
+            \\sum \\tilde{g_0} + a_0*z + \\sum \\left(c_i*y_i + 0.5*d_i*(y_i)^2\\right)
+
+        subject to
+
+        .. math::
+
+            \\sum \\tilde{g_i} - a_i*z - y_i \\leq b_i \\\\
+            \\alpha_j \\leq  x_j \\leq  \\beta_j \\\\
+            y_i \\geq 0 \\\\
+            z \\geq 0
+
         Input:  subprob
         Output: x, y, z, lam, xsi, eta, mu, zet, s
         """

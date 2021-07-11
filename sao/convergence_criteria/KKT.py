@@ -15,7 +15,7 @@ class KKT(ConvergenceCriterion):
 
     def get_response(self, **kwargs):
         """
-        Function to calculate |KKT|: Filter out bound constraints so that KKT goes to 0 when convergence is achieved.
+        Function to calculate KKT: Filter out bound constraints so that KKT goes to 0 when convergence is achieved.
 
         :param kwargs:
         :return:

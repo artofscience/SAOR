@@ -119,6 +119,7 @@ html_sidebars = {
 
 # document constructors
 autoclass_content = 'both'
+add_module_names = False
 
 # -- Options for HTMLHelp output ------------------------------------------
 
