@@ -13,6 +13,7 @@ from sao.convergence_criteria.VarChange import VariableChange
 from sao.convergence_criteria.KKT import KKT
 from sao.convergence_criteria.Feasibility import Feasibility
 from sao.convergence_criteria.Alltogether import Alltogether
+from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
