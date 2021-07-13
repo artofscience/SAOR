@@ -166,9 +166,11 @@ def test_movelimit_adaptive():
 
 @pytest.mark.parametrize('n', [10])
 def test_mixed(n):
-    mix = Mixed(n, default=Bound(0.0, 1.0))
+    mix = Mixed(n, default=Bound(0.3, 0.6))
     mix.add_move_limit(MoveLimitAdaptive(move_limit=0.1), var=[0, 1, 2])
-
+    x = np.random.rand(n)
+    mix.clip(x)
+    print(x)
 
 if __name__ == '__main__':
     # test_generalmovelimit()
