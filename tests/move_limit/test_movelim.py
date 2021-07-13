@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from sao.move_limits.move_limit import GeneralMoveLimit, Bound, MoveLimit, MoveLimitAdaptive
-
+from sao.move_limits.mixed_move_limit import Mixed
 
 def test_generalmovelimit():
     x = np.array([-1.0, -0.5, 1.0, 2.0, 0.75, 0.1, 1.13])
@@ -155,13 +155,26 @@ def test_movelimit_adaptive():
     assert min(xcl-x) == pytest.approx(movelim)
 
     # Move from the largest step to the smalles step by doing steps in a single direction
-    n_large_to_small = int(np.ceil(np.log10(v_bound/1.0) / np.log10(v_decr)))
+    n_large_to_small = int(np.ceil(np.log10(v_bound / 1.0) / np.log10(v_decr)))
     for i in range(n_large_to_small):
         dx = -0.1 if i % 2 == 0 else 0.1
         x += dx
         ml.update(x)
-    xcl = ml.clip(x+1.0)  # All should be clipped at movelimit
-    assert max(xcl-x) == pytest.approx(v_bound*movelim)
+    xcl = ml.clip(x + 1.0)  # All should be clipped at movelimit
+    assert max(xcl - x) == pytest.approx(v_bound * movelim)
+
+
+# @pytest.mark.parametrize('n', [10])
+def test_mixed():
+    n = 10
+    mix = Mixed(n, default=Bound(0.3, 0.8))
+    mix.add_move_limit(Bound(0.2, 0.9), var=[0, 1, 2])
+    mix.set_move_limit(Bound(0.0, 0.0), var=[2])
+    x = np.linspace(0, 1, 10)
+    mix.clip(x)
+    assert x[0] == x[1] == 0.3
+    assert x[2] == 0
+    assert x[9] == x[8] == 0.8
 
 
 if __name__ == '__main__':
@@ -173,4 +186,4 @@ if __name__ == '__main__':
     test_movelimit_vector_absolute()
     test_movelimit_vector_relative()
     test_movelimit_adaptive()
-
+    test_mixed()

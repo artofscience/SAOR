@@ -20,7 +20,7 @@ class MBBBeam(Problem, ABC):
 
     def __init__(self, nelx, nely, volfrac=0.4, penal=3, rmin=3):
         super().__init__()
-        self.Eps = 1e-9      # ratio of Emin/Emax
+        self.Eps = 1e-100  # ratio of Emin/Emax
         self.nelx = nelx
         self.nely = nely
         self.volfrac = volfrac
