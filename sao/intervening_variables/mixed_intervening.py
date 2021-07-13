@@ -4,6 +4,9 @@ import numpy as np
 
 def ensure_non_empty_set_with_size(s, n):
     """Returns ``set(s)`` or a ``set(0..n)`` if ``set(s)`` is the empty set."""
+    if s is None or s is ...:
+        return set(range(n))
+
     try:
         s = set(s)
     except TypeError:
