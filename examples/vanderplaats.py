@@ -13,6 +13,7 @@ from sao.convergence_criteria.VarChange import VariableChange
 from sao.convergence_criteria.KKT import KKT
 from sao.convergence_criteria.Feasibility import Feasibility
 from sao.convergence_criteria.Alltogether import Alltogether
+from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -48,6 +49,9 @@ def example_vanderplaats(N):
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
+    # Instantiate the scaling strategy
+    scaling = InitialObjectiveScaling(prob.m+1)
+
     # Instantiate plotter
     plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
@@ -65,6 +69,9 @@ def example_vanderplaats(N):
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
+
+        # Apply scaling strategy
+        f, df = scaling.scale(f, df)
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df)
@@ -166,5 +173,5 @@ def example_vanderplaats_mixed(N):
 
 
 if __name__ == "__main__":
-    # example_vanderplaats(10)
+    example_vanderplaats(10)
     example_vanderplaats_mixed(10)

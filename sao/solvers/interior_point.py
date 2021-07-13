@@ -14,7 +14,7 @@ class State(object):
     Additionally, some basic functionality is provided, such as addition
     and multiplication. For addition, two states can be added where the values
     of the corresponding fields are summed together. For multiplication, it is
-    assumed to be multiplied with a single scalar value, scaling all fields
+    assumed to be multiplied with a single scalar value, scaling_strategies all fields
     within the state object.
 
     TODO: document the variables and what they represent
