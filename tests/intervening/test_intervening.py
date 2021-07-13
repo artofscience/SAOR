@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from Problems.Square import Square
 from sao.intervening_variables import Linear, ConLin, Reciprocal, MMA, Mixed, Exponential
+from sao.intervening_variables.mixed_intervening import fill_set_when_emtpy
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -13,6 +14,18 @@ formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
+
+
+@pytest.mark.parametrize('n, s, out', [
+    (5, None, set(range(5))),
+    (5, ..., set(range(5))),
+    (5, 1, {1}),
+    (5, {1, 2}, {1, 2}),
+    (5, [1, 2], {1, 2}),
+    (5, np.array([1, 2]), {1, 2}),
+])
+def test_ensure_non_empty_set_with_size(n, s, out):
+    assert fill_set_when_emtpy(s, n) == out
 
 
 @pytest.mark.parametrize('n', [10])
