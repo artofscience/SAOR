@@ -52,7 +52,7 @@ class Mixed(Intervening):
         for intv, _, _ in self.iv_mapping:
             yield intv
 
-    def set_intervening(self, inter: Intervening, var=set(), resp=set()):
+    def set_intervening(self, inter: Intervening, resp=set(), var=set()):
         """Assign a intervening variable to some variables/responses.
 
         Other intervening variables that might be pointing to the same
