@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, Mixed
+from sao.intervening_variables import *
 from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -50,7 +50,7 @@ def example_vanderplaats(N):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate the scaling strategy
-    scaling = InitialObjectiveScaling(prob.m+1)
+    scaling = InitialResponseScaling(prob.m+1)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
