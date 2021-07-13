@@ -2,54 +2,97 @@ from sao.intervening_variables import Intervening, Linear
 import numpy as np
 
 
+def ensure_non_empty_set_with_size(s, n):
+    """Returns ``set(s)`` or a ``set(0..n)`` if ``set(s)`` is the empty set."""
+    try:
+        s = set(s)
+    except TypeError:
+        s = set([s])
+
+    if len(s) == 0:
+        return set(range(n))
+    return s
+
+
 class Mixed(Intervening):
     """
-    For every response i, and variable j, a separate or combination of intervening variables can be set.
-    (intervening, response, variable)
+    For every response i, and variable j, a separate or combination of
+    intervening variables can be set. (intervening, response, variable).
+
+    The responses are tracked by sets of indices that indicate the response of
+    interest for the given intervening variable. These sets are
+    non-overlapping, i.e. there is only one intervening variable that points to
+    a response at all times.
+
+    The variables are tracked by a dictionary of response indices to variable
+    sets. So, ``{0: {0, 1, 3}, 1: {0, 2}}`` indicates that for response ``0``
+    the variables ``{0, 1, 3}`` are relevant and for response ``1`` only the
+    variable set ``{0, 2}``. The variable sets used in different responses can
+    overlap.
     """
 
     def __init__(self, nvar: int, nresp: int, default: Intervening = Linear()):
         self.default = default
         self.nvar = nvar
         self.nresp = nresp
-        self.all_inter = []
-        self.all_resp = np.arange(self.nresp, dtype=int)
-        self.all_var = np.arange(self.nvar, dtype=int)
-        if default is not None:
-            self.all_inter = [(self.default, [True] * self.nresp, [self.all_var] * self.nresp)]
+        self.iv_mapping = []
+
+        # On initialisation the default intervening variable is added to all
+        # the responses pointing to all considered variables.
+        responses = set(range(self.nresp))
+        variables = set(range(self.nvar))
+        self.add_intervening(self.default, responses, variables)
 
     @property
     def intervening_variables(self):
-        """Yields the intervening variables."""
-        for int_variable, _, _ in self.all_inter:
-            yield int_variable
+        """Yields only the intervening variables."""
+        for intv, _, _ in self.iv_mapping:
+            yield intv
 
-    def set_intervening(self, inter: Intervening, var=Ellipsis, resp=Ellipsis):
-        which_var = [np.array([], dtype=int)] * self.nresp
-        which_resp = [False] * self.nresp
+    def set_intervening(self, inter: Intervening, var=set(), resp=set()):
+        """Assign a intervening variable to some variables/responses.
 
-        the_vars = np.unique(np.atleast_1d(self.all_var[var]))
-        for i in np.atleast_1d(self.all_resp[resp]):
-            which_var[i] = the_vars
-            which_resp[i] = True
-            # Remove from existing intervening variables
-            for dat in self.all_inter:
-                if dat[1][i]:
-                    dat[2][i] = np.setdiff1d(dat[2][i], the_vars, assume_unique=True)
-                    dat[1][i] = len(dat[2][i]) > 0
+        Other intervening variables that might be pointing to the same
+        responses are updated accordingly to avoid any overlap between the
+        different response sets.
+        """
+        new_resp = ensure_non_empty_set_with_size(resp, self.nresp)
+        new_vars = ensure_non_empty_set_with_size(var, self.nvar)
 
-        self.all_inter.append((inter, which_resp, which_var))
-        return self
+        for _, responses, variables in self.iv_mapping:
+            # Only consider to remove entries when the new response shares
+            # the same indices as the existing responses (set intersection).
+            for r in (new_resp & responses):
+                if len(diff := variables[r] - new_vars) > 0:
+                    # If the resulting set of variables is non-empty, we need
+                    # to add the index `r` to the current set with the
+                    # remaining variables.
+                    responses.add(r)
+                    variables[r] = diff
+                else:
+                    # If the resulting set is empty, the index `r` can be
+                    # removed from the current set of responses and the
+                    # corresponding variables can be deleted from the mapping.
+                    responses.remove(r)
+                    del variables[r]
 
-    def add_intervening(self, inter: Intervening, var=Ellipsis, resp=Ellipsis):
-        which_var = [np.array([], dtype=int)] * self.nresp
-        which_resp = [False] * self.nresp
+        # After deleting the overlapping regions in any other response and/or
+        # variable sets, an additional intervening variable is added.
+        return self.add_intervening(inter, new_resp, new_vars)
 
-        the_vars = np.unique(np.atleast_1d(self.all_var[var]))
-        for i in np.atleast_1d(self.all_resp[resp]):
-            which_var[i] = the_vars
-            which_resp[i] = True
-        self.all_inter.append((inter, which_resp, which_var))
+    def add_intervening(self, inter, resp=set(), var=set()):
+        """Adds an additional intervening variable to responses and variables.
+
+        The mapping only considers the unique set of elements in the response
+        and variable sets. When an empty is given, all responses/variables will
+        be considered.
+        """
+        responses = ensure_non_empty_set_with_size(resp, self.nresp)
+        variables = ensure_non_empty_set_with_size(var, self.nvar)
+
+        self.iv_mapping.append(
+            (inter, responses, {i: variables for i in responses})
+        )
         return self
 
     def evaluate_for_each_response(self, x, fn: callable):
@@ -60,13 +103,14 @@ class Mixed(Intervening):
         function for each intervening variable given the current ``x``.
         """
         out = np.zeros((self.nresp, x.shape[0]))
-        for intv, which_resp, which_var in self.all_inter:
+        for intv, responses, variables in self.iv_mapping:
             y_all = fn(intv, x)
-            for r in self.all_resp[which_resp]:
+            for r in responses:
+                var_indices = list(variables[r])
                 if y_all.ndim > 1:
-                    out[r, which_var[r]] += y_all[r, which_var[r]]
+                    out[r, var_indices] += y_all[r, var_indices]
                 else:
-                    out[r, which_var[r]] += y_all[which_var[r]]
+                    out[r, var_indices] += y_all[var_indices]
         return out
 
     def y(self, x):
