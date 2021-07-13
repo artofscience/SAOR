@@ -164,21 +164,26 @@ def test_movelimit_adaptive():
     assert max(xcl - x) == pytest.approx(v_bound * movelim)
 
 
-@pytest.mark.parametrize('n', [10])
-def test_mixed(n):
-    mix = Mixed(n, default=Bound(0.3, 0.6))
-    mix.add_move_limit(MoveLimitAdaptive(move_limit=0.1), var=[0, 1, 2])
-    x = np.random.rand(n)
+# @pytest.mark.parametrize('n', [10])
+def test_mixed():
+    n = 10
+    mix = Mixed(n, default=Bound(0.3, 0.8))
+    mix.add_move_limit(Bound(0.2, 0.9), var=[0, 1, 2])
+    mix.set_move_limit(Bound(0.0, 0.0), var=[2])
+    x = np.linspace(0, 1, 10)
     mix.clip(x)
-    print(x)
+    assert x[0] == x[1] == 0.3
+    assert x[2] == 0
+    assert x[9] == x[8] == 0.8
+
 
 if __name__ == '__main__':
-    # test_generalmovelimit()
-    # test_bound_uniform()
-    # test_bound_vector()
-    # test_movelimit_uniform_absolute()
-    # test_movelimit_uniform_relative()
-    # test_movelimit_vector_absolute()
-    # test_movelimit_vector_relative()
-    # test_movelimit_adaptive()
-    test_mixed(10)
+    test_generalmovelimit()
+    test_bound_uniform()
+    test_bound_vector()
+    test_movelimit_uniform_absolute()
+    test_movelimit_uniform_relative()
+    test_movelimit_vector_absolute()
+    test_movelimit_vector_relative()
+    test_movelimit_adaptive()
+    test_mixed()
