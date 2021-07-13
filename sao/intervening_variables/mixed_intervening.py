@@ -2,7 +2,7 @@ from sao.intervening_variables import Intervening, Linear
 import numpy as np
 
 
-def ensure_non_empty_set_with_size(s, n):
+def fill_set_when_emtpy(s, n):
     """Returns ``set(s)`` or a ``set(0..n)`` if ``set(s)`` is the empty set."""
     if s is None or s is ...:
         return set(range(n))
@@ -59,8 +59,8 @@ class Mixed(Intervening):
         responses are updated accordingly to avoid any overlap between the
         different response sets.
         """
-        new_resp = ensure_non_empty_set_with_size(resp, self.nresp)
-        new_vars = ensure_non_empty_set_with_size(var, self.nvar)
+        new_resp = fill_set_when_emtpy(resp, self.nresp)
+        new_vars = fill_set_when_emtpy(var, self.nvar)
 
         for _, responses, variables in self.iv_mapping:
             # Only consider to remove entries when the new response shares
@@ -90,8 +90,8 @@ class Mixed(Intervening):
         and variable sets. When an empty is given, all responses/variables will
         be considered.
         """
-        responses = ensure_non_empty_set_with_size(resp, self.nresp)
-        variables = ensure_non_empty_set_with_size(var, self.nvar)
+        responses = fill_set_when_emtpy(resp, self.nresp)
+        variables = fill_set_when_emtpy(var, self.nvar)
 
         self.iv_mapping.append(
             (inter, responses, {i: variables for i in responses})
