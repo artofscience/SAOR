@@ -48,6 +48,6 @@ class Mixed(GeneralMoveLimit):
 
     def clip(self, x):
         """Clips ``x`` with bounds of each move limit."""
-        for ml in self.move_limits:
-            ml.clip(x)
+        for ml, variables in self.all_ml:
+            x[variables] = ml.clip(x[variables])
         return x
