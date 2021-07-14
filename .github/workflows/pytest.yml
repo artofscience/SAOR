@@ -1,4 +1,4 @@
-name: learn-github-actions
+name: pytest
 on: [push]
 jobs:
   run-all-pytests:
