@@ -18,7 +18,7 @@ class Mixed(GeneralMoveLimit):
     def __init__(self, nvar: int, default: GeneralMoveLimit = Bound()):
         self.default = default
         self.nvar = nvar
-        self.ml_mapping = []
+        self.ml_mapping = [tuple]
 
         # On initialisation the default move limit is added to all variables
         variables = set(range(self.nvar))
