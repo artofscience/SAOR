@@ -31,7 +31,7 @@ class Mixed(MoveLimit):
         for ml, _ in self.ml_mapping:
             yield ml
 
-    def set_move_limit(self, ml: MoveLimit, var: Ellipsis):
+    def set_move_limit(self, ml: MoveLimit, var=Ellipsis):
         """Assign a move limit strategy to some variables.
 
         Other move limits that might be pointing to the same
@@ -58,13 +58,13 @@ class Mixed(MoveLimit):
         # an additional move limit is added.
         return self.add_move_limit(ml, new_vars)
 
-    def add_move_limit(self, ml: MoveLimit, var: Ellipsis):
+    def add_move_limit(self, ml: MoveLimit, var=Ellipsis):
         """Add a move limit strategy to a set of variables."""
         variables = fill_set_when_emtpy(var, self.nvar)
         self.ml_mapping.append((ml, variables))
         return self
 
-    def update(self, x):
+    def update(self, x, *args, **kwargs):
         """Perform inplace updates of the state of the move limits.
 
         This allows to perform additional functionality to update the state
@@ -72,7 +72,7 @@ class Mixed(MoveLimit):
         at previous iterations etc.
         """
         for ml, var in self.ml_mapping:
-            ml.update(x[list(var)])
+            ml.update(x[list(var)], *args, **kwargs)
         return self
 
     def clip(self, x):
