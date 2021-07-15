@@ -40,7 +40,7 @@ def example_square(n):
     #converged = ObjectiveChange(prob)
     #converged = Feasibility(prob)
 
-    converged = ObjectiveChange(prob) & Feasibility(prob, slack=-1e-3) | IterationCount(5)
+    converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=-1e-3) | IterationCount(5)
 
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
@@ -106,8 +106,8 @@ def example_square_mixed(n):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectiveChange()
+    #criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = ObjectiveChange(prob.f)
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
