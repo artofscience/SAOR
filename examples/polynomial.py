@@ -91,7 +91,7 @@ def example_poly():
 
 
 def example_poly_mixed():
-    logger.info("Solving test_poly using y=Mixed and Ipopt Svanberg")
+    logger.info("Solving test_poly using y=MixedML and Ipopt Svanberg")
 
     # Instantiate problem
     prob = QuadPoly2()

@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
 from sao.move_limits.move_limit import GeneralMoveLimit, Bound, MoveLimit, MoveLimitAdaptive
-from sao.move_limits.mixed_move_limit import Mixed
+from sao.move_limits.mixed_move_limit import MixedML
+
 
 def test_generalmovelimit():
     x = np.array([-1.0, -0.5, 1.0, 2.0, 0.75, 0.1, 1.13])
@@ -167,7 +168,7 @@ def test_movelimit_adaptive():
 # @pytest.mark.parametrize('n', [10])
 def test_mixed():
     n = 10
-    mix = Mixed(n, default=Bound(0.3, 0.8))
+    mix = MixedML(n, default=Bound(0.3, 0.8))
     mix.add_move_limit(Bound(0.2, 0.9), var=[0, 1, 2])
     mix.set_move_limit(Bound(0.0, 0.0), var=[2])
     x = np.linspace(0, 1, 10)

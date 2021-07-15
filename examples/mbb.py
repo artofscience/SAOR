@@ -470,7 +470,7 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
 
 
 def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
-    logger.info("Solving compliance minimization subject to volume constraint with y=Mixed")
+    logger.info("Solving compliance minimization subject to volume constraint with y=MixedML")
 
     # Instantiate problem
     prob = Compliance(nelx, nely, volfrac, penal, rmin)
@@ -540,7 +540,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
-    logger.info("Solving weight minimization subject to aggregated stress constraint with y=Mixed")
+    logger.info("Solving weight minimization subject to aggregated stress constraint with y=MixedML")
 
     # Instantiate problem
     prob = Stress(nelx, nely, volfrac, penal, rmin, max_stress=max_stress)
@@ -678,7 +678,7 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
 
 
 def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
-    logger.info("Solving eigenfrequency maximization subject to volume constraint with y=Mixed")
+    logger.info("Solving eigenfrequency maximization subject to volume constraint with y=MixedML")
 
     # Instantiate problem
     prob = Eigenvalue(nelx, nely, volfrac, penal, rmin)
@@ -756,7 +756,7 @@ if __name__ == "__main__":
     example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
 
-    # Mixed optimizers
+    # MixedML optimizers
     example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
     example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)

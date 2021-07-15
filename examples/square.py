@@ -91,7 +91,7 @@ def example_square(n):
 
 
 def example_square_mixed(n):
-    logger.info("Solving Square.py using y=Mixed and solver=SvanbergIP")
+    logger.info("Solving Square.py using y=MixedML and solver=SvanbergIP")
 
     # Instantiate problem
     prob = Square(n)

@@ -72,7 +72,7 @@ class MoveLimit(GeneralMoveLimit):
     def __init__(self, move_limit=0.1, dx=1.0):
         """
         :param move_limit: The absolute move limit, in case dx is not given, or relative to dx
-        :param dx: = xmax - xmin: Variable bound interval for relative stepsize
+        :param dx: = xmax - xmin: Variable bound interval for relative step-size
         """
         """Stores the desired step-size (``trust region``)."""
         self.max_dx = abs(move_limit)*dx

@@ -3,16 +3,12 @@ import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import *
-from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
+from sao.move_limits.move_limit import *
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.util.plotter import Plot, Plot2, Plot3
-from sao.convergence_criteria.ObjChange import ObjectiveChange
-from sao.convergence_criteria.VarChange import VariableChange
-from sao.convergence_criteria.KKT import KKT
-from sao.convergence_criteria.Feasibility import Feasibility
-from sao.convergence_criteria.Alltogether import Alltogether
+from sao.util import *
+from sao.convergence_criteria import *
 from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -51,6 +47,7 @@ def example_vanderplaats(N):
 
     # Instantiate the scaling strategy
     scaling = InitialResponseScaling(prob.m+1)
+    scaling.scale_to[0] = 100       # scale objective to 100 at 1st iteration
 
     # Instantiate plotter
     plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
@@ -100,7 +97,7 @@ def example_vanderplaats(N):
 
 
 def example_vanderplaats_mixed(N):
-    logger.info("Solving Vanderplaats using y=Mixed and solver=Ipopt Svanberg")
+    logger.info("Solving Vanderplaats using y=MixedML and solver=Ipopt Svanberg")
 
     # Instantiate problem
     prob = Vanderplaats(N)

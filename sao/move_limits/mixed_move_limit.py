@@ -3,7 +3,7 @@ from sao.util.tools import fill_set_when_emtpy
 import numpy as np
 
 
-class Mixed(GeneralMoveLimit):
+class MixedML(GeneralMoveLimit):
     """
     For variable, a separate or combination of
     move limits can be set. (movelimit, variable).
