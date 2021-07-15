@@ -18,9 +18,11 @@ class Square(Problem):
         # self.x0 = np.random.rand(self.alpha, self.beta, n)
         self.n = n
         self.m = 1
+        self.f = np.zeros(n)
 
     def g(self, x):
-        return np.array([np.dot(x, x), 1-np.sum(x)])
+        self.f = np.array([np.dot(x, x), 1-np.sum(x)])
+        return self.f
 
     def dg(self, x):
         return np.array([2*x, -np.ones_like(x)])

@@ -7,11 +7,7 @@ from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.util.plotter import Plot, Plot2
-from sao.convergence_criteria import ObjectiveChange
-from sao.convergence_criteria import VariableChange
-from sao.convergence_criteria import KKT
-from sao.convergence_criteria import Feasibility
-from sao.convergence_criteria import AnyCriteria
+from sao.convergence_criteria import ObjectiveChange, Feasibility, IterationCount
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -41,7 +37,11 @@ def example_square(n):
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    criterion = ObjectiveChange()
+    #converged = ObjectiveChange(prob)
+    #converged = Feasibility(prob)
+
+    converged = ObjectiveChange(prob) & Feasibility(prob, slack=-1e-3) | IterationCount(5)
+
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
@@ -57,7 +57,7 @@ def example_square(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while not converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -75,7 +75,7 @@ def example_square(n):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
+        #criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
 
         # Print & Plot
         logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
