@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 from Problems.Li2015_Fig4 import Li2015Fig4
-from sao.approximations.taylor import Taylor1, Taylor2
+from sao.approximations.taylor import *
 from sao.intervening_variables import *
 from sao.move_limits import *
 from sao.problems.subproblem import Subproblem
@@ -31,13 +31,13 @@ def example_truss2d():
     prob = Li2015Fig4()
 
     # Instantiate a mixed move limit strategy
-    mixed_ml = MixedML(prob.n, default=Bound(prob.xmin, prob.xmax))
-    mixed_ml.add_move_limit(MoveLimit(move_limit=0.1), var=[0])
+    # mixed_ml = MixedML(prob.n, default=Bound(prob.xmin, prob.xmax))
+    # mixed_ml.add_move_limit(MoveLimit(move_limit=0.1), var=[0])
     # mixed_ml.set_move_limit(MoveLimit(move_limit=0.1), var=[0])
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([mixed_ml])
+    subprob = Subproblem(approximation=NonSphericalTaylor2(Linear()))
+    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.2)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -163,5 +163,5 @@ def example_truss2d_mixed():
 
 
 if __name__ == "__main__":
-    # example_truss2d()
+    example_truss2d()
     example_truss2d_mixed()
