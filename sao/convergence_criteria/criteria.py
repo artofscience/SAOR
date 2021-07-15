@@ -96,16 +96,16 @@ class Criteria(Criterion):
 
 class ObjectiveChange(Criterion):
     """Keeps track of the relative objective changes between iterations."""
-    def __init__(self, storage, tolerance=1e-4, scaled=False):
+    def __init__(self, f, tolerance=1e-4, scaled=False):
         super().__init__()
-        self.storage = storage
+        self.objective = objective[0]
         self.tolerance = tolerance
         self.previous = math.inf
         self.scaled = scaled
 
     def __call__(self):
         """Evaluate the objective changes between iterations."""
-        current = self.storage.f[0]
+        current = self.objective
 
         change = abs(current - self.previous)
         if self.scaled:
@@ -130,19 +130,17 @@ class VariableChange(Criterion):
     desired, the variable change can be scaled, for instance to normalise the
     change with respect to the maximum range of the design variables.
     """
-    def __init__(self, storage, tolerance=1e-4, scaling=1.0):
+    def __init__(self, variables, tolerance=1e-4, scaling=1.0):
         """Initialise the criteria with a tolerance and scaling"""
         super().__init__()
-        self.storage = storage
+        self.variables = variables
         self.tolerance = tolerance
         self.scaling = scaling
         self.previous = math.inf
 
     def __call__(self):
         """Assert all variables show a sufficiently small change."""
-        # TODO: this requires the storage class to keep track of the current
-        # vector of design variables.
-        current = self.storage.x
+        current = self.variables
 
         # The (scaled) change of all variables should be sufficiently small
         # before the variable change is satisfied.
@@ -150,12 +148,12 @@ class VariableChange(Criterion):
             abs((current - self.previous) / self.scaling) < self.tolerance)
 
         # keep track of the previous iterations value of the variables
-        self.previous = current
+        self.previous = current.copy()
 
 
 class Feasibility(Criterion):
     """Enforces feasibility of all constraints with some "slack"."""
-    def __init__(self, storage, slack=1e-4):
+    def __init__(self, contraints, slack=1e-4):
         """Initialise the feasibility criteria with some allowed "slack".
 
         The slack variable can be provided as a single value or as a list of
@@ -163,7 +161,7 @@ class Feasibility(Criterion):
         is provided, that value is considered for all constraint functions.
         """
         super().__init__()
-        self.storage = storage
+        self.contraints = contraints
 
         # Test if the provided slack variables allow iteration, if not, the
         # single value is repeated for the required number of constraints.
@@ -171,15 +169,15 @@ class Feasibility(Criterion):
             _ = iter(slack)
             self.slack = slack
         except TypeError:
-            self.slack = [slack] * len(self.storage.f[1:])
+            self.slack = [slack] * len(self.contraints)
 
         err_msg = f"Wrong number of slack variables: {len(self.slack)}"
-        assert len(self.slack) == len(self.storage.f[1:]), err_msg
+        assert len(self.slack) == len(self.constraints), err_msg
 
     def __call__(self):
         """Assert feasibility for each constraint with its allowed slack."""
         self.done = all(c < s
-                        for (c, s) in zip(self.storage.f[1:], self.slack))
+                        for (c, s) in zip(self.constraints, self.slack))
 
 
 class IterationCount(Criterion):
