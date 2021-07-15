@@ -6,14 +6,12 @@ from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquar
 from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.util.plotter import Plot, Plot2, Plot3
-from sao.convergence_criteria.ObjChange import ObjectiveChange
-from sao.convergence_criteria.VarChange import VariableChange
-from sao.convergence_criteria.KKT import KKT
-from sao.convergence_criteria.Feasibility import Feasibility
-from sao.convergence_criteria.Alltogether import Alltogether
-from sao.scaling_strategies.scaling import *
+from sao.util.plotter import Plot, Plot2
+from sao.convergence_criteria import ObjectiveChange
+from sao.convergence_criteria import VariableChange
+from sao.convergence_criteria import KKT
+from sao.convergence_criteria import Feasibility
+from sao.convergence_criteria import AnyCriteria
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

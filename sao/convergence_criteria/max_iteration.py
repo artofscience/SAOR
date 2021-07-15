@@ -1,4 +1,4 @@
-from .ConvCriterion import ConvergenceCriterion
+from .convergence_criterion import ConvergenceCriterion
 
 
 class MaximumIteration(ConvergenceCriterion):
