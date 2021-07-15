@@ -3,7 +3,7 @@ import logging
 from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, Mixed
-from sao.move_limits.move_limit import Bound, MoveLimit, MoveLimitAdaptive
+from sao.move_limits.move_limit import TrustRegion
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
@@ -36,7 +36,7 @@ def example_square(n):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -102,7 +102,7 @@ def example_square_mixed(n):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.5)])
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.5)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

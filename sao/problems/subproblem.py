@@ -1,13 +1,13 @@
 from sao.problems.problem import Problem
 from sao.intervening_variables import Linear
 from sao.approximations.taylor import Taylor1
-from sao.move_limits.move_limit import Bound, MoveLimit
+from sao.move_limits.move_limit import MoveLimit
 from sao.util.tools import parse_to_list
 import numpy as np
 
 
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(), limits=Bound(xmin=0, xmax=1)):
+    def __init__(self, approximation=Taylor1(), limits=MoveLimit(xmin=0, xmax=1)):
         super().__init__()
         self.approx = approximation
         self.set_limits(limits)
@@ -35,7 +35,7 @@ class Subproblem(Problem):
         # the feasible range of the intervening variables. First the move
         # limits are applied to constraint the step size.
         for ml in self.lims:
-            ml.update(x, f, df, ddf)
+            ml.update(x)
             ml.clip(self.alpha)
             ml.clip(self.beta)
 
