@@ -1,54 +1,77 @@
-## IMPORTS
-from abc import ABC, abstractmethod
+"""Abstract implementation for convergence criteria."""
+import abc
 
 
-## Abstract class for convergence criteria. All criteria inherit from this class
-class ConvergenceCriterion(ABC):
-    """ Abstract implementation of a convergence criterion.
-        The class should provide the the `get_response`, `max_iter` and `assess_convergence` methods.
+# Abstract class for convergence criteria. All criteria inherit from this class
+class ConvergenceCriterion(abc.ABC):
+    """Abstract implementation for the convergence criteria.
+
+    Each criteria should implement the ``__call__`` method that assigns the
+    values to ``self.converged`` to indicate if the criteria is satisfied.
     """
-    
-    def __init__(self, **kwargs):
-        self.converged = False
-        self.tolerance = 1e-4                       # The tolerance for the convergence criterion
-        self.max_ite_opt = 500                      # Maximum number of optimization iterations
+    def __init__(self, variable, target=1e-4, ):
+        """Initialise the criteria with variable name and target value.
 
-    def get_response(self, **kwargs):
+        The variable name corresponds to the variable extracted from
+        ``kwargs``, e.g. when set to ``self.variable = "x"`` the criteria
+        will extract ``x`` form the provided keyword arguments.
+
+        Typically the criteria is satisfied when a target is achieved, e.g. the
+        current value is larger, equal, or bigger than the target.
         """
-        Method to calculate the value of the current convergence criterion (to be overriden).
+        self.variable = variable
+        self.target = target
+        self._done = False
 
-        :param kwargs:
-        :return:
-        """
+    @property
+    def converged(self) -> bool:
+        """Returns the status of the criteria."""
+        return self._done
 
-        return NotImplemented
+    @converged.setter
+    def converged(self, done: bool):
+        """Setter for the ``converged`` status of the criteria."""
+        self._done = done
 
-    def max_iter(self, **kwargs):
-        """
-        Max iteration criterion (it is used by all criteria).
+    def get_variable(self, **kwargs):
+        """Returns the current ``self.variable`` from ``kwargs``.
 
-        :param kwargs:
-        :return:
-        """
+        An ``AssertionError`` is raised in case of missing arguments. In those
+        situations the convergence criteria cannot be properly assessed."""
 
-        current_iter = kwargs.get('iter')
-        if current_iter is not None:
-            return current_iter >= self.max_ite_opt
-        else:
-            raise Exception('You must pass the iteration number to criterion.assess_convergence')
+        err = f"Variable '{self.variable}' was expected for {type(self)}."
+        assert self.variable in kwargs, err
+        return kwargs.get(self.variable)
 
-    def assess_convergence(self, **kwargs):
-        """
-        Default method to calculate if the convergence criterion is satisfied at the current iteration.
+    @abc.abstractmethod
+    def __call__(self, **kwargs):
+        """Abstract method to evaluate the current criteria."""
+        ...
 
-        :param kwargs:
-        :return:
-        """
 
-        max_iter_flag = self.max_iter(**kwargs)
-        if (self.get_response(**kwargs) < self.tolerance) or max_iter_flag:
-            self.converged = True
-            if max_iter_flag:
-                print(r'Maximum number of {} iterations was reached'.format(kwargs.get('iter', '')))
-            elif not kwargs.get('multi_criteria_flag', False):
-                print(f'Criterion {self.__class__.__name__} was satisfied within a tolerance of {self.tolerance}')
+class AnyCriteria(ConvergenceCriterion):
+    """Converges as soon as one of its criteria is reached."""
+    def __init__(self, criteria):
+        super().__init__(variable=None, target=None)
+
+        # ensure the criteria collection supports iteration
+        try:
+            _ = iter(criteria)
+            self.critera = criteria
+        except TypeError:
+            self.criteria = [criteria]
+
+    def __call__(self, **kwargs):
+        for criterion in self.critera:
+            criterion(**kwargs)
+
+        self.converged = any(c.converged for c in self.criteria)
+
+
+class AllCriteria(AnyCriteria):
+    """Converges only once *all* of its criteria is reached."""
+    def __call__(self, **kwargs):
+        for criterion in self.critera:
+            criterion(**kwargs)
+
+        self.converged = all(c.converged for c in self.criteria)

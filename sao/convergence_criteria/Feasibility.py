@@ -1,22 +1,15 @@
-import numpy as np
 from .ConvCriterion import ConvergenceCriterion
+import numpy as np
 
 
 class Feasibility(ConvergenceCriterion):
+    """Asserts feasibility of constraints given in negative null form.
 
-    def assess_convergence(self, **kwargs):
-        """
-        Function to calculate if the variables are within the feasible domain (overrides default method).
+    Converges once all constraint values are smaller than a given tolerance.
+    """
+    def __init__(self, variable="constraints", target=1e-4):
+        super().__init__(variable, target)
 
-        :param kwargs:
-        :return:
-        """
-
-        f = kwargs.get('f', None)
-        max_iter_flag = self.max_iter(**kwargs)
-        if np.all(f[1:] < self.tolerance) or max_iter_flag:
-            self.converged = True
-            if max_iter_flag:
-                print('Maximum number of {} iterations was reached'.format(kwargs.get('iter', '')))
-            elif not kwargs.get('multi_criteria_flag', False):
-                print(f'Criterion {self.__class__.__name__} was satisfied within a tolerance of {self.tolerance}')
+    def __call__(self, **kwargs):
+        constraints = self.get_variable(**kwargs)
+        self.converged = np.all(constraints < self.target)

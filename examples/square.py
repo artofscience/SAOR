@@ -42,8 +42,8 @@ def example_square(n):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectiveChange()
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
@@ -77,7 +77,7 @@ def example_square(n):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
 
         # Print & Plot
         logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
