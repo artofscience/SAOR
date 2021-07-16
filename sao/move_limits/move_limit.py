@@ -19,7 +19,7 @@ class MoveLimit:
         self.x_min = xmin
         self.x_max = xmax
 
-    def update(self, x, *args, **kwargs):
+    def update(self, x, f, df, ddf=None):
         """
         Update function
         :param x: Current design vector
@@ -65,7 +65,7 @@ class TrustRegion(MoveLimit):
         """Stores the desired step-size (``trust region``)."""
         self.max_dx = abs(move_limit) * dx
 
-    def update(self, x, *args, **kwargs):
+    def update(self, x, f, df, ddf=None):
         self.x_min = x - self.max_dx
         self.x_max = x + self.max_dx
         return self
@@ -110,7 +110,7 @@ class MoveLimitAdaptive(TrustRegion):
         # history variables
         self.x, self.x_old1, self.x_old2 = None, None, None
 
-    def update(self, x, *args, **kwargs):
+    def update(self, x, f, df, ddf=None):
         """
         This method updates the allowable move limits from the current point.
         It has a similar structure to the asymptote update rule given by Svanberg1998

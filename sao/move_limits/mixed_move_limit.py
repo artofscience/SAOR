@@ -64,7 +64,7 @@ class Mixed(MoveLimit):
         self.ml_mapping.append((ml, variables))
         return self
 
-    def update(self, x, *args, **kwargs):
+    def update(self, x, f, df, ddf=None):
         """Perform inplace updates of the state of the move limits.
 
         This allows to perform additional functionality to update the state
@@ -72,7 +72,7 @@ class Mixed(MoveLimit):
         at previous iterations etc.
         """
         for ml, var in self.ml_mapping:
-            ml.update(x[list(var)], *args, **kwargs)
+            ml.update(x[list(var)], f, df, ddf)
         return self
 
     def clip(self, x):
