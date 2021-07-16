@@ -1,12 +1,12 @@
-from sao.move_limits import GeneralMoveLimit, Bound
+from sao.move_limits import MoveLimit
 from sao.util.tools import fill_set_when_emtpy
 import numpy as np
 
 
-class Mixed(GeneralMoveLimit):
+class Mixed(MoveLimit):
     """
     For variable, a separate or combination of
-    move limits can be set. (movelimit, variable).
+    move limits can be set. (move limit, variable).
 
     The variables are tracked by a dictionary of move limit indices to variable
     sets. So, ``{0: {0, 1, 3}, 1: {0, 2}}`` indicates that for move limit ``0``
@@ -15,7 +15,8 @@ class Mixed(GeneralMoveLimit):
     overlap.
     """
 
-    def __init__(self, nvar: int, default: GeneralMoveLimit = Bound()):
+    def __init__(self, nvar: int, default: MoveLimit = MoveLimit()):
+        super().__init__()
         self.default = default
         self.nvar = nvar
         self.ml_mapping = []
@@ -30,7 +31,7 @@ class Mixed(GeneralMoveLimit):
         for ml, _ in self.ml_mapping:
             yield ml
 
-    def set_move_limit(self, ml: GeneralMoveLimit, var=Ellipsis):
+    def set_move_limit(self, ml: MoveLimit, var=Ellipsis):
         """Assign a move limit strategy to some variables.
 
         Other move limits that might be pointing to the same
@@ -57,24 +58,25 @@ class Mixed(GeneralMoveLimit):
         # an additional move limit is added.
         return self.add_move_limit(ml, new_vars)
 
-    def add_move_limit(self, ml: GeneralMoveLimit, var=Ellipsis):
+    def add_move_limit(self, ml: MoveLimit, var=Ellipsis):
+        """Add a move limit strategy to a set of variables."""
         variables = fill_set_when_emtpy(var, self.nvar)
         self.ml_mapping.append((ml, variables))
         return self
 
-    def update(self, *args, **kwargs):
+    def update(self, x, f, df, ddf=None):
         """Perform inplace updates of the state of the move limits.
 
         This allows to perform additional functionality to update the state
         of the move limits, for instance to keep track of information
         at previous iterations etc.
         """
-        for ml in self.move_limits:
-            ml.update(*args, **kwargs)
+        for ml, var in self.ml_mapping:
+            ml.update(x[list(var)], f, df, ddf)
         return self
 
     def clip(self, x):
         """Clips ``x`` with bounds of each move limit."""
-        for ml, variables in self.ml_mapping:
-            x[list(variables)] = ml.clip(x[list(variables)])
+        for ml, var in self.ml_mapping:
+            x[list(var)] = ml.clip(x[list(var)])
         return x

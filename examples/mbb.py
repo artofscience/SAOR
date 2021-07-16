@@ -9,7 +9,7 @@ from Problems.topology_optimization_benchmark.selfweight import Selfweight
 from Problems.topology_optimization_benchmark.thermomech import Thermomech
 from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2, Taylor2
 from sao.intervening_variables import Linear, ConLin, MMA, Mixed
-from sao.move_limits.move_limit import Bound, MoveLimit
+from sao.move_limits.move_limit import MoveLimit, TrustRegion
 from sao.problems.subproblem import Subproblem
 from sao.solvers.interior_point import InteriorPointXYZ as ipopt
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
@@ -50,7 +50,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(xmin=0, xmax=1), MoveLimit(move_limit=0.1)])
+                         limits=[MoveLimit(xmin=0, xmax=1), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -111,7 +111,7 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(xmin=0, xmax=1), MoveLimit(move_limit=0.1)])
+                         limits=[MoveLimit(xmin=0, xmax=1), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -172,7 +172,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
+                         limits=[MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -234,7 +234,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.3)])
+                         limits=[MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -295,7 +295,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.3)])
+                         limits=[MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -356,7 +356,7 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.3)])
+                         limits=[MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -417,7 +417,7 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
-                         limits=[Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.3)])
+                         limits=[MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -482,7 +482,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
+    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -552,17 +552,17 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
+    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, x_max=prob.x_max)
     # criterion = ObjectiveChange()
     criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(xmin=prob.xmin, x_max=prob.x_max)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'stress_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
@@ -621,17 +621,17 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
+    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, x_max=prob.x_max)
     # criterion = ObjectiveChange()
     criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(xmin=prob.xmin, x_max=prob.x_max)
 
     # Instantiate plotter
     plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
@@ -690,7 +690,7 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
+    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
