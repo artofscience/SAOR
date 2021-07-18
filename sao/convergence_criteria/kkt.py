@@ -1,5 +1,5 @@
 import numpy as np
-from .ConvCriterion import ConvergenceCriterion
+from .convergence_criterion import ConvergenceCriterion
 
 
 class KKT(ConvergenceCriterion):

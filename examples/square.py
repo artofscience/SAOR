@@ -6,14 +6,8 @@ from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquar
 from sao.move_limits.move_limit import TrustRegion
 from sao.problems.subproblem import Subproblem
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.util.plotter import Plot, Plot2, Plot3
-from sao.convergence_criteria.ObjChange import ObjectiveChange
-from sao.convergence_criteria.VarChange import VariableChange
-from sao.convergence_criteria.KKT import KKT
-from sao.convergence_criteria.Feasibility import Feasibility
-from sao.convergence_criteria.Alltogether import Alltogether
-from sao.scaling_strategies.scaling import *
+from sao.util.plotter import Plot, Plot2
+from sao.convergence_criteria import ObjectiveChange, Feasibility, IterationCount
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -42,8 +36,12 @@ def example_square(n):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectiveChange()
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    #converged = ObjectiveChange(prob)
+    #converged = Feasibility(prob)
+
+    converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=-1e-3) | IterationCount(5)
+
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
@@ -59,7 +57,7 @@ def example_square(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while not converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -77,7 +75,7 @@ def example_square(n):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        #criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
 
         # Print & Plot
         logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
@@ -108,8 +106,8 @@ def example_square_mixed(n):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    # criterion = ObjectiveChange()
+    #criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = ObjectiveChange(prob.f)
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
