@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from Problems.PaperProblem_2D import PaperProblem2D
+from Problems.Polynomial_2D import Polynomial2D
 from sao.approximations.taylor import *
 from sao.intervening_variables import *
 from sao.move_limits import *
@@ -28,7 +28,7 @@ def example_paper_problem():
     logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
-    prob = PaperProblem2D()
+    prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
@@ -91,7 +91,7 @@ def example_paper_problem_mixed():
     logger.info("Solving test_poly using y=MixedML and Ipopt Svanberg")
 
     # Instantiate problem
-    prob = PaperProblem2D()
+    prob = Polynomial2D()
 
     # Instantiate a mixed intervening variable
     mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))

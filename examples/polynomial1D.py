@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from Problems.Polynomial_1D import QuadPoly1, QuadPoly2
+from Problems.Polynomial_1D import Polynomial1D
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import *
 from sao.move_limits import *
@@ -27,10 +27,10 @@ def example_poly():
     logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
-    prob = QuadPoly2()
+    prob = Polynomial1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMASquared(prob.xmin, prob.xmax)))
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
     subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
@@ -89,7 +89,7 @@ def example_poly_mixed():
     logger.info("Solving test_poly using y=Mixed and Ipopt Svanberg")
 
     # Instantiate problem
-    prob = QuadPoly2()
+    prob = Polynomial1D()
 
     # Instantiate a mixed intervening variable
     mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))

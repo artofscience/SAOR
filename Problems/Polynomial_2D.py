@@ -2,7 +2,7 @@
 import numpy as np
 
 
-class PaperProblem2D:
+class Polynomial2D:
     """
     This a 2D non-convex problem with 4 local minima that is used to simulate Topology Optimization problems.
     It is used throughout the paper to show the influence of different aspects of SAO.

@@ -1,5 +1,5 @@
 import logging
-from Problems.Polynomial_1D import QuadPoly2
+from Problems.Polynomial_1D import Polynomial1D
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import *
 from sao.move_limits import *
@@ -141,7 +141,7 @@ def plot_approx():
     logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
-    prob = QuadPoly2()
+    prob = Polynomial1D()
 
     # Instantiate subproblems
     subprob1 = Subproblem(approximation=Taylor1(Linear()))
