@@ -12,13 +12,18 @@ class Scaling(ABC):
 
     @abstractmethod
     def update_condition(self, f, df, **kwargs):
+        """This method implements a condition that decides whether re-scaling should be applied."""
         return NotImplementedError
 
     @abstractmethod
     def update_factor(self, f, df, **kwargs):
+        """This method updates the scaling factor, i.e. ``f_scaled = factor * f``."""
         return NotImplementedError
 
     def scale(self, f=None, df=None, **kwargs):
+        """ This method scales the response vector ``f`` and the sensitivity matrix ``df``
+        according to the `update_factor` method when ``update_condition`` is met.
+        """
         if self.update_condition(f, df):
             self.update_factor(f, df)
         return self.factor * f, (df.T * self.factor).T
@@ -26,17 +31,11 @@ class Scaling(ABC):
 
 class InitialObjectiveScaling(Scaling):
     """
-    This is an example of an implemented scaling_strategies class.
+    This is an example of an implemented ``Scaling`` class.
     Here, the objective is scaled wrt its value at the 0th iteration.
     """
 
     def __init__(self, nresp, **kwargs):
-        """
-        Initializes a scaling class that scales the objective wrt to its value at the 0th iteration.
-
-        :param nresp: Number of responses
-        :param kwargs: `scale_to` is a vector that holds a desired (scaled) value for each response
-        """
         super().__init__(nresp, **kwargs)
         self.scale_to = kwargs.get('scale_to', np.ones_like(self.factor))
 
@@ -53,18 +52,15 @@ class InitialObjectiveScaling(Scaling):
             return False
 
 
-class InitialResponseScaling(Scaling):
+class InitialResponseScaling(InitialObjectiveScaling):
     """
     This class scales the objective and the constraints with respect to their value at the 0th iteration.
     This means that for the vector of responses `f` with f.shape = (m+1,) we have a respective vector `factor`, where:
         factor.shape = (m+1,)
-        factor[0] = scale_to / f[0]
-        f_scaled[j] = f[j] / norm(df[j, :]) , for j = 1,...,m
+        factor[0] = scale_to[0] / f[0]
+        factor[j] = scale_to[j] / norm(df[j, :]) , for j = 1,...,m
+        f_scaled[j] = factor[j] * f[j]           , for j = 0,...,m
     """
-
-    def __init__(self, nresp, **kwargs):
-        super().__init__(nresp, **kwargs)
-        self.scale_to = kwargs.get('scale_to', np.ones_like(self.factor))
 
     def update_factor(self, f, df, **kwargs):
         """
@@ -88,9 +84,3 @@ class InitialResponseScaling(Scaling):
                 raise ZeroDivisionError(f'Cannot use {self.__class__.__name__} class when ||dg_j/dx|| = 0')
             self.factor[j] = self.scale_to[j] / constr_norm
         return self
-
-    def update_condition(self, f, df, **kwargs):
-        if np.all(self.factor == 1):
-            return True
-        else:
-            return False

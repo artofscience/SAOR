@@ -6,9 +6,7 @@ import pathlib
 
 
 class Plot:
-    """
-    This class is used to generate the real-time convergence plots of an optimization loop.
-    """
+    """This class is used to generate the real-time convergence plots of an optimization loop."""
 
     def __init__(self, names, path=None, **kwargs):
         """
@@ -58,6 +56,7 @@ class Plot:
         plt.show()
 
     def save_fig(self):
+        """Saves all figures to a specified location."""
         for idx, fig in enumerate(self.fig):
             plt.figure(fig.number)
             path = self.path.joinpath(f'{self.names[idx]}.png')

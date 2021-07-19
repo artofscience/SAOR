@@ -1,8 +1,3 @@
-import colorsys
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
-import pathlib
 import logging
 from Problems.Polynomial_1D import QuadPoly2
 from sao.approximations.taylor import Taylor1, Taylor2
