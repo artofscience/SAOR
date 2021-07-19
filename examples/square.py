@@ -13,7 +13,6 @@ formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
-
 np.set_printoptions(precision=4)
 
 
@@ -42,7 +41,7 @@ def example_square(n):
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
@@ -73,10 +72,10 @@ def example_square(n):
         # criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
 
         # Print & Plot
-        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
-                    '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
-                                                          criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        # logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
+        #             '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
+        #                                                   criterion.value, max(0, max(f[1:]))))
+        # plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
 
         itte += 1
 
@@ -90,25 +89,25 @@ def example_square_mixed(n):
     prob = Square(n)
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix = sao.intervening_variables.Mixed(prob.n, prob.m + 1, default=Linear())
+    mix.set_intervening(sao.MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.5)])
+    subprob = sao.Subproblem(approximation=sao.Taylor1(mix))
+    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.5)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    solver = sao.SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    criterion = ObjectiveChange(prob.f)
+    criterion = sao.ObjectiveChange(prob.f)
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -150,6 +149,6 @@ def example_square_mixed(n):
 
 
 if __name__ == "__main__":
-    example_square(20)
-    example_square_mixed(20)
+    example_square(2)
+    example_square_mixed(2)
 
