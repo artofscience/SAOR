@@ -8,10 +8,8 @@ class Approximation(ABC):
         This method updates the approximation instance.
 
         :param x: Current design
-        :param y: A method that returns the intervening variables at the current design, i.e. y(x)
         :param f: A vector of size [m+1] that holds the response values at the current design -x-
         :param df: A matrix of size [m+1, n] that holds the sensitivity values at the current design -x-
-        :param dxdy: A method that returns the derivative of the inverse intervening variable function, i.e. dx/dy(y(x))
         :param kwargs: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
