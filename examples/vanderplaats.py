@@ -3,16 +3,11 @@ import logging
 from Problems.VanderplaatsBeam import Vanderplaats
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import *
-from sao.move_limits.move_limit import TrustRegion, MoveLimitAdaptive
+from sao.move_limits import *
 from sao.problems.subproblem import Subproblem
-from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.util.plotter import Plot, Plot2, Plot3
-from sao.convergence_criteria.ObjChange import ObjectiveChange
-from sao.convergence_criteria.VarChange import VariableChange
-from sao.convergence_criteria.KKT import KKT
-from sao.convergence_criteria.Feasibility import Feasibility
-from sao.convergence_criteria.Alltogether import Alltogether
+from sao.solvers import *
+from sao.util.plotter import *
+from sao.convergence_criteria import *
 from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer

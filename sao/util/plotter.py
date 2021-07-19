@@ -264,7 +264,7 @@ class Plot2:
                     ax_exact.clabel(constr_exact, inline=1, fontsize=10)
 
             # Figure properties
-            ax_exact.set_title('$P_{NLP}$ of %s' % prob.name, fontsize=20)
+            ax_exact.set_title('$P_{NLP}$ of %s' % prob.__class__.__name__, fontsize=20)
             ax_exact.set_xlabel('$x_0$', fontsize=18)
             ax_exact.set_ylabel('$x_1$', fontsize=18)
             cbar = fig_exact.colorbar(obj_exact, shrink=0.5, aspect=8)
@@ -532,7 +532,7 @@ class Plot3(Plot2):
                     ax_exact.clabel(constr_exact, inline=1, fontsize=10)
 
             # Figure properties
-            ax_exact.set_title('$P_{NLP}$ of %s' % prob.name, fontsize=20)
+            ax_exact.set_title('$P_{NLP}$ of %s' % prob.__class__.__name__, fontsize=20)
             ax_exact.set_xlabel('$x_0$', fontsize=18)
             ax_exact.set_ylabel('$x_1$', fontsize=18)
             cbar = fig_exact.colorbar(obj_exact, shrink=0.5, aspect=8)

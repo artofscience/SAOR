@@ -8,17 +8,12 @@ from Problems.topology_optimization_benchmark.dynamic_compliance import DynamicC
 from Problems.topology_optimization_benchmark.selfweight import Selfweight
 from Problems.topology_optimization_benchmark.thermomech import Thermomech
 from sao.approximations.taylor import Taylor1, SphericalTaylor2, NonSphericalTaylor2, Taylor2
-from sao.intervening_variables import Linear, ConLin, MMA, Mixed
-from sao.move_limits.move_limit import MoveLimit, TrustRegion
+from sao.intervening_variables import *
+from sao.move_limits import *
 from sao.problems.subproblem import Subproblem
-from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.util.plotter import Plot, Plot2, Plot3
-from sao.convergence_criteria.ObjChange import ObjectiveChange
-from sao.convergence_criteria.VarChange import VariableChange
-from sao.convergence_criteria.KKT import KKT
-from sao.convergence_criteria.Feasibility import Feasibility
-from sao.convergence_criteria.Alltogether import Alltogether
+from sao.solvers import *
+from sao.util.plotter import *
+from sao.convergence_criteria import *
 from sao.scaling_strategies.scaling import *
 # from line_profiler import LineProfiler
 

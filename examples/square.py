@@ -2,12 +2,14 @@ import numpy as np
 import logging
 from Problems.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import Linear, Reciprocal, ConLin, MMA, ReciSquared, ReciCubed, MMASquared, Mixed
-from sao.move_limits.move_limit import TrustRegion
+from sao.intervening_variables import *
+from sao.move_limits import *
 from sao.problems.subproblem import Subproblem
-from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.util.plotter import Plot, Plot2
-from sao.convergence_criteria import ObjectiveChange, Feasibility, IterationCount
+from sao.solvers import *
+from sao.util.plotter import *
+from sao.convergence_criteria import *
+from sao.scaling_strategies.scaling import *
+
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -37,8 +39,8 @@ def example_square(n):
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    #converged = ObjectiveChange(prob)
-    #converged = Feasibility(prob)
+    # converged = ObjectiveChange(prob)
+    # converged = Feasibility(prob)
 
     converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=-1e-3) | IterationCount(5)
 
@@ -75,7 +77,7 @@ def example_square(n):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        #criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
+        # criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
 
         # Print & Plot
         logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
@@ -106,7 +108,7 @@ def example_square_mixed(n):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    #criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     criterion = ObjectiveChange(prob.f)
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
