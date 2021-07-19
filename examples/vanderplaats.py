@@ -1,6 +1,13 @@
 import numpy as np
 import logging
-import sao
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.problems import Problem, Subproblem
+from sao.intervening_variables import Linear, MMA, MMASquared, MixedIntervening
+from sao.move_limits import TrustRegion, MoveLimitAdaptive
+from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
+from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
+from sao.util import Plot
+from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
 from Problems.VanderplaatsBeam import Vanderplaats
 
@@ -24,24 +31,24 @@ def example_vanderplaats(N):
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = sao.KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate the scaling strategy
-    scaling = sao.InitialResponseScaling(prob.m+1)
+    scaling = InitialResponseScaling(prob.m+1)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -88,14 +95,14 @@ def example_vanderplaats(N):
 
 
 def example_vanderplaats_mixed(N):
-    logger.info("Solving Vanderplaats using y=Mixed and solver=Ipopt Svanberg")
+    logger.info("Solving Vanderplaats using y=MixedMoveLimit and solver=Ipopt Svanberg")
 
     # Instantiate problem
     prob = Vanderplaats(N)
     assert prob.n == 2 * N
 
     # Instantiate a mixed intervening variable
-    mix = sao.intervening_variables.Mixed(prob.n, prob.m + 1, default=sao.MMASquared(prob.xmin, prob.xmax))
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMASquared(prob.xmin, prob.xmax))
     # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=np.arange(1, N + 1))
     # mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=np.arange(1, N + 1))
     # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=[prob.m])
@@ -103,24 +110,24 @@ def example_vanderplaats_mixed(N):
     # mix.set_intervening(Linear(), var=np.arange(0, prob.n) , resp=np.arange(N+1, prob.m))
 
     # Instantiate a mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(mix))
-    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.MoveLimitAdaptive(move_limit=5.0)])
+    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), MoveLimitAdaptive(move_limit=5.0)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = sao.KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate the scaling strategy
-    scaling = sao.InitialObjectiveScaling(prob.m + 1)
+    scaling = InitialObjectiveScaling(prob.m + 1)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter3_flag = False
     if plotter3_flag:
         plotter3 = Plot3(prob)

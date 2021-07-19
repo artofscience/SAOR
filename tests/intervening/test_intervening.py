@@ -2,7 +2,7 @@ import pytest
 import logging
 import numpy as np
 from Problems.Square import Square
-from sao.intervening_variables import Linear, ConLin, Reciprocal, MMA, Mixed, Exponential
+from sao.intervening_variables import Linear, ConLin, Reciprocal, MMA, MixedIntervening, Exponential
 from sao.intervening_variables.mixed_intervening import fill_set_when_emtpy
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -33,7 +33,7 @@ def test_uniform(n):
     logger.info("Testing uniform mixed intervening variables")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     lin = Linear()
 
     assert lin.y(prob.x0) == pytest.approx(mix.y(prob.x0)[0], rel=1e-4)
@@ -49,7 +49,7 @@ def test_different_per_response(n):
     logger.info("Testing mixed response intervening variables (substitution)")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.set_intervening(Reciprocal(), resp=1)
     lin = Linear()
     rec = Reciprocal()
@@ -67,7 +67,7 @@ def test_add_per_response(n):
     logger.info("Testing mixed response intervening variables (addition)")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.add_intervening(Reciprocal(), resp=1)
     lin = Linear()
     rec = Reciprocal()
@@ -85,7 +85,7 @@ def test_different_per_variable(n):
     logger.info("Testing mixed variable intervening variables (substitution)")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.set_intervening(Reciprocal(), var=[0, 1])
     lin = Linear()
     rec = Reciprocal()
@@ -109,7 +109,7 @@ def test_add_per_variable(n):
     logger.info("Testing mixed variable intervening variables (addition)")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.add_intervening(Reciprocal(), var=[0, 1])
     lin = Linear()
     rec = Reciprocal()
@@ -133,7 +133,7 @@ def test_different_per_variable_and_response(n):
     logger.info("Testing mixed variable and response intervening variables (substitution)")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.set_intervening(Reciprocal(), var=np.arange(2, n), resp=0)
     mix.set_intervening(Exponential(-2), var=np.arange(0, 2), resp=1)
     mix.set_intervening(Exponential(2), var=np.arange(2, n), resp=1)
@@ -161,7 +161,7 @@ def test_add_per_variable_and_response(n):
     logger.info("Testing mixed variable and response intervening variables (addition)")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.add_intervening(Reciprocal(), var=np.arange(2, n), resp=0)
     mix.add_intervening(Exponential(-2), var=np.arange(0, 2), resp=1)
     mix.add_intervening(Exponential(2), var=np.arange(2, n), resp=1)
@@ -189,7 +189,7 @@ def test_add_per_variable_and_response_multiple_overlap(n):
     logger.info("Testing multiple overlapping mixed variable and response intervening variables (addition)")
     prob = Square(n)
 
-    mix = Mixed(prob.n, prob.m+1, default=Linear())
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.add_intervening(Reciprocal(), resp=[0, 1], var=np.arange(2, n))
     mix.add_intervening(Exponential(-2), resp=1)
     mix.add_intervening(MMA(prob.xmin, prob.xmax), resp=[0, 1], var=np.arange(2))

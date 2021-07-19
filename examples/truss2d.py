@@ -1,6 +1,12 @@
 import numpy as np
 import logging
-import sao
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.problems import Problem, Subproblem
+from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.move_limits import TrustRegion
+from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
+from sao.util import Plot
+from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
 from Problems.Li2015_Fig4 import Li2015Fig4
 
@@ -23,21 +29,21 @@ def example_truss2d():
     prob = Li2015Fig4()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = sao.KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, x_max=prob.x_max)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, x_max=prob.x_max)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'constraint_1', 'constraint_2', f'{criterion.__class__.__name__}',
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2', f'{criterion.__class__.__name__}',
                     'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
@@ -81,32 +87,32 @@ def example_truss2d():
 
 
 def example_truss2d_mixed():
-    logger.info("Solving Li2015Fig4 using y=Mixed and Ipopt Svanberg")
+    logger.info("Solving Li2015Fig4 using y=MixedMoveLimit and Ipopt Svanberg")
 
     # Instantiate problem
     prob = Li2015Fig4()
 
     # Instantiate a mixed intervening variable
-    mix = sao.intervening_variables.Mixed(prob.n, prob.m + 1, default=sao.MMA(prob.xmin, prob.xmax))
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
     # mix.set_intervening(Linear(), var=[0], resp=[0])
     # mix.set_intervening(Exponential(2), var=[1], resp=[0])      # MMA(prob.xmin, prob.xmax)
 
     # Instantiate a mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(mix))
-    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
+    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = sao.KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'constraint_1', 'constraint_2', f'{criterion.__class__.__name__}',
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2', f'{criterion.__class__.__name__}',
                     'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:

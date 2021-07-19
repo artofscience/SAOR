@@ -1,8 +1,15 @@
 import numpy as np
 import logging
-import sao
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.problems import Problem, Subproblem
+from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.move_limits import TrustRegion
+from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
+from sao.util import Plot
+from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
 from Problems.Square import Square
+
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -23,25 +30,25 @@ def example_square(n):
     prob = Square(n)
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # converged = ObjectiveChange(prob)
     # converged = Feasibility(prob)
 
-    converged = sao.ObjectiveChange(prob.f[0]) & sao.Feasibility(prob.f[1:], slack=1e-3) | sao.IterationCount(5)
+    converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=1e-3) | IterationCount(5)
 
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    # plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
@@ -83,31 +90,31 @@ def example_square(n):
 
 
 def example_square_mixed(n):
-    logger.info("Solving Square.py using y=Mixed and solver=SvanbergIP")
+    logger.info("Solving Square.py using y=MixedMoveLimit and solver=SvanbergIP")
 
     # Instantiate problem
     prob = Square(n)
 
     # Instantiate a mixed intervening variable
-    mix = sao.intervening_variables.Mixed(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(sao.MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
+    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(mix))
-    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.5)])
+    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.5)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    criterion = sao.ObjectiveChange(prob.f)
+    criterion = ObjectiveChange(prob.f)
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob)

@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from sao.move_limits.move_limit import MoveLimit, MoveLimitAdaptive, TrustRegion
-from sao.move_limits.mixed_move_limit import Mixed
+from sao.move_limits.mixed_move_limit import MixedMoveLimit
 
 
 def test_move_limit():
@@ -167,7 +167,7 @@ def test_movelimit_adaptive():
 # @pytest.mark.parametrize('n', [10])
 def test_mixed_move_limit():
     n = 10
-    mix = Mixed(n, default=MoveLimit(0.3, 0.8))
+    mix = MixedMoveLimit(n, default=MoveLimit(0.3, 0.8))
     mix.add_move_limit(MoveLimit(0.2, 0.9), var=[0, 1, 2])
     mix.set_move_limit(MoveLimit(0.0, 0.0), var=[2])
     x = np.linspace(0, 1, 10)
@@ -179,7 +179,7 @@ def test_mixed_move_limit():
 
 def test_mixed_trust_region():
     n = 10
-    mix = Mixed(n, default=MoveLimit(0.3, 0.8))
+    mix = MixedMoveLimit(n, default=MoveLimit(0.3, 0.8))
     mix.add_move_limit(TrustRegion(0.1), var=[0, 1, 2])
     mix.set_move_limit(MoveLimit(0.0, 0.0), var=[2])
     x = np.linspace(0, 1, 10)

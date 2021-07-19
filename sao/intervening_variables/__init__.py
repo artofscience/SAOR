@@ -4,9 +4,9 @@ from .exponential import Reciprocal, ReciSquared, ReciCubed
 from .conlin import ConLin
 from .fitted import ReciFit
 from .mma import MMA, MMASquared
-from .mixed_intervening import Mixed
+from .mixed_intervening import MixedIntervening
 
 __all__ = [
         'Linear', 'ConLin', 'Exponential', 'Reciprocal', 'ReciSquared',
-        'ReciCubed', 'ReciFit', 'MMA', 'MMASquared', 'Mixed'
+        'ReciCubed', 'ReciFit', 'MMA', 'MMASquared', 'MixedIntervening'
 ]

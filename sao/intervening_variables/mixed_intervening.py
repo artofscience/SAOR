@@ -17,7 +17,7 @@ def fill_set_when_emtpy(s, n):
     return s
 
 
-class Mixed(Intervening):
+class MixedIntervening(Intervening):
     """
     For every response i, and variable j, a separate or combination of
     intervening variables can be set. (intervening, response, variable).

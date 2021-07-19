@@ -2,7 +2,7 @@ from sao.move_limits import MoveLimit
 from sao.util.tools import fill_set_when_emtpy
 
 
-class Mixed(MoveLimit):
+class MixedMoveLimit(MoveLimit):
     """
     For variable, a separate or combination of
     move limits can be set. (move limit, variable).

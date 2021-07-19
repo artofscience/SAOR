@@ -1,6 +1,13 @@
 import numpy as np
 import logging
-import sao
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.problems import Problem, Subproblem
+from sao.intervening_variables import Linear, MMA, MMASquared, MixedIntervening
+from sao.move_limits import TrustRegion, MoveLimitAdaptive
+from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
+from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
+from sao.util import Plot
+from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
 from Problems.topology_optimization_benchmark.compliance import Compliance
 from Problems.topology_optimization_benchmark.stress import Stress
@@ -36,16 +43,16 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(intervening=sao.MMA(prob.xmin, prob.xmax)),
-                         limits=[sao.TrustRegion(xmin=0, xmax=1), sao.TrustRegion(move_limit=0.1)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[TrustRegion(xmin=0, xmax=1), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
@@ -97,16 +104,16 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(intervening=sao.MMA(prob.xmin, prob.xmax)),
-                         limits=[sao.MoveLimit(xmin=0, xmax=1), sao.TrustRegion(move_limit=0.1)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[TrustRegion(xmin=0, xmax=1), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
@@ -116,7 +123,7 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     vis = None
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
@@ -158,21 +165,21 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(intervening=sao.MMA(prob.xmin, prob.xmax)),
-                         limits=[sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.1)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'stress_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'stress_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -220,21 +227,21 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(intervening=sao.MMA(prob.xmin, prob.xmax)),
-                         limits=[sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.3)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -281,21 +288,21 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(intervening=sao.MMA(prob.xmin, prob.xmax)),
-                         limits=[sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.3)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -342,21 +349,21 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(intervening=sao.MMA(prob.xmin, prob.xmax)),
-                         limits=[sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.3)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -403,21 +410,21 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(intervening=sao.MMA(prob.xmin, prob.xmax)),
-                         limits=[sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.3)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+                         limits=[TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.3)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -457,7 +464,7 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
 
 
 def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
-    logger.info("Solving compliance minimization subject to volume constraint with y=Mixed")
+    logger.info("Solving compliance minimization subject to volume constraint with y=MixedIntervening")
 
     # Instantiate problem
     prob = Compliance(nelx, nely, volfrac, penal, rmin)
@@ -469,7 +476,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -527,19 +534,19 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_stress=1):
-    logger.info("Solving weight minimization subject to aggregated stress constraint with y=Mixed")
+    logger.info("Solving weight minimization subject to aggregated stress constraint with y=MixedIntervening")
 
     # Instantiate problem
     prob = Stress(nelx, nely, volfrac, penal, rmin, max_stress=max_stress)
     assert prob.n == nelx * nely
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
     mix.set_intervening(Linear(), var=np.arange(0, prob.n), resp=[0])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -608,7 +615,7 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -665,7 +672,7 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
 
 
 def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
-    logger.info("Solving eigenfrequency maximization subject to volume constraint with y=Mixed")
+    logger.info("Solving eigenfrequency maximization subject to volume constraint with y=MixedIntervening")
 
     # Instantiate problem
     prob = Eigenvalue(nelx, nely, volfrac, penal, rmin)
@@ -677,7 +684,7 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

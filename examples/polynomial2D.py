@@ -1,6 +1,13 @@
 import numpy as np
 import logging
-import sao
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.problems import Problem, Subproblem
+from sao.intervening_variables import Linear, MMA, MMASquared, MixedIntervening
+from sao.move_limits import TrustRegion, MoveLimitAdaptive
+from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
+from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
+from sao.util import Plot
+from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
 from Problems.Polynomial_2D import Polynomial2D
 
@@ -23,21 +30,21 @@ def example_paper_problem():
     prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.5)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=0.5)])
 
     # Instantiate solver
-    solver = sao.SvanbergIP(prob.n, prob.m)
+    solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path="../../../../Desktop")
+    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -86,12 +93,12 @@ def example_paper_problem_mixed():
     prob = Polynomial2D()
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
     # mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
