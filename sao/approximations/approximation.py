@@ -17,14 +17,17 @@ class Approximation(ABC):
 
     @abstractmethod
     def g(self, x, out=None):
+        """Approximate response function."""
         ...
 
     @abstractmethod
     def dg(self, x, out=None):
+        """Approximate sensitivity array."""
         ...
 
     @abstractmethod
     def ddg(self, x, out=None):
+        """Approximate 2nd-order sensitivity array."""
         ...
 
     # Standard implementations which might not be efficient
