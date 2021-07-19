@@ -1,4 +1,8 @@
+import colorsys
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+import pathlib
 
 class Plot2:
     """
