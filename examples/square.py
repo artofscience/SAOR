@@ -1,15 +1,8 @@
 import numpy as np
 import logging
+import sao
+from util.plotter import Plot2, Plot3
 from Problems.Square import Square
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import *
-from sao.move_limits import *
-from sao.problems.subproblem import Subproblem
-from sao.solvers import *
-from sao.util.plotter import *
-from sao.convergence_criteria import *
-from sao.scaling_strategies.scaling import *
-
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -31,25 +24,25 @@ def example_square(n):
     prob = Square(n)
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
+    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    solver = sao.SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # converged = ObjectiveChange(prob)
     # converged = Feasibility(prob)
 
-    converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=1e-3) | IterationCount(5)
+    converged = sao.ObjectiveChange(prob.f[0]) & sao.Feasibility(prob.f[1:], slack=1e-3) | sao.IterationCount(5)
 
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))

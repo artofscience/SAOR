@@ -1,15 +1,8 @@
 import numpy as np
 import logging
+import sao
+from util.plotter import Plot2, Plot3
 from Problems.Polynomial_2D import Polynomial2D
-from sao.approximations.taylor import *
-from sao.intervening_variables import *
-from sao.move_limits import *
-from sao.problems.subproblem import Subproblem
-from sao.solvers.SolverIP_Svanberg import SvanbergIP
-from sao.solvers.interior_point import InteriorPointXYZ as ipopt
-from sao.util import *
-from sao.convergence_criteria import *
-from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -20,7 +13,6 @@ formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
-
 np.set_printoptions(precision=4)
 
 
@@ -31,21 +23,21 @@ def example_paper_problem():
     prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bound(prob.xmin, prob.xmax), MoveLimit(move_limit=0.5)])
+    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=0.5)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    solver = sao.SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path="../../../../Desktop")
+    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)

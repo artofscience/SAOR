@@ -1,14 +1,8 @@
 import numpy as np
 import logging
+import sao
+from util.plotter import Plot2, Plot3
 from Problems.VanderplaatsBeam import Vanderplaats
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import *
-from sao.move_limits import *
-from sao.problems.subproblem import Subproblem
-from sao.solvers import *
-from sao.util.plotter import *
-from sao.convergence_criteria import *
-from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -19,7 +13,6 @@ formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
-
 np.set_printoptions(precision=4)
 
 
@@ -31,24 +24,24 @@ def example_vanderplaats(N):
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
+    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    solver = sao.SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = sao.KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate the scaling strategy
-    scaling = InitialResponseScaling(prob.m+1)
+    scaling = sao.InitialResponseScaling(prob.m+1)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = sao.Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -102,7 +95,7 @@ def example_vanderplaats_mixed(N):
     assert prob.n == 2 * N
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=MMASquared(prob.xmin, prob.xmax))
+    mix = sao.intervening_variables.Mixed(prob.n, prob.m + 1, default=sao.MMASquared(prob.xmin, prob.xmax))
     # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=np.arange(1, N + 1))
     # mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=np.arange(1, N + 1))
     # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=[prob.m])
@@ -110,24 +103,24 @@ def example_vanderplaats_mixed(N):
     # mix.set_intervening(Linear(), var=np.arange(0, prob.n) , resp=np.arange(N+1, prob.m))
 
     # Instantiate a mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), MoveLimitAdaptive(move_limit=5.0)])
+    subprob = sao.Subproblem(approximation=sao.Taylor1(mix))
+    subprob.set_limits([sao.TrustRegion(prob.xmin, prob.xmax), sao.MoveLimitAdaptive(move_limit=5.0)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    solver = sao.SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = sao.KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate the scaling strategy
-    scaling = InitialObjectiveScaling(prob.m + 1)
+    scaling = sao.InitialObjectiveScaling(prob.m + 1)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = sao.Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter3_flag = False
     if plotter3_flag:
         plotter3 = Plot3(prob)

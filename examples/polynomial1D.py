@@ -1,14 +1,8 @@
 import numpy as np
 import logging
+import sao
+from util.plotter import Plot2, Plot3
 from Problems.Polynomial_1D import Polynomial1D
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import *
-from sao.move_limits import *
-from sao.problems.subproblem import Subproblem
-from sao.solvers import *
-from sao.util.plotter import *
-from sao.convergence_criteria import *
-from sao.scaling_strategies.scaling import *
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -19,7 +13,6 @@ formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
-
 np.set_printoptions(precision=4)
 
 
@@ -30,21 +23,21 @@ def example_poly():
     prob = Polynomial1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
+    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    solver = sao.SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -92,25 +85,25 @@ def example_poly_mixed():
     prob = Polynomial1D()
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix = sao.Mixed(prob.n, prob.m + 1, default=sao.MMA(prob.xmin, prob.xmax))
     # mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([MoveLimit(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
+    subprob = sao.Subproblem(approximation=sao.Taylor1(mix))
+    subprob.set_limits([sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    solver = sao.SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    criterion = sao.KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob)

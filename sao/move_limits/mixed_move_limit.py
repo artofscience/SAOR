@@ -1,6 +1,5 @@
 from sao.move_limits import MoveLimit
 from sao.util.tools import fill_set_when_emtpy
-import numpy as np
 
 
 class Mixed(MoveLimit):

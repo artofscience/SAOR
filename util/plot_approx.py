@@ -1,13 +1,9 @@
+import numpy as np
 import logging
 from Problems.Polynomial_1D import Polynomial1D
-from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import *
-from sao.move_limits import *
-from sao.problems.subproblem import Subproblem
-from sao.solvers import *
-from sao.util.plotter import *
-from sao.convergence_criteria import *
-from sao.scaling_strategies.scaling import *
+import sao
+import matplotlib.pyplot as plt
+
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -18,7 +14,6 @@ formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
-
 np.set_printoptions(precision=4)
 
 
@@ -144,10 +139,10 @@ def plot_approx():
     prob = Polynomial1D()
 
     # Instantiate subproblems
-    subprob1 = Subproblem(approximation=Taylor1(Linear()))
-    subprob2 = Subproblem(approximation=Taylor2(Linear()))
-    subprob3 = Subproblem(approximation=Taylor1(Reciprocal()))
-    subprob4 = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob1 = sao.Subproblem(approximation=sao.Taylor1(sao.Linear()))
+    subprob2 = sao.Subproblem(approximation=sao.Taylor2(sao.Linear()))
+    subprob3 = sao.Subproblem(approximation=sao.Taylor1(sao.Reciprocal()))
+    subprob4 = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
 
     # Instantiate plotter
     plotter = PlotApprox(prob, variables=np.array([0]), responses=np.array([0]))
