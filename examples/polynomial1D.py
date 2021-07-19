@@ -17,13 +17,13 @@ np.set_printoptions(precision=4)
 
 
 def example_poly():
-    logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
+    logger.info("Solving Polynomial1D using y=NonMixed")
 
     # Instantiate problem
     prob = Polynomial1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
+    subprob = sao.Subproblem(approximation=sao.NonSphericalTaylor2(sao.MMA(prob.xmin, prob.xmax)))
     subprob.set_limits([sao.MoveLimit(prob.xmin, prob.xmax), sao.TrustRegion(move_limit=5.0)])
 
     # Instantiate solver
@@ -32,12 +32,12 @@ def example_poly():
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = sao.VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
     # Instantiate plotter
-    plotter = sao.Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    plotter = sao.Plot(['objective', 'constraint', '0', 'max_constr_violation'], path=".")   # f'{criterion.__class__.__name__}'
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -47,7 +47,7 @@ def example_poly():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while True:   # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -65,7 +65,7 @@ def example_poly():
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         # Print & Plot
         logger.info(
@@ -79,7 +79,7 @@ def example_poly():
 
 
 def example_poly_mixed():
-    logger.info("Solving test_poly using y=Mixed and Ipopt Svanberg")
+    logger.info("Solving Polynomial1D using y=Mixed")
 
     # Instantiate problem
     prob = Polynomial1D()
