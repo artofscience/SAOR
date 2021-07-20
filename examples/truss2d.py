@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.problems import Problem, Subproblem
-from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.intervening_variables import Linear, Exponential, MMA, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.util import Plot
@@ -94,11 +94,11 @@ def example_truss2d_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
-    # mix.set_intervening(Linear(), var=[0], resp=[0])
-    # mix.set_intervening(Exponential(2), var=[1], resp=[0])      # MMA(prob.xmin, prob.xmax)
+    mix.set_intervening(Linear(), var=[0], resp=[0])
+    mix.set_intervening(Exponential(2), var=[1], resp=[0])      # MMA(prob.xmin, prob.xmax)
 
     # Instantiate a mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(mix))
+    subprob = Subproblem(approximation=SphericalTaylor2(mix))
     subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
@@ -156,5 +156,5 @@ def example_truss2d_mixed():
 
 
 if __name__ == "__main__":
-    example_truss2d()
+    # example_truss2d()
     example_truss2d_mixed()

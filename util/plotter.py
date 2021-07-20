@@ -356,14 +356,14 @@ class Plot3(Plot2):
                                           label='$g_{}$'.format({j}) + '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$')
 
                 # Plot asymptotes (commented out) and force to NaN values farther than asymptotes for MMA_based
-                for intv in subprob.approx.interv[0].all_inter:
-                    if 'MMA' in intv[0].__class__.__name__:
+                for intv in subprob.approx.interv[0].intervening_variables:
+                    if 'MMA' in intv.__class__.__name__:
                         # L_i = plt.axvline(x=intv[0].low[i], color='g', label=f'$L_{i}^{{(k)}}$')
                         # U_i = plt.axvline(x=intv[0].upp[i], color='y', label=f'$U_{i}^{{(k)}}$')
 
                         # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
                         for k in range(0, self.x.shape[1]):
-                            if (self.x[i, k] <= 1.01 * intv[0].low[i]) or (self.x[i, k] >= 0.99 * intv[0].upp[i]):
+                            if (self.x[i, k] <= 1.01 * intv.low[i]) or (self.x[i, k] >= 0.99 * intv.upp[i]):
                                 approx_response_array[j, k] = np.NaN
 
                 # Alternate between red and blue plots to tell them apart easily
@@ -504,14 +504,14 @@ class Plot3(Plot2):
                 z_approx[:, k2, k1] = subprob.g(x_curr)
 
         # For MMA family: Force response values farther than asymptotes to NaN
-        for intv in subprob.approx.interv[0].all_inter:
-            if 'MMA' in intv[0].__class__.__name__:
+        for intv in subprob.approx.interv[0].intervening_variables:
+            if 'MMA' in intv.__class__.__name__:
                 # for i in range(0, subprob[p, l].m + 1):
                 for k2 in range(0, self.x.shape[1]):
-                    if (self.x[1, k2] < 1.01 * intv[0].low[1]) or (self.x[1, k2] > 0.99 * intv[0].upp[1]):
+                    if (self.x[1, k2] < 1.01 * intv.low[1]) or (self.x[1, k2] > 0.99 * intv.upp[1]):
                         z_approx[:, k2, :] = np.NaN
                 for k1 in range(0, self.x.shape[1]):
-                    if (self.x[0, k1] < 1.01 * intv[0].low[0]) or (self.x[0, k1] > 0.99 * intv[0].upp[0]):
+                    if (self.x[0, k1] < 1.01 * intv.low[0]) or (self.x[0, k1] > 0.99 * intv.upp[0]):
                         z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde
