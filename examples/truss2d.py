@@ -36,14 +36,14 @@ def example_truss2d():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, x_max=prob.x_max)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, x_max=prob.x_max)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1', 'constraint_2', f'{criterion.__class__.__name__}',
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',
                     'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
@@ -73,13 +73,13 @@ def example_truss2d():
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & plot g_j and x_i at current iteration
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |'
                     '  constr2: {:^6.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, np.array2string(x_k[:]), f[0], f[1], f[2], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], f[2], criterion.value, max(0, max(f[1:]))])
+            itte, np.array2string(x_k[:]), f[0], f[1], f[2], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], f[2], 0, max(0, max(f[1:]))])
 
         itte += 1
 
@@ -105,14 +105,14 @@ def example_truss2d_mixed():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint_1', 'constraint_2', f'{criterion.__class__.__name__}',
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',
                     'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
@@ -123,7 +123,7 @@ def example_truss2d_mixed():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -142,13 +142,13 @@ def example_truss2d_mixed():
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & plot g_j and x_i at current iteration
+        # Print & Plot
         logger.info('iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  constr1: {:^6.3f}  |'
                     '  constr2: {:^6.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, np.array2string(x_k[:]), f[0], f[1], f[2], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], f[2], criterion.value, max(0, max(f[1:]))])
+            itte, np.array2string(x_k[:]), f[0], f[1], f[2], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], f[2], 0, max(0, max(f[1:]))])
 
         itte += 1
 

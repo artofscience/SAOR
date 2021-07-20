@@ -6,8 +6,7 @@ import numpy as np
 
 class Taylor1(Approximation):
     """
-    This class creates a first order Taylor-approximation, possibly using
-    intervening variables.
+    This class creates a 1st-order Taylor approximation, possibly using intervening variables.
 
     Without intervening variable:
 
@@ -19,8 +18,9 @@ class Taylor1(Approximation):
     .. math::
         \\tilde{g}(x) = g(x_0) + \\left.\\frac{dg}{dx}\\right|_{x_0}\\frac{dx}{dy}(y(x) - y(x_0))
     """
+
     def __init__(self, intervening=Linear()):
-        """Initialize the approximation, with optinal intervening variable object"""
+        """Initialize the approximation, with optional intervening variable object."""
         self.interv = parse_to_list(intervening)
         self.g0 = None
         self.y0 = None
@@ -28,7 +28,7 @@ class Taylor1(Approximation):
         self.nresp, self.nvar = -1, -1
 
     def update(self, x, f, df, ddf=None):
-        """Update the approximation with new information"""
+        """Update the approximation with new information."""
         self.nresp, self.nvar = df.shape
         assert len(x) == self.nvar, "Mismatch in number of design variables."
         assert len(f) == self.nresp, "Mismatch in number of responses."
@@ -40,7 +40,7 @@ class Taylor1(Approximation):
         return self
 
     def g(self, x, out=None):
-        """Evaluates the approximation at design point `x`"""
+        """Evaluates the approximation at design point `x`."""
         delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros(self.nresp)
@@ -50,7 +50,7 @@ class Taylor1(Approximation):
         return out
 
     def dg(self, x, out=None):
-        """Evaluates the approximation's gradient at design point `x`"""
+        """Evaluates the approximation's gradient at design point `x`."""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         for dgdy, intv in zip(self.dgdy, self.interv):
@@ -58,7 +58,7 @@ class Taylor1(Approximation):
         return out
 
     def ddg(self, x, out=None):
-        """Evaluates the approximation's second derivative at design point `x`"""
+        """Evaluates the approximation's second derivative at design point `x`."""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         for dgdy, intv in zip(self.dgdy, self.interv):
@@ -66,22 +66,29 @@ class Taylor1(Approximation):
         return out
 
     def clip(self, x):
-        """Clips any vector `x` within the feasible bounds of any intervening variables"""
+        """Clips any vector `x` within the feasible bounds of any intervening variables."""
         [intv.clip(x) for intv in self.interv]
         return x
 
 
 class Taylor2(Taylor1):
     """
-    Second order Taylor-approximation, with optional use of intervening variables
+    Second order Taylor-approximation, with optional use of intervening variables.
 
     Without intervening variable:
 
     .. math::
-        \\tilde{g}(x) = g(x_0) + \\left.\\frac{dg}{dx}\\right|_{x_0}(x - x_0) + \\frac{1}{2}\\left.\\frac{d^2g}{dx^2}\\right|_{x_0}(x - x_0)^2
+        \\tilde{g}(x) = g(x_0) + \\left.\\frac{dg}{dx}\\right|_{x_0}(x - x_0) +
+                        \\frac{1}{2}\\left.\\frac{d^2g}{dx^2}\\right|_{x_0}(x - x_0)^2
 
-    # TODO description with intervening variable
+    With intervening variable:
+
+    .. math::
+        \\tilde{g}(x) = g(x_0) + \\left.\\frac{dg}{dx}\\right|_{x_0}\\left.\\frac{dx}{dy}\\right|_{y(x_0)}(y(x) - y(x_0))
+                       + \\frac{1}{2}\\left(\\left.\\frac{d^2g}{dx^2}\\right|_{x_0}\\left(\\left.\\frac{dx}{dy}\\right|_{y(x_0)}\\right)^2
+                       + \\left.\\frac{dg}{dx}\\right|_{x_0}\\left.\\frac{d^2x}{dy^2}\\right|_{y(x_0)}\\right)\\left(y(x) - y(x_0)\\right)^2
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ddgddy = None
@@ -124,108 +131,89 @@ class Taylor2(Taylor1):
 class SphericalTaylor2(Taylor2):
     """
     This is the Spherical 2nd-order Taylor expansion of Eq. 16 of the following paper:
-    https://link.springer.com/article/10.1007/s00158-006-0070-6 .
+    https://doi.org/10.1007/s00158-006-0070-6. It adjusts the 2nd-order diagonal information in the
+    incomplete 2nd-order Taylor expansion to fit the previous point.
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.x, self.xold1 = None, None
         self.fold1 = None
-        self.dfold1 = None
-        self.dxdy, self.yold1 = None, None
+        self.yold1 = None
+        self.g0old1 = None
 
-    def update(self, x, y, f, df, dxdy, *args, **kwargs):
+    def update(self, x, f, df, ddf=None):
         """
-        This method updates the approximation instance for multi-point (approximate) 2nd-order Taylor expansions.
+        This method updates the approximation instance for the SphericalTaylor2 expansion.
 
         :param x: Current design
-        :param y: A method that returns the intervening variables at the current design, i.e. y(x)
         :param f: A vector of size [m+1] that holds the response values at the current design -x-
         :param df: A matrix of size [m+1, n] that holds the sensitivity values at the current design -x-
-        :param dxdy: A method that returns the derivative of the inverse intervening variable function, i.e. dx/dy(y(x))
         :param kwargs: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
-
+        self.g0old1 = self.g0
         self.xold1 = self.x
         self.x = x
-        self.fold1 = self.f
-        self.f = f
-        self.dfold1 = self.df       # for NonSphericalTaylor2
-        self.df = df                # for NonSphericalTaylor2
-        self.y = y(x).T
-        self.dfdy = df * dxdy(x)
-        self.dxdy = dxdy
-        if self.xold1 is not None:
-            self.yold1 = y(self.xold1).T
-
-        self.m = len(self.f) - 1
-        self.n = len(self.x)
-
-        # Calculate 2nd-order part and check dfdy for its dimensions
-        ddf = kwargs.get('ddf', None)
-        if ddf is not None:
-            ddxddy = kwargs.get('ddxddy', None)
-            self.ddfddy = ddf * dxdy(x) ** 2 + df * ddxddy(x)
+        Taylor1.update(self, x, f, df, ddf)
 
         # If iter > 0, approximate curvature by using previous point information
-        if self.xold1 is None:
-            self.ddfddy = np.zeros_like(self.dfdy)
-        else:
+        if self.xold1 is not None:
+            self.yold1 = [intv.y(self.xold1) for intv in self.interv]
             self.set_curvature()
-
-        # Check size of dfdy and (optionally) ddfddy
-        self.check_sensitivity_sizes()
-
-        if self.force_convex:
-            self.enforce_convexity()
-
+        else:
+            self.ddgddy = [df*intv.ddxddy(x) for intv in self.interv]
         return self
 
     def set_curvature(self):
-        """
-        Approximate curvature by forcing the curve to pass through xold1, see Eq. 16.
-
-        :return: self: For method cascading
-        """
-        if len(self.y.shape) == 1:
-            dot_prod = np.dot(self.dfdy, (self.yold1 - self.y))
+        """Approximate curvature by forcing the curve to pass through xold1, see Eq. 16."""
+        if len(self.y0[0].shape) == 1:
+            dot_prod = np.dot(self.dgdy[0], (self.yold1[0] - self.y0[0]))
         else:
-            dot_prod = np.einsum('ij,ji->i', self.dfdy, (self.yold1 - self.y))
-        c_j = 2 * (self.fold1 - self.f - dot_prod) / sum((self.yold1 - self.y) ** 2)
-        self.ddfddy[:] = np.broadcast_to(c_j, (self.y.shape[0], c_j.shape[0])).T
-
+            dot_prod = np.einsum('ij,ij->i', self.dgdy[0], (self.yold1[0] - self.y0[0]))
+        c_j = 2 * (self.g0old1 - self.g0 - dot_prod) / sum((self.yold1[0] - self.y0[0]).T ** 2)
+        n_resp = c_j.shape[0]
+        n_var = self.y0[0].shape[-1]
+        self.ddgddy[0][:] = np.broadcast_to(c_j, (n_var, n_resp)).T
         return self
-
 
 
 class NonSphericalTaylor2(SphericalTaylor2):
     """
     This is the NonSpherical 2nd-order Taylor expansion of Eq. 23 of the following paper:
-    https://link.springer.com/article/10.1007/s00158-006-0070-6 .
+    https://doi.org/10.1007/s00158-006-0070-6. It adjusts the 2nd-order diagonal information in the
+    incomplete 2nd-order Taylor expansion to fit the previous point gradient.
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.df, self.dfold1 = None, None
+        self.dxdyold1 = None
         self.idx = None
         self.epsi = 1e-2
 
+    def update(self, x, f, df, ddf=None):
+        """This method updates the approximation instance for the NonSphericalTaylor2 expansion."""
+        self.g0old1 = self.g0
+        self.xold1 = self.x
+        self.x = x
+        self.dfold1 = self.df
+        self.df = df
+        Taylor1.update(self, x, f, df, ddf)
+
+        # If iter > 0, approximate curvature by using previous point information
+        if self.xold1 is not None:
+            self.yold1 = [intv.y(self.xold1) for intv in self.interv]
+            self.dxdyold1 = [intv.dxdy(self.xold1) for intv in self.interv]
+            self.set_curvature()
+        else:
+            self.ddgddy = [df * intv.ddxddy(x) for intv in self.interv]
+        return self
+
     def set_curvature(self):
         """
-        Approximate curvature by forcing the curve to pass through xold1, see Eq. 23.
-
-        :return: self: For method cascading
+        Approximate curvature information by satisfying the gradient at xold1, see Eq. 23.
+        For numerical stability, only do finite differences when |y_i - yold1_i| > self.epsi.
         """
-
-        # For numerical stability, only do finite differences when |y_i - yold1_i| > self.epsi
-        diff = abs(self.yold1 - self.y)
-        if len(self.y.shape) == 1:
-            self.idx = np.asarray(np.where(diff > self.epsi))[0, :]
-        else:
-            self.idx = np.argwhere(np.all(diff > self.epsi, axis=1))[:, 0]
-        if len(self.y.shape) == 1:
-            self.ddfddy[:, self.idx] = (self.dfold1[:, self.idx] * self.dxdy(self.xold1)[self.idx] - self.dfdy[:, self.idx]) / \
-                                       (self.yold1[self.idx] - self.y[self.idx])
-        else:
-            self.ddfddy[:, self.idx] = (self.dfold1[:, self.idx] * self.dxdy(self.xold1)[:, self.idx] - self.dfdy[:, self.idx]) / \
-                                       (self.yold1[self.idx, :] - self.y[self.idx, :]).T
-
+        self.idx = abs(self.yold1[0] - self.y0[0]) > self.epsi
+        self.ddgddy[0][..., self.idx] = (self.dfold1[..., self.idx] * self.dxdyold1[0][self.idx] -
+                                         self.dgdy[0][..., self.idx]) / (self.yold1[0][self.idx] - self.y0[0][self.idx])
         return self
