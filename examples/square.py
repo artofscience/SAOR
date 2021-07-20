@@ -40,15 +40,15 @@ def example_square(n):
     # converged = ObjectiveChange(prob)
     # converged = Feasibility(prob)
 
-    converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=1e-3) | IterationCount(5)
+    # converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=1e-3) | IterationCount(5)
 
-    criterion = ObjectiveChange(prob.f[0])
+    # criterion = ObjectiveChange(prob.f[0])
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0, 1]), variables=np.arange(0, prob.n))
@@ -58,7 +58,7 @@ def example_square(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not converged:
+    while itte < 100:       # not converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -78,11 +78,11 @@ def example_square(n):
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         # criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
 
-        # Print & Plot
-        # logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
-        #             '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
-        #                                                   criterion.value, max(0, max(f[1:]))))
-        # plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
+        logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
+                    '|  max_constr_viol: {:^6.3f}'.format(itte, np.array2string(x_k[0:2]), f[0], f[1],
+                                                          0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], 0, max(0, max(f[1:]))])
 
         itte += 1
 
@@ -108,13 +108,13 @@ def example_square_mixed(n):
 
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
-    criterion = ObjectiveChange(prob.f)
+    # criterion = ObjectiveChange(prob.f)
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -124,7 +124,7 @@ def example_square_mixed(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -142,13 +142,13 @@ def example_square_mixed(n):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
             'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, np.array2string(x_k[0]), f[0], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+                itte, np.array2string(x_k[0]), f[0], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], 0, max(0, max(f[1:]))])
 
         itte += 1
 

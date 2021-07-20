@@ -38,7 +38,7 @@ def example_vanderplaats(N):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
@@ -47,8 +47,8 @@ def example_vanderplaats(N):
     # Instantiate the scaling strategy
     scaling = InitialResponseScaling(prob.m+1)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'stress_1', 'tip_disp', 'criterion', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -59,7 +59,7 @@ def example_vanderplaats(N):
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -79,15 +79,15 @@ def example_vanderplaats(N):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
             'iter: {:^4d}  |  obj: {:^9.3f}  |  stress1: {:^6.3f}  |  tip_disp: {:^6.3f}  |  '
             'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, f[0], f[1], f[-1], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], f[-1], criterion.value, max(0, max(f[1:]))])
+                itte, f[0], f[1], f[-1], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], f[-1], 0, max(0, max(f[1:]))])
 
         itte += 1
 
@@ -117,7 +117,7 @@ def example_vanderplaats_mixed(N):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
@@ -126,8 +126,8 @@ def example_vanderplaats_mixed(N):
     # Instantiate the scaling strategy
     scaling = InitialObjectiveScaling(prob.m + 1)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'stress_1', 'tip_disp', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'stress_1', 'tip_disp', 'criterion', 'max_constr_violation'], path=".")
     plotter3_flag = False
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -138,7 +138,7 @@ def example_vanderplaats_mixed(N):
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:        # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -158,15 +158,15 @@ def example_vanderplaats_mixed(N):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
             'iter: {:^4d}  |  obj: {:^9.3f}  |  stress1: {:^6.3f}  |  tip_disp: {:^6.3f}  |  '
             'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, f[0], f[1], f[-1], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], f[-1], criterion.value, max(0, max(f[1:]))])
+                itte, f[0], f[1], f[-1], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], f[-1], 0, max(0, max(f[1:]))])
 
         itte += 1
 

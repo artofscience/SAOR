@@ -39,12 +39,12 @@ def example_paper_problem():
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path="../../../../Desktop")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = True
     if plotter2_flag:
         plotter2 = Plot2(prob)
@@ -73,13 +73,13 @@ def example_paper_problem():
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
             'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, np.array2string(x_k[0]), f[0], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+                itte, np.array2string(x_k[0]), f[0], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], 0, max(0, max(f[1:]))])
 
         itte += 1
 
@@ -110,8 +110,8 @@ def example_paper_problem_mixed():
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'constraint', f'{criterion.__class__.__name__}', 'max_constr_violation'], path="../../../../Desktop")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path="../../../../Desktop")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -142,11 +142,11 @@ def example_paper_problem_mixed():
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
         criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
             'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, np.array2string(x_k[0]), f[0], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+                itte, np.array2string(x_k[0]), f[0], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], 0, max(0, max(f[1:]))])
 
         itte += 1
 
