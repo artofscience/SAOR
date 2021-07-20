@@ -54,7 +54,7 @@ def example_truss2d():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)

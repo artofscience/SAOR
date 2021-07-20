@@ -54,7 +54,7 @@ def example_paper_problem():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -104,7 +104,7 @@ def example_paper_problem_mixed():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
@@ -121,7 +121,7 @@ def example_paper_problem_mixed():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -140,7 +140,7 @@ def example_paper_problem_mixed():
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(

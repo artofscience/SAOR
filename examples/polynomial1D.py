@@ -39,7 +39,7 @@ def example_poly():
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
@@ -103,7 +103,7 @@ def example_poly_mixed():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
     # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
@@ -120,7 +120,7 @@ def example_poly_mixed():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
