@@ -1,7 +1,7 @@
-name: pytest
+name: lint
 on: [push]
 jobs:
-  run-all-pytests:
+  run-all-lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest numpy scipy
+          pip install flake8 numpy scipy
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with flake8
         run: |
