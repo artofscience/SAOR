@@ -3,7 +3,7 @@ import logging
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.problems import Problem, Subproblem
 from sao.intervening_variables import Linear, MMA, MMASquared, MixedIntervening
-from sao.move_limits import TrustRegion, MoveLimitAdaptive
+from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
@@ -32,7 +32,7 @@ def example_vanderplaats(N):
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), TrustRegion(move_limit=5.0)])
+    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -111,7 +111,7 @@ def example_vanderplaats_mixed(N):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([TrustRegion(prob.xmin, prob.xmax), MoveLimitAdaptive(move_limit=5.0)])
+    subprob.set_limits([Bounds(prob.xmin, prob.xmax), AdaptiveMoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

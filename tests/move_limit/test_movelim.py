@@ -1,13 +1,13 @@
 import pytest
 import numpy as np
-from sao.move_limits.move_limit import MoveLimit, MoveLimitAdaptive, TrustRegion
+from sao.move_limits.move_limit import Bounds, AdaptiveMoveLimit, MoveLimit
 from sao.move_limits.mixed_move_limit import MixedMoveLimit
 
 
 def test_move_limit():
     x = np.array([-1.0, -0.5, 1.0, 2.0, 0.75, 0.1, 1.13])
 
-    ml = MoveLimit()
+    ml = Bounds()
     x1 = x.copy()
     xcl = ml.clip(x1)
     assert x1 is xcl, "xcl must be a reference of x1"
@@ -18,7 +18,7 @@ def test_move_limit():
 def test_bound_uniform():
     x = np.array([-1.0, -0.5, 1.0, 2.0, 0.75, 0.1, 1.13])
 
-    ml = MoveLimit(0.0, 1.0)  # Clip between 0 and 1
+    ml = Bounds(0.0, 1.0)  # Clip between 0 and 1
     x1 = x.copy()
     xcl = ml.clip(x1)
     assert x1 is xcl, "xcl must be a reference of x1"
@@ -38,7 +38,7 @@ def test_bound_vector():
     xupp = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
     xlow = np.array([0.0, -0.1, 0.2, -0.3, 0.4, -0.5, 0.6])
 
-    ml = MoveLimit(xlow, xupp)  # Clip between the two vectors
+    ml = Bounds(xlow, xupp)  # Clip between the two vectors
     x1 = x.copy()
     xcl = ml.clip(x1)
     assert x1 is xcl, "xcl must be a reference of x1"
@@ -57,7 +57,7 @@ def test_movelimit_uniform_absolute():
     x = np.array([-1.0, -0.5, 1.0, 2.0, 0.75, 0.1, 1.13])
     dx = np.array([0.1, 0.2, 0.01, 0.05, -0.11, -0.01, -0.05])
 
-    ml = TrustRegion(0.1)  # Without update it acts unbounded
+    ml = MoveLimit(0.1)  # Without update it acts unbounded
     xcl = ml.clip(x + dx)
     assert (xcl == x + dx).all()
 
@@ -74,7 +74,7 @@ def test_movelimit_uniform_relative():
     x_low = np.array([0.0, -0.1, 0.20, -0.30, 0.40, -0.50, 0.60])
     x_upp = np.array([0.1, 0.2, 0.30, 0.40, 0.50, 0.60, 0.70])
 
-    ml = TrustRegion(0.1, x_upp - x_low).update(x)
+    ml = MoveLimit(0.1, x_upp - x_low).update(x)
     xcl = ml.clip(x + dx)
     assert np.allclose(xcl - x, np.array([0.01, 0.03, 0.01, 0.05, -0.01, -0.01, -0.01]))
 
@@ -84,7 +84,7 @@ def test_movelimit_vector_absolute():
     dx = np.array([0.1, 0.2, 0.01, 0.05, -0.11, -0.01, -0.05])
     dxml = np.array([0.1, 0.01, 0.02, 0.04, 0.10, 0.10, 0.03])
 
-    ml = TrustRegion(dxml).update(x)
+    ml = MoveLimit(dxml).update(x)
     xcl = ml.clip(x + dx)
     assert np.allclose(xcl - x, np.array([0.1, 0.01, 0.01, 0.04, -0.1, -0.01, -0.03]))
 
@@ -96,7 +96,7 @@ def test_movelimit_vector_relative():
     x_low = np.array([0.0, -0.1, 0.20, -0.30, 0.40, -0.50, 0.60])
     x_upp = np.array([0.1, 0.2, 0.30, 0.40, 0.50, 0.60, 0.70])
 
-    ml = TrustRegion(dxml, x_upp - x_low).update(x)
+    ml = MoveLimit(dxml, x_upp - x_low).update(x)
     xcl = ml.clip(x + dx)
     assert np.allclose(xcl - x, np.array([0.01, 0.003, 0.002, 0.028, -0.01, -0.01, -0.003]))
 
@@ -108,7 +108,7 @@ def test_movelimit_adaptive():
 
     movelim = 0.1
     v_init, v_incr, v_decr, v_bound = 0.5, 1.5, 0.5, 0.01
-    ml = MoveLimitAdaptive(movelim, ml_init=v_init, ml_incr=v_incr, ml_decr=v_decr, ml_bound=v_bound)
+    ml = AdaptiveMoveLimit(movelim, ml_init=v_init, ml_incr=v_incr, ml_decr=v_decr, ml_bound=v_bound)
     ml.update(x)
     # Use the initial move limit
     xcl = ml.clip(x + dx1)
@@ -167,9 +167,9 @@ def test_movelimit_adaptive():
 # @pytest.mark.parametrize('n', [10])
 def test_mixed_move_limit():
     n = 10
-    mix = MixedMoveLimit(n, default=MoveLimit(0.3, 0.8))
-    mix.add_move_limit(MoveLimit(0.2, 0.9), var=[0, 1, 2])
-    mix.set_move_limit(MoveLimit(0.0, 0.0), var=[2])
+    mix = MixedMoveLimit(n, default=Bounds(0.3, 0.8))
+    mix.add_move_limit(Bounds(0.2, 0.9), var=[0, 1, 2])
+    mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
     x = np.linspace(0, 1, 10)
     mix.clip(x)
     assert x[0] == x[1] == 0.3
@@ -179,9 +179,9 @@ def test_mixed_move_limit():
 
 def test_mixed_trust_region():
     n = 10
-    mix = MixedMoveLimit(n, default=MoveLimit(0.3, 0.8))
-    mix.add_move_limit(TrustRegion(0.1), var=[0, 1, 2])
-    mix.set_move_limit(MoveLimit(0.0, 0.0), var=[2])
+    mix = MixedMoveLimit(n, default=Bounds(0.3, 0.8))
+    mix.add_move_limit(MoveLimit(0.1), var=[0, 1, 2])
+    mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
     x = np.linspace(0, 1, 10)
     mix.update(x)
     y = mix.clip(x + 0.2)

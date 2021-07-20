@@ -1,8 +1,8 @@
-from sao.move_limits import MoveLimit
+from sao.move_limits import Bounds
 from sao.util.tools import fill_set_when_emtpy
 
 
-class MixedMoveLimit(MoveLimit):
+class MixedMoveLimit(Bounds):
     """
     For variable, a separate or combination of
     move limits can be set. (move limit, variable).
@@ -14,7 +14,7 @@ class MixedMoveLimit(MoveLimit):
     overlap.
     """
 
-    def __init__(self, nvar: int, default: MoveLimit = MoveLimit()):
+    def __init__(self, nvar: int, default: Bounds = Bounds()):
         super().__init__()
         self.default = default
         self.nvar = nvar
@@ -30,7 +30,7 @@ class MixedMoveLimit(MoveLimit):
         for ml, _ in self.ml_mapping:
             yield ml
 
-    def set_move_limit(self, ml: MoveLimit, var=Ellipsis):
+    def set_move_limit(self, ml: Bounds, var=Ellipsis):
         """Assign a move limit strategy to some variables.
 
         Other move limits that might be pointing to the same
@@ -57,7 +57,7 @@ class MixedMoveLimit(MoveLimit):
         # an additional move limit is added.
         return self.add_move_limit(ml, new_vars)
 
-    def add_move_limit(self, ml: MoveLimit, var=Ellipsis):
+    def add_move_limit(self, ml: Bounds, var=Ellipsis):
         """Add a move limit strategy to a set of variables."""
         variables = fill_set_when_emtpy(var, self.nvar)
         self.ml_mapping.append((ml, variables))

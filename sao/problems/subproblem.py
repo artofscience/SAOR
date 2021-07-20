@@ -1,12 +1,12 @@
 from sao.problems.problem import Problem
 from sao.approximations.taylor import Taylor1
-from sao.move_limits.move_limit import MoveLimit
+from sao.move_limits.move_limit import Bounds
 from sao.util.tools import parse_to_list
 import numpy as np
 
 
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(), limits=MoveLimit(xmin=0, xmax=1)):
+    def __init__(self, approximation=Taylor1(), limits=Bounds(xmin=0, xmax=1)):
         super().__init__()
         self.approx = approximation
         self.set_limits(limits)

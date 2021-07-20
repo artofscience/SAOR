@@ -1,12 +1,12 @@
 import numpy as np
 
 
-class MoveLimit:
+class Bounds:
     """
     The simplest move limit strategy that always clips the global bounds of
     the problem, i.e. no restrictions are made on the possible steps size.
     The move limits are evaluated by calling an instance of a move limit class,
-    i.e. the subclasses of ``MoveLimit``, where ``__call__`` or ``clip`` clips the
+    i.e. the subclasses of ``Bounds``, where ``__call__`` or ``clip`` clips the
     given vector within the appropriate limits.
     """
 
@@ -45,7 +45,7 @@ class MoveLimit:
         self.x_max = xmax
 
 
-class TrustRegion(MoveLimit):
+class MoveLimit(Bounds):
     """
     The move limit constrains the allowed step size to be within a trust region
     around the current point ``x``. The size of the trusted region is expressed
@@ -71,7 +71,7 @@ class TrustRegion(MoveLimit):
         return self
 
 
-class MoveLimitAdaptive(TrustRegion):
+class AdaptiveMoveLimit(MoveLimit):
     """
     This provides an adaptive move limit strategy as originally proposed
     within the MMA algorithm. It is essentially the asymptote update rule,
