@@ -23,7 +23,7 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def example_paper_problem():
+def example_polynomial_2D():
     logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
@@ -31,7 +31,7 @@ def example_paper_problem():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.5)])
+    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -51,7 +51,11 @@ def example_paper_problem():
 
     # Initialize iteration counter and design
     itte = 0
-    x_k = prob.x0.copy()
+    # x_k = prob.x0.copy()                # 1 active constraint & infeasible start (upper right)
+    # x_k = np.array([-0.7, -0.7])        # 1 active constraint & feasible start (lower left)
+    # x_k = np.array([0.0, -0.5])         # no constraint active, i.e. internal minimum (lower right)
+    x_k = np.array([-0.7, 0.2])           # 2 active constraints, i.e. minimum at intersection (upper left)
+
 
     # Optimization loop
     while itte < 100:       # not criterion.converged:
@@ -86,7 +90,7 @@ def example_paper_problem():
     logger.info('Optimization loop converged!')
 
 
-def example_paper_problem_mixed():
+def example_polynomial_2D_mixed():
     logger.info("Solving test_poly using y=MixedML and Ipopt Svanberg")
 
     # Instantiate problem
@@ -154,5 +158,5 @@ def example_paper_problem_mixed():
 
 
 if __name__ == "__main__":
-    example_paper_problem()
-    example_paper_problem_mixed()
+    example_polynomial_2D()
+    example_polynomial_2D_mixed()

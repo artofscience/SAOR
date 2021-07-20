@@ -23,7 +23,7 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def example_poly():
+def example_polynomial_1D():
     logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
@@ -85,7 +85,7 @@ def example_poly():
     logger.info('Optimization loop converged!')
 
 
-def example_poly_mixed():
+def example_polynomial_1D_mixed():
     logger.info("Solving test_poly using y=MixedMoveLimit and Ipopt Svanberg")
 
     # Instantiate problem
@@ -152,5 +152,5 @@ def example_poly_mixed():
 
 
 if __name__ == "__main__":
-    example_poly()
-    example_poly_mixed()
+    example_polynomial_1D()
+    example_polynomial_1D_mixed()
