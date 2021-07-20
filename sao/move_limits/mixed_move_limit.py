@@ -63,7 +63,7 @@ class MixedMoveLimit(Bounds):
         self.ml_mapping.append((ml, variables))
         return self
 
-    def update(self, x, f, df, ddf=None):
+    def update(self, x, f=None, df=None, ddf=None):
         """Perform inplace updates of the state of the move limits.
 
         This allows to perform additional functionality to update the state
