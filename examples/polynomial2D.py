@@ -32,7 +32,8 @@ def example_polynomial_2D():
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
     mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.xmin, prob.xmax))
-    mixed_ml.add_move_limit(MoveLimit(move_limit=0.2), var=[0])
+    mixed_ml.add_move_limit(MoveLimit(move_limit=0.2))
+    mixed_ml.set_move_limit(MoveLimit(move_limit=0.1), var=[0, 1])
     subprob.set_limits([mixed_ml])
     # mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
     # subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
@@ -57,9 +58,8 @@ def example_polynomial_2D():
     itte = 0
     # x_k = prob.x0.copy()                # 1 active constraint & feasible start (upper right)
     # x_k = np.array([-0.5, -0.4])        # 1 active constraint & feasible start (lower left)
-    x_k = np.array([0.0, -0.5])         # no constraint active, i.e. internal minimum (lower right)
     # x_k = np.array([-0.5, 0.1])         # 2 active constraints, i.e. minimum at intersection (upper left)
-
+    x_k = np.array([0.0, -0.5])         # no constraint active, i.e. internal minimum (lower right)
 
     # Optimization loop
     while itte < 100:       # not criterion.converged:

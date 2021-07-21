@@ -40,18 +40,26 @@ class MixedMoveLimit(Bounds):
 
         new_vars = fill_set_when_emtpy(var, self.nvar)
 
-        for _, variables in self.ml_mapping:
-            # Only consider to remove entries when the new response shares
-            # the same indices as the existing responses (set intersection).
-            if len(diff := variables - new_vars) > 0:
-                # If the resulting set of variables is non-empty, we need
-                # to add the the variables to the current set with the
-                # remaining variables.
-                variables = diff
+        # Iterate through all move limit strategies apart from Bounds(xmin, xmax).
+        # Requires defining Bounds(xmin, xmax) as ml_mapping[0]
+        for index, strategy in enumerate(self.ml_mapping[1:]):
+            if len(diff := strategy[1] - new_vars) > 0:
+                self.ml_mapping[index + 1][1] = diff
             else:
-                # If the resulting set is empty, the
-                # corresponding variables can be deleted from the mapping.
-                del variables
+                self.ml_mapping.remove(strategy)
+
+        # for _, variables in self.ml_mapping:
+        #     # Only consider to remove entries when the new response shares
+        #     # the same indices as the existing responses (set intersection).
+        #     if len(diff := variables - new_vars) > 0:
+        #         # If the resulting set of variables is non-empty, we need
+        #         # to add the the variables to the current set with the
+        #         # remaining variables.
+        #         variables = diff
+        #     else:
+        #         # If the resulting set is empty, the
+        #         # corresponding variables can be deleted from the mapping.
+        #         del variables
 
         # After deleting the overlapping regions in any other variable sets
         # an additional move limit is added.
@@ -60,7 +68,7 @@ class MixedMoveLimit(Bounds):
     def add_move_limit(self, ml: Bounds, var=Ellipsis):
         """Add a move limit strategy to a set of variables."""
         variables = fill_set_when_emtpy(var, self.nvar)
-        self.ml_mapping.append((ml, variables))
+        self.ml_mapping.append([ml, variables])
         return self
 
     def update(self, x, f=None, df=None, ddf=None):
