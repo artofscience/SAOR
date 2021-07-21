@@ -14,11 +14,11 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
+def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4):
     logger.info("Solving compliance minimization subject to volume constraint")
 
     # Instantiate problem
-    prob = Compliance(nelx, nely, volfrac, penal, rmin)
+    prob = Compliance(nelx, nely, volfrac, 3, 3)
 
     # Instantiate solver
     solver = OptimalityCriteria()
@@ -45,4 +45,4 @@ def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 
 if __name__ == "__main__":
-    example_compliance_mbb(nelx=200, nely=100, volfrac=0.4, penal=3, rmin=3)
+    example_compliance_mbb(nelx=100, nely=50, volfrac=0.5)
