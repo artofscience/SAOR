@@ -33,7 +33,7 @@ def example_polynomial_2D():
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
     mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.xmin, prob.xmax))
     mixed_ml.add_move_limit(MoveLimit(move_limit=0.2))
-    mixed_ml.set_move_limit(MoveLimit(move_limit=0.1), var=[0, 1])
+    mixed_ml.set_move_limit(AdaptiveMoveLimit(move_limit=0.2), var=[0])
     subprob.set_limits([mixed_ml])
     # mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
     # subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
@@ -102,11 +102,11 @@ def example_polynomial_2D_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
-    # mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix.set_intervening(MMASquared(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.2)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -141,7 +141,7 @@ def example_polynomial_2D_mixed():
 
         # Plot current approximation
         if plotter3_flag:
-            plotter3.plot_pair(x_k, f, prob, subprob, itte)
+            # plotter3.plot_pair(x_k, f, prob, subprob, itte)
             plotter3.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)

@@ -40,13 +40,14 @@ class MixedMoveLimit(Bounds):
 
         new_vars = fill_set_when_emtpy(var, self.nvar)
 
-        # Iterate through all move limit strategies apart from Bounds(xmin, xmax).
-        # Requires defining Bounds(xmin, xmax) as ml_mapping[0]
-        for index, strategy in enumerate(self.ml_mapping[1:]):
-            if len(diff := strategy[1] - new_vars) > 0:
-                self.ml_mapping[index + 1][1] = diff
-            else:
-                self.ml_mapping.remove(strategy)
+        # Iterate through all move limit strategies apart from Bounds(xmin, xmax),
+        # as any problem should always keep its Bounds.
+        for index, ml_strategy in enumerate(self.ml_mapping):
+            if ml_strategy[0].__class__.__name__ is not 'Bounds':
+                if len(diff := ml_strategy[1] - new_vars) > 0:
+                    self.ml_mapping[index][1] = diff
+                else:
+                    self.ml_mapping.remove(ml_strategy)
 
         # for _, variables in self.ml_mapping:
         #     # Only consider to remove entries when the new response shares

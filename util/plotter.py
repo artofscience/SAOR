@@ -267,6 +267,12 @@ class Plot2:
                                          ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
+        # Plot approximate subproblem bounds -alpha- and -beta-
+        alpha0 = plt.axvline(x=subprob.alpha[0], color='w', linestyle=(0, (3, 8)), label=r'$\alpha_i$')
+        alpha1 = plt.axhline(y=subprob.alpha[1], color='w', linestyle=(0, (3, 8)))
+        beta0 = plt.axvline(x=subprob.beta[0], color='w', linestyle=(0, (3, 8, 1, 8)), label=r'$\beta_i$')
+        beta1 = plt.axhline(y=subprob.beta[1], color='w', linestyle=(0, (3, 8, 1, 8)))
+
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
             subprob.approx.interv[0].__class__.__name__,
@@ -532,6 +538,12 @@ class Plot3(Plot2):
                                    label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                          ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                    marker='o', edgecolors='yellow', color='k', s=100)
+
+        # Plot approximate subproblem bounds -alpha- and -beta-
+        alpha0 = plt.axvline(x=subprob.alpha[0], color='w', linestyle=(0, (3, 8)), label=r'$\alpha_i$')
+        alpha1 = plt.axhline(y=subprob.alpha[1], color='w', linestyle=(0, (3, 8)))
+        beta0 = plt.axvline(x=subprob.beta[0], color='w', linestyle=(0, (3, 8, 1, 8)), label=r'$\beta_i$')
+        beta1 = plt.axhline(y=subprob.beta[1], color='w', linestyle=(0, (3, 8, 1, 8)))
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
