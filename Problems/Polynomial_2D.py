@@ -12,7 +12,7 @@ class Polynomial2D:
         self.m = 3
         self.xmin = np.array([-1.9, -1.9])
         self.xmax = np.array([1.3, 1.3])
-        self.x0  = np.array([1.2, 1.2])
+        self.x0  = np.array([0.0, 0.1])
 
     def g(self, x):
         g_j = np.empty(self.m + 1)

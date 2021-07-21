@@ -3,7 +3,7 @@ import logging
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.problems import Problem, Subproblem
 from sao.intervening_variables import Linear, MMA, MMASquared, MixedIntervening
-from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
+from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit, MixedMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
@@ -31,7 +31,11 @@ def example_polynomial_2D():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
+    mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.xmin, prob.xmax))
+    mixed_ml.add_move_limit(MoveLimit(move_limit=0.2), var=[0])
+    subprob.set_limits([mixed_ml])
+    # mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
+    # subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -51,10 +55,10 @@ def example_polynomial_2D():
 
     # Initialize iteration counter and design
     itte = 0
-    # x_k = prob.x0.copy()                # 1 active constraint & infeasible start (upper right)
-    # x_k = np.array([-0.7, -0.7])        # 1 active constraint & feasible start (lower left)
-    # x_k = np.array([0.0, -0.5])         # no constraint active, i.e. internal minimum (lower right)
-    x_k = np.array([-0.7, 0.2])           # 2 active constraints, i.e. minimum at intersection (upper left)
+    # x_k = prob.x0.copy()                # 1 active constraint & feasible start (upper right)
+    # x_k = np.array([-0.5, -0.4])        # 1 active constraint & feasible start (lower left)
+    x_k = np.array([0.0, -0.5])         # no constraint active, i.e. internal minimum (lower right)
+    # x_k = np.array([-0.5, 0.1])         # 2 active constraints, i.e. minimum at intersection (upper left)
 
 
     # Optimization loop
