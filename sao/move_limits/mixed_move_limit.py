@@ -43,7 +43,7 @@ class MixedMoveLimit(Bounds):
         for _, variables in self.ml_mapping:
             # Only consider to remove entries when the new response shares
             # the same indices as the existing responses (set intersection).
-            diff = variables - new_vars
+            diff = len(variables - new_vars)
             if diff > 0:
                 # If the resulting set of variables is non-empty, we need
                 # to add the the variables to the current set with the
