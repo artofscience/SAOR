@@ -471,7 +471,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a mixed intervening variable
-    mix = Mixed(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
     mix.set_intervening(Linear(), var=np.arange(0, prob.n), resp=[1])
 
     # Instantiate a mixed approximation scheme
