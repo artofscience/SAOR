@@ -17,8 +17,8 @@ class OptimalityCriteria:
         g = 0
         while (upper - lower) / (lower + upper) > self.tol:
             middle = (lower + upper) / 2
-            y = x * np.sqrt(-dg[0] / dg[1] / middle)
-            x_new[:] = np.maximum(0.0, np.clip(np.minimum(1.0, np.minimum(x + self.move, y)), x - self.move, 1.0))
+            x_new[:] = x * np.sqrt(-dg[0] / dg[1] / middle)
+            x_new[:] = np.clip(np.clip(x_new, x - self.move, x + self.move), 0, 1)
             g = self.gt + np.sum((dg[1] * (x_new - x)))
             if g > 0:
                 lower = middle
