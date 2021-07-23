@@ -29,7 +29,7 @@ def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4):
 
     plotter = Plot(['objective'], path=".")
     # Optimization loop
-    while not criterion:
+    while not converged:
         f = prob.g(x_k)
         df = prob.dg(x_k)
         x_k[:] = solver.update(x_k, [df[0], np.ones(len(x_k))])
