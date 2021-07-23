@@ -25,7 +25,7 @@ def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4):
     x_k = prob.x0.copy()
     vis = None
     counter = 0
-    criterion = VariableChange(x_k)
+    converged = VariableChange(x_k)
 
     plotter = Plot(['objective'], path=".")
     # Optimization loop
