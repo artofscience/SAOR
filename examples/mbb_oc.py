@@ -18,7 +18,7 @@ def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4):
     logger.info("Solving compliance minimization subject to volume constraint")
 
     # Instantiate problem
-    prob = Compliance(nelx, nely, volfrac, 3, 3)
+    prob = Compliance(nelx, nely, volfrac, penal=3, rmin=3)
 
     # Instantiate solver
     solver = OptimalityCriteria()
