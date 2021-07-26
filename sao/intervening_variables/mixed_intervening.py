@@ -66,7 +66,8 @@ class MixedIntervening(Intervening):
             # Only consider to remove entries when the new response shares
             # the same indices as the existing responses (set intersection).
             for r in (new_resp & responses):
-                if len(diff := variables[r] - new_vars) > 0:
+                diff = variables[r] - new_vars
+                if len(diff) > 0:
                     # If the resulting set of variables is non-empty, we need
                     # to add the index `r` to the current set with the
                     # remaining variables.
