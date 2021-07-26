@@ -40,27 +40,25 @@ class MixedMoveLimit(Bounds):
 
         new_vars = fill_set_when_emtpy(var, self.nvar)
 
-        for _, variables in self.ml_mapping:
+        # Iterate through all move limit strategies
+        for index, ml_strategy in enumerate(self.ml_mapping):
             # Only consider to remove entries when the new response shares
             # the same indices as the existing responses (set intersection).
-            if len(diff := variables - new_vars) > 0:
+            diff = ml_strategy[1] - new_vars
+            if len(diff) > 0:
                 # If the resulting set of variables is non-empty, we need
-                # to add the the variables to the current set with the
-                # remaining variables.
-                variables = diff
+                # to add the the variables to the current set with the remaining variables.
+                self.ml_mapping[index][1] = diff
             else:
-                # If the resulting set is empty, the
-                # corresponding variables can be deleted from the mapping.
-                del variables
-
-        # After deleting the overlapping regions in any other variable sets
-        # an additional move limit is added.
+                # If the resulting set is empty, the corresponding variables can be deleted from the mapping.
+                self.ml_mapping.remove(ml_strategy)
+        # After deleting the overlapping regions in any other variable sets an additional move limit is added.
         return self.add_move_limit(ml, new_vars)
 
     def add_move_limit(self, ml: Bounds, var=Ellipsis):
         """Add a move limit strategy to a set of variables."""
         variables = fill_set_when_emtpy(var, self.nvar)
-        self.ml_mapping.append((ml, variables))
+        self.ml_mapping.append([ml, variables])
         return self
 
     def update(self, x, f=None, df=None, ddf=None):

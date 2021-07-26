@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 
 class Plot2:
     """
-    This class is used to generate the plots for `non-MixedMoveLimit` subproblems. Includes a method to plot pairs of {g_j - x_i}
-    for low-dimensional problems, as well as a method to generate contour plots for 2D problems, i.e. X = [x1, x2].
+    This class is used to generate the plots for `non-MixedMoveLimit` subproblems.
+    Includes a method to plot pairs of {g_j - x_i} for low-dimensional problems, as well as a method to generate
+    contour plots for 2D problems, i.e. X = [x1, x2].
     """
 
     def __init__(self, prob, **kwargs):
@@ -16,7 +17,7 @@ class Plot2:
         """
         self.iter_pair = 0
         self.iter_contour = 0
-        self.x = np.linspace(prob.xmin, prob.xmax, 50).T
+        self.x = np.linspace(prob.xmin, prob.xmax, 100).T
         self.resp = kwargs.get('responses', np.arange(0, prob.m + 1))
         self.vars = kwargs.get('variables', np.arange(0, prob.n))
         self.fig = []
@@ -98,7 +99,7 @@ class Plot2:
 
                         # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
                         for k in range(0, self.x.shape[1]):
-                            if (self.x[i, k] <= 1.01 * intv.low[i]) or (self.x[i, k] >= 0.99 * intv.upp[i]):
+                            if (self.x[i, k] <= 1.001 * intv.low[i]) or (self.x[i, k] >= 0.999 * intv.upp[i]):
                                 approx_response_array[j, k] = np.NaN
 
                 # Alternate between red and blue plots to tell them apart easily
@@ -242,10 +243,10 @@ class Plot2:
             if 'MMA' in intv.__class__.__name__:
                 for i in range(0, prob.m + 1):  # for every response -g_j-
                     for k2 in range(0, self.x.shape[1]):
-                        if (self.x[1, k2] < 1.01 * intv.low[1]) or (self.x[1, k2] > 0.99 * intv.upp[1]):
+                        if (self.x[1, k2] < 1.001 * intv.low[1]) or (self.x[1, k2] > 0.999 * intv.upp[1]):
                             z_approx[:, k2, :] = np.NaN
                     for k1 in range(0, self.x.shape[1]):
-                        if (self.x[0, k1] < 1.01 * intv.low[0]) or (self.x[0, k1] > 0.99 * intv.upp[0]):
+                        if (self.x[0, k1] < 1.001 * intv.low[0]) or (self.x[0, k1] > 0.999 * intv.upp[0]):
                             z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde
@@ -266,6 +267,12 @@ class Plot2:
                                    label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                          ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                    marker='o', edgecolors='yellow', color='k', s=100)
+
+        # Plot approximate subproblem bounds -alpha- and -beta-
+        alpha0 = plt.axvline(x=subprob.alpha[0], color='w', linestyle=(0, (3, 8)), label=r'$\alpha_i$')
+        alpha1 = plt.axhline(y=subprob.alpha[1], color='w', linestyle=(0, (3, 8)))
+        beta0 = plt.axvline(x=subprob.beta[0], color='w', linestyle=(0, (3, 8, 1, 8)), label=r'$\beta_i$')
+        beta1 = plt.axhline(y=subprob.beta[1], color='w', linestyle=(0, (3, 8, 1, 8)))
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
@@ -363,7 +370,7 @@ class Plot3(Plot2):
 
                         # Put = NaN the points of g_j_tilde that x_i > U_i and x_i < L_i
                         for k in range(0, self.x.shape[1]):
-                            if (self.x[i, k] <= 1.01 * intv.low[i]) or (self.x[i, k] >= 0.99 * intv.upp[i]):
+                            if (self.x[i, k] <= 1.001 * intv.low[i]) or (self.x[i, k] >= 0.999 * intv.upp[i]):
                                 approx_response_array[j, k] = np.NaN
 
                 # Alternate between red and blue plots to tell them apart easily
@@ -508,10 +515,10 @@ class Plot3(Plot2):
             if 'MMA' in intv.__class__.__name__:
                 # for i in range(0, subprob[p, l].m + 1):
                 for k2 in range(0, self.x.shape[1]):
-                    if (self.x[1, k2] < 1.01 * intv.low[1]) or (self.x[1, k2] > 0.99 * intv.upp[1]):
+                    if (self.x[1, k2] < 1.001 * intv.low[1]) or (self.x[1, k2] > 0.999 * intv.upp[1]):
                         z_approx[:, k2, :] = np.NaN
                 for k1 in range(0, self.x.shape[1]):
-                    if (self.x[0, k1] < 1.01 * intv.low[0]) or (self.x[0, k1] > 0.99 * intv.upp[0]):
+                    if (self.x[0, k1] < 1.001 * intv.low[0]) or (self.x[0, k1] > 0.999 * intv.upp[0]):
                         z_approx[:, :, k1] = np.NaN
 
         # New plot for approximate problem P_nlp_tilde
@@ -532,6 +539,12 @@ class Plot3(Plot2):
                                    label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
                                          ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
                                    marker='o', edgecolors='yellow', color='k', s=100)
+
+        # Plot approximate subproblem bounds -alpha- and -beta-
+        alpha0 = plt.axvline(x=subprob.alpha[0], color='w', linestyle=(0, (3, 8)), label=r'$\alpha_i$')
+        alpha1 = plt.axhline(y=subprob.alpha[1], color='w', linestyle=(0, (3, 8)))
+        beta0 = plt.axvline(x=subprob.beta[0], color='w', linestyle=(0, (3, 8, 1, 8)), label=r'$\beta_i$')
+        beta1 = plt.axhline(y=subprob.beta[1], color='w', linestyle=(0, (3, 8, 1, 8)))
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(

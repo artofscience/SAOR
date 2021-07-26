@@ -3,7 +3,7 @@ import logging
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.problems import Problem, Subproblem
 from sao.intervening_variables import Linear, MMA, MMASquared, MixedIntervening
-from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
+from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit, MixedMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
@@ -31,6 +31,11 @@ def example_polynomial_2D():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    # mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.xmin, prob.xmax))
+    # mixed_ml.add_move_limit(MoveLimit(move_limit=0.1, dx=prob.xmax-prob.xmin))
+    # mixed_ml.add_move_limit(AdaptiveMoveLimit(move_limit=0.1, dx=prob.xmax[0]-prob.xmin[0]), var=[0])
+    # subprob.set_limits([mixed_ml])
+    # mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
     subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
 
     # Instantiate solver
@@ -49,13 +54,12 @@ def example_polynomial_2D():
     if plotter2_flag:
         plotter2 = Plot2(prob)
 
-    # Initialize iteration counter and design
+    # Initialize design and iteration counter
+    # x_k = prob.x0.copy()                # At optimum: 1 active constraint (initial design: upper right)
+    # x_k = np.array([1.5, 1.6])          # At optimum: 1 active constraint (initial design: lower left)
+    # x_k = np.array([1.5, 2.1])          # At optimum: 2 active constraints, i.e. minimum at intersection (upper left)
+    x_k = np.array([2, 1.5])            # no constraint active, i.e. internal minimum (lower right)
     itte = 0
-    # x_k = prob.x0.copy()                # 1 active constraint & infeasible start (upper right)
-    # x_k = np.array([-0.7, -0.7])        # 1 active constraint & feasible start (lower left)
-    # x_k = np.array([0.0, -0.5])         # no constraint active, i.e. internal minimum (lower right)
-    x_k = np.array([-0.7, 0.2])           # 2 active constraints, i.e. minimum at intersection (upper left)
-
 
     # Optimization loop
     while itte < 100:       # not criterion.converged:
@@ -66,7 +70,7 @@ def example_polynomial_2D():
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
+        subprob.build(x_k, f, df, ddf)
 
         # Plot current approximation
         if plotter2_flag:
@@ -98,11 +102,11 @@ def example_polynomial_2D_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
-    # mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix.set_intervening(MMASquared(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.2)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -137,7 +141,7 @@ def example_polynomial_2D_mixed():
 
         # Plot current approximation
         if plotter3_flag:
-            plotter3.plot_pair(x_k, f, prob, subprob, itte)
+            # plotter3.plot_pair(x_k, f, prob, subprob, itte)
             plotter3.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
