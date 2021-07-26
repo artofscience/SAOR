@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 
 class Plot2:
@@ -269,10 +270,12 @@ class Plot2:
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
         # Plot approximate subproblem bounds -alpha- and -beta-
-        alpha0 = plt.axvline(x=subprob.alpha[0], color='w', linestyle=(0, (3, 8)), label=r'$\alpha_i$')
-        alpha1 = plt.axhline(y=subprob.alpha[1], color='w', linestyle=(0, (3, 8)))
-        beta0 = plt.axvline(x=subprob.beta[0], color='w', linestyle=(0, (3, 8, 1, 8)), label=r'$\beta_i$')
-        beta1 = plt.axhline(y=subprob.beta[1], color='w', linestyle=(0, (3, 8, 1, 8)))
+        plt.gca().add_patch(Rectangle((subprob.alpha[0], subprob.alpha[1]),
+                                      subprob.beta[0] - subprob.alpha[0],
+                                      subprob.beta[1] - subprob.alpha[1],
+                                      edgecolor='white',
+                                      facecolor='none',
+                                      linestyle=(0, (15, 5, 1, 5))))
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
@@ -541,10 +544,12 @@ class Plot3(Plot2):
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
         # Plot approximate subproblem bounds -alpha- and -beta-
-        alpha0 = plt.axvline(x=subprob.alpha[0], color='w', linestyle=(0, (3, 8)), label=r'$\alpha_i$')
-        alpha1 = plt.axhline(y=subprob.alpha[1], color='w', linestyle=(0, (3, 8)))
-        beta0 = plt.axvline(x=subprob.beta[0], color='w', linestyle=(0, (3, 8, 1, 8)), label=r'$\beta_i$')
-        beta1 = plt.axhline(y=subprob.beta[1], color='w', linestyle=(0, (3, 8, 1, 8)))
+        plt.gca().add_patch(Rectangle((subprob.alpha[0], subprob.alpha[1]),
+                                      subprob.beta[0] - subprob.alpha[0],
+                                      subprob.beta[1] - subprob.alpha[1],
+                                      edgecolor='white',
+                                      facecolor='none',
+                                      linestyle=(0, (15, 5, 1, 5))))
 
         # Figure properties
         ax_approx.set_title('$\widetilde{{P}}_{{NLP}}$: {} - {}, iter = {}'.format(
