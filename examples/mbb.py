@@ -43,7 +43,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asydecr=0.6, asyincr=1.3)),
                          limits=[Bounds(xmin=0., xmax=1.), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -83,13 +83,12 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
-                    'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
-            criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -113,7 +112,7 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
@@ -122,14 +121,14 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     x_k = prob.x0.copy()
     vis = None
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([0]), variables=np.arange(3, prob.n, 100))
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -142,15 +141,14 @@ def example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
-                    'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
-            criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -174,12 +172,12 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'stress_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -190,7 +188,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -203,15 +201,14 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
-        vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
-                    'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
-            criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
+        vis = prob.visualize(x_k, itte, vis)
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -236,12 +233,12 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -252,7 +249,7 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -265,15 +262,14 @@ def example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.01,
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
-                    'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
-            criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -297,12 +293,12 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -313,7 +309,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -326,15 +322,14 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
-                    'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
-            criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -358,12 +353,12 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -374,7 +369,7 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -387,15 +382,14 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
-                    'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
-            criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -419,12 +413,12 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter2_flag = False
     if plotter2_flag:
         plotter2 = Plot2(prob, responses=np.array([1]), variables=np.arange(3, prob.n, 100))
@@ -435,7 +429,7 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -448,15 +442,14 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
-        logger.info('iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  volume: {:^6.3f}  |  '
-                    'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-            itte, f[0], f[1], np.mean(np.asarray(prob.H * x_k[np.newaxis].T / prob.Hs)[:, 0]),
-            criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+        logger.info(
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -484,13 +477,12 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'],
-                   path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter3_flag = False
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -501,7 +493,7 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -518,15 +510,14 @@ def example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  volume_constr: {:^6.3f}  |  '
-            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -554,12 +545,12 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, x_max=prob.x_max)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'stress_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter3_flag = False
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -570,7 +561,7 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -587,15 +578,14 @@ def example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=2, max_st
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
-        vis = prob.visualize_field(prob.stress, max_stress, itte, vis)
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
+        vis = prob.visualize(x_k, itte, vis)
         logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  stress_constr: {:^6.3f}  |  '
-            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -623,12 +613,12 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, x_max=prob.x_max)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter3_flag = False
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -639,7 +629,7 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -656,15 +646,14 @@ def example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  volume_constr: {:^6.3f}  |  '
-            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -692,12 +681,12 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     # Instantiate convergence criterion
     # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = ObjectiveChange()
-    criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
     # criterion = Feasibility()
     # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
 
-    # Instantiate plotter
-    plotter = Plot(['objective', 'volume_constr', f'{criterion.__class__.__name__}', 'max_constr_violation'], path=".")
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'max_constr_violation'], path="../../../../Desktop")
     plotter3_flag = False
     if plotter3_flag:
         plotter3 = Plot3(prob)
@@ -708,7 +697,7 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     vis = None
 
     # Optimization loop
-    while not criterion.converged:
+    while itte < 100:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -725,15 +714,14 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
-        # Print & Plot
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
         logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  volume_constr: {:^6.3f}  |  '
-            'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, f[0], f[1], criterion.value, max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], criterion.value, max(0, max(f[1:]))])
+            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, f[0], f[1], max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
