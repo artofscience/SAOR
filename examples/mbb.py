@@ -43,7 +43,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asydecr=0.6, asyincr=1.3)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asydecr=0.7, asyincr=1.3)),
                          limits=[Bounds(xmin=0., xmax=1.), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -68,7 +68,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     vis = None
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 200:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -163,7 +163,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.8, asydecr=0.6)),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -188,7 +188,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     vis = None
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 200:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)

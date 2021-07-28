@@ -60,8 +60,8 @@ class MMA(Intervening):
             oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2)) / self.dx
 
             # oscillating variables x_i are increase or decrease the factor
-            self.factor[oscillation > +self.osc_tol] *= self.asyincr
-            self.factor[oscillation < -self.osc_tol] *= self.asydecr
+            self.factor[oscillation > 0] *= self.asyincr            # +self.osc_tol
+            self.factor[oscillation < 0] *= self.asydecr            # -self.osc_tol
 
             # Clip the asymptote factor
             np.clip(self.factor, self.min_factor, self.max_factor)
