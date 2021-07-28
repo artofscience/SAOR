@@ -43,8 +43,8 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asydecr=0.7, asyincr=1.3)),
-                         limits=[Bounds(xmin=0., xmax=1.), MoveLimit(move_limit=0.1)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
+                         limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -163,7 +163,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.8, asydecr=0.6)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -731,7 +731,7 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 if __name__ == "__main__":
     # TODO: Create the `prob` object here and call a function `optimize(prob) to improve running these examples`
     # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
-    # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     # example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
     example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
     example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
