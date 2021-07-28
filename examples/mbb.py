@@ -163,7 +163,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.6)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
