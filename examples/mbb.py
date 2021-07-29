@@ -429,7 +429,7 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     vis = None
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 200:       # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -736,7 +736,7 @@ if __name__ == "__main__":
     # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
     # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
     # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=0.1, gravity=10)
+    # example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=0.1, gravity=10)
     example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
 
     # Mixed optimizers
