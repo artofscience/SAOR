@@ -37,16 +37,20 @@ class Taylor1(Approximation):
         self.g0 = f.copy()
         self.dgdy = [df/intv.dydx(x) for intv in self.interv]
         self.y0 = [intv.y(x) for intv in self.interv]
+
+        # Gather all zero order terms in self.g0 (to be computed only once per design iteration)
+        for dgdy, y0 in zip(self.dgdy, self.y0):
+            self.g0 -= np.sum(dgdy * y0, axis=1)
         return self
 
     def g(self, x, out=None):
         """Evaluates the approximation at design point `x`."""
-        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
+        y_of_x = [intv.y(x) for intv in self.interv]
         if out is None:
             out = np.zeros(self.nresp)
         out[:] = self.g0
-        for dgdy, dy in zip(self.dgdy, delta_y):
-            out += np.sum(dgdy * dy, axis=1)
+        for dgdy, y in zip(self.dgdy, y_of_x):
+            out += np.sum(dgdy * y, axis=1)
         return out
 
     def dg(self, x, out=None):
@@ -94,22 +98,33 @@ class Taylor2(Taylor1):
         self.ddgddy = None
 
     def update(self, x, f, df, ddf=None):
+        """Update the approximation with new information."""
         super().update(x, f, df, ddf)
         assert ddf is not None, "Second order taylor needs second order information"
         self.ddgddy = [ddf * intv.dxdy(x) ** 2 + df * intv.ddxddy(x) for intv in self.interv]
 
+        # Add zero order terms of 2nd-order Taylor expansion to self.g0
+        for ddgddy, y0 in zip(self.ddgddy, self.y0):
+            self.g0 += 0.5 * np.sum(ddgddy * y0 ** 2, axis=1)
+
     def g(self, x, out=None):
-        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
+        """Evaluates the approximation at design point `x`."""
+        y_of_x = [intv.y(x) for intv in self.interv]
         if out is None:
             out = np.zeros(self.nresp)
-        out[:] = self.g0  # Redo this part from Taylor1, to avoid recalculating delta_y
-        for dgdy, dy in zip(self.dgdy, delta_y):
-            out += np.sum(dgdy * dy, axis=1)
-        for ddgddy, dy in zip(self.ddgddy, delta_y):
-            out += 0.5*np.sum(ddgddy * dy**2, axis=1)
+        out[:] = self.g0  # Maybe we can re-use the code in Taylor1.g(x)?
+
+        # Add 1st-order parts
+        for dgdy, y in zip(self.dgdy, y_of_x):
+            out += np.sum(dgdy * y, axis=1)
+
+        # Add 2nd-order parts
+        for ddgddy, y in zip(self.ddgddy, y_of_x):
+            out += 0.5 * np.sum(ddgddy * y ** 2, axis=1) - np.sum(ddgddy * y * self.y0, axis=1)
         return out
 
     def dg(self, x, out=None):
+        """Evaluates the approximation's gradient at design point `x`."""
         delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
@@ -119,6 +134,7 @@ class Taylor2(Taylor1):
         return out
 
     def ddg(self, x, out=None):
+        """Evaluates the approximation's second derivative at design point `x`."""
         delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
