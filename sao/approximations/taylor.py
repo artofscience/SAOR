@@ -119,8 +119,8 @@ class Taylor2(Taylor1):
             out += np.sum(dgdy * y, axis=1)
 
         # Add 2nd-order parts
-        for ddgddy, y in zip(self.ddgddy, y_of_x):
-            out += 0.5 * np.sum(ddgddy * y ** 2, axis=1) - np.sum(ddgddy * y * self.y0, axis=1)
+        for ddgddy, y, y0 in zip(self.ddgddy, y_of_x, self.y0):
+            out += 0.5 * np.sum(ddgddy * y ** 2, axis=1) - np.sum(ddgddy * y * y0, axis=1)
         return out
 
     def dg(self, x, out=None):
