@@ -30,7 +30,7 @@ def example_polynomial_1D():
     prob = Polynomial1D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob = Subproblem(approximation=Taylor2(MMA(prob.xmin, prob.xmax)))
     subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
@@ -62,7 +62,7 @@ def example_polynomial_1D():
         ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
+        subprob.build(x_k, f, df, ddf)
 
         # Plot current approximation
         if plotter2_flag:
