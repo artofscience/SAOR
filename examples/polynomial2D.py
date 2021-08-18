@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.problems import Problem, Subproblem
-from sao.intervening_variables import Linear, MMA, MMASquared, MixedIntervening
+from sao.intervening_variables import Linear, MMA, MMAsquared, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit, MixedMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
@@ -102,7 +102,7 @@ def example_polynomial_2D_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
-    mix.set_intervening(MMASquared(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix.set_intervening(MMAsquared(prob.xmin, prob.xmax), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
