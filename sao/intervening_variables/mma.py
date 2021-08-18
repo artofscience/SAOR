@@ -105,7 +105,7 @@ class MMA(Intervening):
         return np.clip(x, l, u, out=x)
 
 
-class MMASquared(MMA):
+class MMAsquared(MMA):
     """A variant of the MMA intervening variables.
 
     Includes the following set of mixed intervening variables:
@@ -131,3 +131,29 @@ class MMASquared(MMA):
         ddyddx[~self.positive] = np.broadcast_to((6 / (x-self.low)**4), self.positive.shape)[~self.positive]
         return ddyddx
 
+
+class MMAcubed(MMA):
+    """A variant of the MMA intervening variables.
+
+    Includes the following set of mixed intervening variables:
+        y_i = 1 / (U_i - x_i) ** 3     ,  if dg_j/dx_i >= 0
+        y_i = 1 / (x_i - L_i) ** 3     ,  if dg_j/dx_i < 0
+    """
+
+    def y(self, x):
+        y = np.zeros_like(self.positive, dtype=float)
+        y[self.positive] = np.broadcast_to((1 / (self.upp - x)**3), self.positive.shape)[self.positive]
+        y[~self.positive] = np.broadcast_to((1 / (x - self.low)**3), self.positive.shape)[~self.positive]
+        return y
+
+    def dydx(self, x):
+        dydx = np.zeros_like(self.positive, dtype=float)
+        dydx[self.positive] = np.broadcast_to((3 / (self.upp - x)**4), self.positive.shape)[self.positive]
+        dydx[~self.positive] = np.broadcast_to((-3 / (x - self.low)**4), self.positive.shape)[~self.positive]
+        return dydx
+
+    def ddyddx(self, x):
+        ddyddx = np.zeros_like(self.positive, dtype=float)
+        ddyddx[self.positive] = np.broadcast_to((12 / (self.upp-x)**5), self.positive.shape)[self.positive]
+        ddyddx[~self.positive] = np.broadcast_to((12 / (x-self.low)**5), self.positive.shape)[~self.positive]
+        return ddyddx

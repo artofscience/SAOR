@@ -3,10 +3,10 @@ from .exponential import Linear, Exponential
 from .exponential import Reciprocal, ReciSquared, ReciCubed
 from .conlin import ConLin
 from .fitted import ReciFit
-from .mma import MMA, MMASquared
+from .mma import MMA, MMAsquared
 from .mixed_intervening import MixedIntervening
 
 __all__ = [
         'Linear', 'ConLin', 'Exponential', 'Reciprocal', 'ReciSquared',
-        'ReciCubed', 'ReciFit', 'MMA', 'MMASquared', 'MixedIntervening'
+        'ReciCubed', 'ReciFit', 'MMA', 'MMAsquared', 'MixedIntervening'
 ]
