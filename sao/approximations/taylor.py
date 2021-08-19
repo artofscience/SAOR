@@ -123,11 +123,9 @@ class Taylor2(Taylor1):
             out = np.zeros(self.nresp)
         out[:] = self.g0  # Maybe we can re-use the code in Taylor1.g(x)?
 
-        # Add 1st-order parts
+        # Maybe these parts can be done more efficiently in a single `zip`?
         for dgdy, y in zip(self.dgdy, y_of_x):
             out += np.sum(dgdy * y, axis=1)
-
-        # Add 2nd-order parts
         for ddgddy, y, y0 in zip(self.ddgddy, y_of_x, self.y0):
             out += 0.5 * np.sum(ddgddy * y ** 2, axis=1) - np.sum(ddgddy * y * y0, axis=1)
         return out
