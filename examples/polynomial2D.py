@@ -30,7 +30,7 @@ def example_polynomial_2D():
     prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob = Subproblem(approximation=Taylor2(Linear()))
     # mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.xmin, prob.xmax))
     # mixed_ml.add_move_limit(MoveLimit(move_limit=0.1, dx=prob.xmax-prob.xmin))
     # mixed_ml.add_move_limit(AdaptiveMoveLimit(move_limit=0.1, dx=prob.xmax[0]-prob.xmin[0]), var=[0])

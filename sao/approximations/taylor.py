@@ -112,9 +112,9 @@ class Taylor2(Taylor1):
         for ddgddy, y0 in zip(self.ddgddy, self.y0):
             self.g0 += 0.5 * np.sum(ddgddy * y0 ** 2, axis=1)
 
-        # Add zero order terms of 2nd-order Taylor expansion to self.dgdy0
+        # Add computations that can be done once per design iteration to self.dgdy0
         for ddgddy, dgdy, y0 in zip(self.ddgddy, self.dgdy, self.y0):
-            self.dgdy0 += np.sum(dgdy - ddgddy * y0, axis=1)
+            self.dgdy0 = [dgdy - ddgddy * y0]
 
     def g(self, x, out=None):
         """Evaluates the approximation at design point `x`."""
@@ -135,38 +135,26 @@ class Taylor2(Taylor1):
     def dg(self, x, out=None):
         """Evaluates the approximation's gradient at design point `x`."""
         y_of_x = [intv.y(x) for intv in self.interv]
-        dy_of_x = [intv.dy(x) for intv in self.interv]
+        dy_of_x = [intv.dydx(x) for intv in self.interv]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         else:
             out[:] = 0.
-
-        # Add 1st-order parts
-        for dgdy0, dy in zip(self.dgdy0, dy_of_x):
-            out += np.sum(dgdy0 * dy, axis=1)
-
-        # Add 2nd-order parts
-        for ddgddy, y, dy in zip(self.ddgddy, y_of_x, dy_of_x):
-            out += np.sum(ddgddy * y * dy, axis=1)
+        for ddgddy, dgdy0, y, dy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x):
+            out += dgdy0 * dy + ddgddy * y * dy
         return out
 
     def ddg(self, x, out=None):
         """Evaluates the approximation's second derivative at design point `x`."""
         y_of_x = [intv.y(x) for intv in self.interv]
-        dy_of_x = [intv.dy(x) for intv in self.interv]
-        ddy_of_x = [intv.ddy(x) for intv in self.interv]
+        dy_of_x = [intv.dydx(x) for intv in self.interv]
+        ddy_of_x = [intv.ddyddx(x) for intv in self.interv]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
         else:
             out[:] = 0.
-
-        # Add 1st-order parts
-        for dgdy0, ddy in zip(self.dgdy0, ddy_of_x):
-            out += np.sum(dgdy0 * ddy, axis=1)
-
-        # Add 2nd-order parts
         for ddgddy, dgdy0, y, dy, ddy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x, ddy_of_x):
-            out += np.sum(dgdy0*ddy + ddgddy*dy**2 + ddgddy*y*ddy, axis=1)
+            out += dgdy0 * ddy + dgdy0*ddy + ddgddy*dy**2 + ddgddy*y*ddy
         return out
 
     # def dg(self, x, out=None):
