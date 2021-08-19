@@ -155,7 +155,7 @@ class Taylor2(Taylor1):
 
         # Assemble -ddg-
         for ddgddy, dgdy0, y, dy, ddy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x, ddy_of_x):
-            out += dgdy0 * ddy + dgdy0*ddy + ddgddy*dy**2 + ddgddy*y*ddy
+            out += dgdy0 * ddy + ddgddy*dy**2 + ddgddy*y*ddy
         return out
 
 
