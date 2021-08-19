@@ -155,30 +155,6 @@ class Taylor2(Taylor1):
             out += dgdy0 * ddy + dgdy0*ddy + ddgddy*dy**2 + ddgddy*y*ddy
         return out
 
-    # def dg(self, x, out=None):
-    #     """Evaluates the approximation's gradient at design point `x`."""
-    #     delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
-    #     if out is None:
-    #         out = np.zeros((self.nresp, self.nvar))
-    #     else:
-    #         out[:] = 0.
-    #     super().dg(x, out=out)
-    #     for i, intv in enumerate(self.interv):
-    #         out += self.ddgddy[i] * delta_y[i] * intv.dydx(x)
-    #     return out
-    #
-    # def ddg(self, x, out=None):
-    #     """Evaluates the approximation's second derivative at design point `x`."""
-    #     delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
-    #     if out is None:
-    #         out = np.zeros((self.nresp, self.nvar))
-    #     else:
-    #         out = 0.
-    #     super().ddg(x, out=out)
-    #     for i, intv in enumerate(self.interv):
-    #         out += self.ddgddy[i] * (delta_y[i] * intv.ddyddx(x) + (intv.dydx(x)) ** 2)
-    #     return out
-
 
 class SphericalTaylor2(Taylor2):
     """
