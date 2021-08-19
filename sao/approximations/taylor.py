@@ -48,7 +48,8 @@ class Taylor1(Approximation):
         y_of_x = [intv.y(x) for intv in self.interv]
         if out is None:
             out = np.zeros(self.nresp)
-        out[:] = self.g0
+        else:
+            out[:] = self.g0
         for dgdy, y in zip(self.dgdy, y_of_x):
             out += np.sum(dgdy * y, axis=1)
         return out
@@ -57,6 +58,8 @@ class Taylor1(Approximation):
         """Evaluates the approximation's gradient at design point `x`."""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
+        else:
+            out[:] = 0.
         for dgdy, intv in zip(self.dgdy, self.interv):
             out += dgdy * intv.dydx(x)
         return out
@@ -65,6 +68,8 @@ class Taylor1(Approximation):
         """Evaluates the approximation's second derivative at design point `x`."""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
+        else:
+            out[:] = 0.
         for dgdy, intv in zip(self.dgdy, self.interv):
             out += dgdy * intv.ddyddx(x)
         return out
