@@ -123,11 +123,10 @@ class Taylor2(Taylor1):
             out = np.zeros(self.nresp)
         out[:] = self.g0  # Maybe we can re-use the code in Taylor1.g(x)?
 
-        # Maybe these parts can be done more efficiently in a single `zip`?
-        for dgdy, y in zip(self.dgdy, y_of_x):
-            out += np.sum(dgdy * y, axis=1)
-        for ddgddy, y, y0 in zip(self.ddgddy, y_of_x, self.y0):
-            out += 0.5 * np.sum(ddgddy * y ** 2, axis=1) - np.sum(ddgddy * y * y0, axis=1)
+        # Assemble -g-
+        for ddgddy, dgdy, y, y0 in zip(self.ddgddy, self.dgdy, y_of_x, self.y0):
+            out += np.sum(dgdy * y + 0.5 * ddgddy * y ** 2 - ddgddy * y * y0, axis=1)
+
         return out
 
     def dg(self, x, out=None):
@@ -138,6 +137,8 @@ class Taylor2(Taylor1):
             out = np.zeros((self.nresp, self.nvar))
         else:
             out[:] = 0.
+
+        # Assemble -dg-
         for ddgddy, dgdy0, y, dy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x):
             out += dgdy0 * dy + ddgddy * y * dy
         return out
@@ -151,6 +152,8 @@ class Taylor2(Taylor1):
             out = np.zeros((self.nresp, self.nvar))
         else:
             out[:] = 0.
+
+        # Assemble -ddg-
         for ddgddy, dgdy0, y, dy, ddy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x, ddy_of_x):
             out += dgdy0 * ddy + dgdy0*ddy + ddgddy*dy**2 + ddgddy*y*ddy
         return out
