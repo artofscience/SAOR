@@ -2,9 +2,9 @@ import pytest
 import numpy as np
 import logging
 from Problems.Square import Square
-from sao.solvers.interior_point import InteriorPointX as ip_x
-from sao.solvers.interior_point import InteriorPointXY as ip_xy
-from sao.solvers.interior_point import InteriorPointXYZ as ip_xyz
+from sao.solvers.primal_dual_interior_point.interior_point import InteriorPointX as ip_x
+from sao.solvers.primal_dual_interior_point.interior_point import InteriorPointXY as ip_xy
+from sao.solvers.primal_dual_interior_point.interior_point import InteriorPointXYZ as ip_xyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
