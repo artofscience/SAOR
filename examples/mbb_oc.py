@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from Problems.topology_optimization_benchmark.compliance import Compliance
+from Problems.topology_optimization.compliance import Compliance
 from sao.solvers.optimality_criteria import OptimalityCriteria
 from sao.convergence_criteria.criteria import VariableChange
 from sao.util import Plot

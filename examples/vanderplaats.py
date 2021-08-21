@@ -1,15 +1,14 @@
 import numpy as np
 import logging
-from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
-from sao.problems import Problem, Subproblem
-from sao.intervening_variables import Linear, MMA, MMAsquared, MixedIntervening
+from sao.approximations import Taylor1
+from sao.problems import Subproblem
+from sao.intervening_variables import MMA, MMAsquared, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
-from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
 from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
-from Problems.VanderplaatsBeam import Vanderplaats
+from Problems.nd.VanderplaatsBeam import Vanderplaats
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
