@@ -35,17 +35,29 @@ class CVXOPTwrapper:
                 """
 
         self.subprob = subprob
-        x0 = 0.5 * (self.subprob.alpha + self.subprob.beta)
-        x0_cvxopt = matrix(x0, (self.n, 1))
+
+        # Linear inequality constraints (problem bounds)
         G = matrix(np.append(np.eye(2), -np.eye(2), axis=0))
         h = matrix(np.append(self.subprob.beta, -self.subprob.alpha), (2*self.n, 1))
+
         return solvers.cp(self.F, G, h)['x']
 
     def F(self, x=None, z=None):
-        if x is None: return self.m, matrix(0.5*(self.subprob.alpha+self.subprob.beta), (self.n, 1))
+        """
+        This function is required by the CVXOPT library, see https://cvxopt.org/userguide/solvers.html#s-cp.
+
+        :param x:
+        :param z:
+        :return:
+        """
+
+        if x is None:
+            x0 = matrix(0.5*(self.subprob.alpha+self.subprob.beta), (self.n, 1))
+            return self.m, x0
         f = matrix(self.subprob.g(np.array(x).flatten()), (self.m+1, 1))
         Df = matrix(self.subprob.dg(np.array(x).flatten()), (self.m+1, self.n))
-        if z is None: return f, Df
+        if z is None:
+            return f, Df
         Laplacian = matrix(np.sum(self.subprob.ddg(np.array(x).flatten()), axis=1), (self.m+1, 1))
         H = spdiag((z.T*Laplacian)[0] * matrix(1., (self.n, 1)))
         return f, Df, H
