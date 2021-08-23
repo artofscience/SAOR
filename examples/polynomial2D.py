@@ -168,7 +168,7 @@ def example_polynomial_2D_cvxopt():
     prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor2(Linear()))
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
     subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
 
     # Instantiate solver
@@ -204,7 +204,8 @@ def example_polynomial_2D_cvxopt():
             plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k, _ = solver.subsolv(subprob)
+        # x_k, _ = solver.subsolv(subprob)
+        x_k = np.array(solver.subsolv(subprob)).flatten()
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
