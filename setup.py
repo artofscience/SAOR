@@ -25,6 +25,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
+        'cvxopt',
     ],
     extras_require={
         'all': _all,
