@@ -11,7 +11,7 @@ _dev = ['yapf', 'flake8', 'tox', 'pytest', 'pytest-cov']
 # additional requirements to generate package documentation
 _docs = ['sphinx', 'sphinx_rtd_theme', 'sphinxcontrib-napoleon']
 
-# additional requirements to link with other libraries
+# optional requirements to link with other libraries
 _opt = ['cvxopt']
 
 # combined dependencies
