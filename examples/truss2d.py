@@ -59,7 +59,7 @@ def example_truss2d():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        ddf = (prob.ddg(x_k) if subprob.approx.__class__.__name__ == 'Taylor2' else None)
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -128,7 +128,7 @@ def example_truss2d_mixed():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        ddf = None
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
 
         # Build approximate subproblem at X^(k)
         subprob.build(x_k, f, df, ddf)
