@@ -1,8 +1,26 @@
 import numpy as np
+from sao.convergence_criteria import VariableChange
 
 """
 Nguyen/Paulino OC approach.
 """
+
+
+def oc(problem, x0=None, move=0.2, tol=1e-3, stop_tol=1e-6):
+    if x0 is None:
+        x = problem.x0
+    else:
+        x = x0
+    converged = VariableChange(x, tolerance=stop_tol)
+    iter = 0
+    diff = 0
+    while not converged:
+        iter += 1
+        f = problem.g(x)
+        print(iter, ":  ", f[0], x)
+        x[:], diff = oc2010(problem, x0=x, var_change=diff, move=move, tol=tol)
+    f = problem.g(x)
+    return x, f[0]
 
 
 def oc2010(problem, x0=None, var_change=0, move=0.2, tol=1e-3, lower=0, upper=1e9):
