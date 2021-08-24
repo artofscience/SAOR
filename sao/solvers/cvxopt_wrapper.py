@@ -58,6 +58,6 @@ class CVXOPTwrapper:
         Df = matrix(self.subprob.dg(np.array(x).flatten()), (self.m+1, self.n))
         if z is None:
             return f, Df
-        Laplacian = matrix(np.sum(self.subprob.ddg(np.array(x).flatten()), axis=1), (self.m+1, 1))
-        H = spdiag((z.T*Laplacian)[0] * matrix(1., (self.n, 1)))
+        DiagonalHessian = matrix(self.subprob.ddg(np.array(x).flatten()))
+        H = spdiag(DiagonalHessian.T * z)
         return f, Df, H
