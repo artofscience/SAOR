@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 from Problems.topology_optimization.compliance import Compliance
-from sao.solvers.optimality_criteria import OptimalityCriteria
+from sao.solvers.optimality_criteria import oc
 from sao.convergence_criteria.criteria import VariableChange
 from sao.util import Plot
 
@@ -21,7 +21,6 @@ def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4):
     prob = Compliance(nelx, nely, volfrac, penal=3, rmin=3)
 
     # Instantiate solver
-    solver = OptimalityCriteria()
     x_k = prob.x0.copy()
     vis = None
     counter = 0
@@ -29,10 +28,12 @@ def example_compliance_mbb(nelx=100, nely=50, volfrac=0.4):
 
     plotter = Plot(['objective'], path=".")
     # Optimization loop
+    a = 0
     while not converged:
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        x_k[:] = solver.update(x_k, df)
+        x_k[:], a = oc(x_k, df, gt=a)
+        print(a)
 
         # Print & Plot
         vis = prob.visualize(x_k, counter, vis)
