@@ -157,3 +157,4 @@ class MMAcubed(MMA):
         ddyddx[self.positive] = np.broadcast_to((12 / (self.upp-x)**5), self.positive.shape)[self.positive]
         ddyddx[~self.positive] = np.broadcast_to((12 / (x-self.low)**5), self.positive.shape)[~self.positive]
         return ddyddx
+

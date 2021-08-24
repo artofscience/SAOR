@@ -37,22 +37,28 @@ class Taylor1(Approximation):
         self.g0 = f.copy()
         self.dgdy = [df/intv.dydx(x) for intv in self.interv]
         self.y0 = [intv.y(x) for intv in self.interv]
+
+        # Gather all zero order terms in self.g0 (to be computed only once per design iteration)
+        for dgdy, y0 in zip(self.dgdy, self.y0):
+            self.g0 -= np.sum(dgdy * y0, axis=1)
         return self
 
     def g(self, x, out=None):
         """Evaluates the approximation at design point `x`."""
-        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
+        y_of_x = [intv.y(x) for intv in self.interv]
         if out is None:
             out = np.zeros(self.nresp)
         out[:] = self.g0
-        for dgdy, dy in zip(self.dgdy, delta_y):
-            out += np.sum(dgdy * dy, axis=1)
+        for dgdy, y in zip(self.dgdy, y_of_x):
+            out += np.sum(dgdy * y, axis=1)
         return out
 
     def dg(self, x, out=None):
         """Evaluates the approximation's gradient at design point `x`."""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
+        else:
+            out[:] = 0.
         for dgdy, intv in zip(self.dgdy, self.interv):
             out += dgdy * intv.dydx(x)
         return out
@@ -61,6 +67,8 @@ class Taylor1(Approximation):
         """Evaluates the approximation's second derivative at design point `x`."""
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
+        else:
+            out[:] = 0.
         for dgdy, intv in zip(self.dgdy, self.interv):
             out += dgdy * intv.ddyddx(x)
         return out
@@ -91,40 +99,63 @@ class Taylor2(Taylor1):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.dgdy0 = None
         self.ddgddy = None
 
     def update(self, x, f, df, ddf=None):
+        """Update the approximation with new information."""
         super().update(x, f, df, ddf)
         assert ddf is not None, "Second order taylor needs second order information"
         self.ddgddy = [ddf * intv.dxdy(x) ** 2 + df * intv.ddxddy(x) for intv in self.interv]
 
+        # Add zero order terms of 2nd-order Taylor expansion to self.g0
+        for ddgddy, y0 in zip(self.ddgddy, self.y0):
+            self.g0 += 0.5 * np.sum(ddgddy * y0 ** 2, axis=1)
+
+        # Add computations that can be done once per design iteration to self.dgdy0
+        for ddgddy, dgdy, y0 in zip(self.ddgddy, self.dgdy, self.y0):
+            self.dgdy0 = [dgdy - ddgddy * y0]
+
     def g(self, x, out=None):
-        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
+        """Evaluates the approximation at design point `x`."""
+        y_of_x = [intv.y(x) for intv in self.interv]
         if out is None:
             out = np.zeros(self.nresp)
-        out[:] = self.g0  # Redo this part from Taylor1, to avoid recalculating delta_y
-        for dgdy, dy in zip(self.dgdy, delta_y):
-            out += np.sum(dgdy * dy, axis=1)
-        for ddgddy, dy in zip(self.ddgddy, delta_y):
-            out += 0.5*np.sum(ddgddy * dy**2, axis=1)
+        out[:] = self.g0  # Maybe we can re-use the code in Taylor1.g(x)?
+
+        # Assemble -g-
+        for ddgddy, dgdy, y, y0 in zip(self.ddgddy, self.dgdy, y_of_x, self.y0):
+            out += np.sum(dgdy * y + 0.5 * ddgddy * y ** 2 - ddgddy * y * y0, axis=1)
+
         return out
 
     def dg(self, x, out=None):
-        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
+        """Evaluates the approximation's gradient at design point `x`."""
+        y_of_x = [intv.y(x) for intv in self.interv]
+        dy_of_x = [intv.dydx(x) for intv in self.interv]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
-        super().dg(x, out=out)
-        for i, intv in enumerate(self.interv):
-            out += self.ddgddy[i] * delta_y[i] * intv.dydx(x)
+        else:
+            out[:] = 0.
+
+        # Assemble -dg-
+        for ddgddy, dgdy0, y, dy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x):
+            out += dgdy0 * dy + ddgddy * y * dy
         return out
 
     def ddg(self, x, out=None):
-        delta_y = [intv.y(x) - y for intv, y in zip(self.interv, self.y0)]
+        """Evaluates the approximation's second derivative at design point `x`."""
+        y_of_x = [intv.y(x) for intv in self.interv]
+        dy_of_x = [intv.dydx(x) for intv in self.interv]
+        ddy_of_x = [intv.ddyddx(x) for intv in self.interv]
         if out is None:
             out = np.zeros((self.nresp, self.nvar))
-        super().ddg(x, out=out)
-        for i, intv in enumerate(self.interv):
-            out += self.ddgddy[i] * (delta_y[i] * intv.ddyddx(x) + (intv.dydx(x)) ** 2)
+        else:
+            out[:] = 0.
+
+        # Assemble -ddg-
+        for ddgddy, dgdy0, y, dy, ddy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x, ddy_of_x):
+            out += dgdy0 * ddy + ddgddy*dy**2 + ddgddy*y*ddy
         return out
 
 
