@@ -37,7 +37,7 @@ class CVXOPT:
         self.subprob = subprob
 
         # Linear inequality constraints (problem bounds)
-        G = matrix(np.append(np.eye(2), -np.eye(2), axis=0))
+        G = matrix(np.append(np.eye(self.n), -np.eye(self.n), axis=0))
         h = matrix(np.append(self.subprob.beta, -self.subprob.alpha), (2*self.n, 1))
 
         return solvers.cp(self.F, G, h)['x']
