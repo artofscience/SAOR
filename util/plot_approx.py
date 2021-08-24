@@ -20,7 +20,7 @@ np.set_printoptions(precision=4)
 class PlotApprox:
     def __init__(self, prob, **kwargs):
         self.iter_pair = 0
-        self.x = np.linspace(prob.xmin, prob.xmax, 50).T
+        self.x = np.linspace(prob.x_min, prob.x_max, 50).T
         self.resp = kwargs.get('responses', np.arange(0, prob.m + 1))
         self.vars = kwargs.get('variables', np.arange(0, prob.n))
         self.fig = []

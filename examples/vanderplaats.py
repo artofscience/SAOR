@@ -38,11 +38,11 @@ def example_vanderplaats(N):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate the scaling strategy
     scaling = InitialResponseScaling(prob.m+1)
@@ -117,11 +117,11 @@ def example_vanderplaats_mixed(N):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate the scaling strategy
     scaling = InitialObjectiveScaling(prob.m + 1)

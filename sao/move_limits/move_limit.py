@@ -50,7 +50,7 @@ class MoveLimit(Bounds):
     The move limit constrains the allowed step size to be within a trust region
     around the current point ``x``. The size of the trusted region is expressed
     as a factor of the total range of the variable, i.e.
-    ``move_limit * (x_max - xmin)``. This region is then used to truncated the
+    ``move_limit * (x_max - x_min)``. This region is then used to truncated the
     step size to obtain the corresponding lower and upper bounds of the
     variables.
     """
@@ -58,7 +58,7 @@ class MoveLimit(Bounds):
     def __init__(self, move_limit=0.1, dx=1.0):
         """
         :param move_limit: The absolute move limit, in case dx is not given, or relative to dx
-        :param dx: = x_max - xmin: Variable bound interval for relative step-size
+        :param dx: = x_max - x_min: Variable bound interval for relative step-size
         """
         super().__init__()
 
@@ -92,7 +92,7 @@ class AdaptiveMoveLimit(MoveLimit):
                  oscillation_tol=1e-10):
         """
         :param move_limit: Relative/absolute move limit, depending if dx is given or not
-        :param dx: = x_max - xmin: Variable bound interval for relative step-size
+        :param dx: = x_max - x_min: Variable bound interval for relative step-size
         :param ml_init: Initial factor of move limit (max move limit = factor * move limit)
         :param ml_incr: Increase factor for non-oscillations
         :param ml_decr: Decrease factor for oscillations
@@ -126,7 +126,7 @@ class AdaptiveMoveLimit(MoveLimit):
 
         # If x_old2 is None, not enough iterations were performed
         # to have all (required) history information available.
-        # This only updates the `self.xmin` and `self.xmin` variables
+        # This only updates the `self.x_min` and `self.x_min` variables
         # using a default move limit approach
         if self.x_old2 is not None:
             # To test if a design variable oscillates between iterations, we
@@ -146,7 +146,7 @@ class AdaptiveMoveLimit(MoveLimit):
             # (steps > move_limit are not allowed)
             np.clip(self.factor, self.ml_bound, 1.0, out=self.factor)
 
-        # apply the move limits to xmin and x_max
+        # apply the move limits to x_min and x_max
         self.x_min = self.x - self.factor * self.max_dx
         self.x_max = self.x + self.factor * self.max_dx
         return self

@@ -36,16 +36,16 @@ def example_square(n):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # converged = ObjectiveChange(prob)
     # converged = Feasibility(prob)
 
     # converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=1e-3) | IterationCount(5)
 
     # criterion = ObjectiveChange(prob.f[0])
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
@@ -107,11 +107,11 @@ def example_square_mixed(n):
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = ObjectiveChange(prob.f)
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
