@@ -7,7 +7,7 @@ from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit, MixedMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
-from sao.solvers import SvanbergIP, CVXOPTwrapper
+from sao.solvers import SvanbergIP, CVXOPT
 from util.plotter import Plot2, Plot3
 from Problems.Polynomial_2D import Polynomial2D
 
@@ -172,7 +172,7 @@ def example_polynomial_2D_cvxopt():
     subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
 
     # Instantiate solver
-    solver = CVXOPTwrapper(prob.n, prob.m)
+    solver = CVXOPT(prob.n, prob.m)
 
     # Initialize design and iteration counter
     x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)

@@ -3,7 +3,7 @@ import numpy as np
 from cvxopt import solvers, matrix, spdiag
 
 
-class CVXOPTwrapper:
+class CVXOPT:
     """
     This is a wrapper class to use the CVXOPT solver library found in the following link:
     https://cvxopt.org/userguide/solvers.html#problems-with-nonlinear-objectives
