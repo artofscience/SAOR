@@ -8,9 +8,9 @@ from sao.solvers.primal_dual_interior_point import pdip
 
 def mma(problem, x0=None, move=0.2, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0,
         albefa=0.1, oscillation_tol=1e-10, stop_tol=1e-6):
-    int = MMA(xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr, asybound=asybound,
-              albefa=albefa, oscillation_tol=oscillation_tol)
-    approx = Taylor1(int)
+    int_variable = MMA(xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr, asybound=asybound,
+                       albefa=albefa, oscillation_tol=oscillation_tol)
+    approx = Taylor1(int_variable)
     lim1 = Bounds(problem.xmin, problem.xmax)
     lim2 = MoveLimit(move * (problem.xmax - problem.xmin))
     lim3 = AdaptiveMoveLimit(move_limit=move)
