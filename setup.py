@@ -12,7 +12,7 @@ _dev = ['yapf', 'flake8', 'tox', 'pytest', 'pytest-cov']
 _docs = ['sphinx', 'sphinx_rtd_theme', 'sphinxcontrib-napoleon']
 
 # optional requirements to link with other libraries
-_opt = ['cvxopt']
+_opt = ['cvxopt', 'cvxpy']
 
 # combined dependencies
 _all = list(set(_dev) | set(_docs) | set(_opt))
@@ -28,7 +28,6 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'cvxopt',
     ],
     extras_require={
         'all': _all,

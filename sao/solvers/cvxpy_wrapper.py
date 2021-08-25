@@ -1,13 +1,13 @@
 ## Imports
 import numpy as np
-from cvxopt import solvers, matrix, spdiag
+import cvxpy as cp
 
 
-class CVXOPT:
+class CVXPY:
     """
     This is a wrapper class to use the CVXOPT solver library found in the following link:
     https://cvxopt.org/userguide/solvers.html#problems-with-nonlinear-objectives.
-    Requires an installation of ``cvxopt``.
+    Requires an installation of ``cvxpy``.
     """
     def __init__(self, n, m):
         self.n = n
@@ -37,9 +37,31 @@ class CVXOPT:
 
         self.subprob = subprob
 
+        # Design variables
+        x = cp.Variable(self.n)
+
+        # Objective function \tilde{g}_0
+        cost = self.subprob.g(np.array(x).flatten())[0]
+        obj = cp.Minimize(cost)
+
+        # Constraint functions \tilde{g}_j <= 0, j=1,...,m
+
+
         # Linear inequality constraints (problem bounds)
-        G = matrix(np.append(np.eye(self.n), -np.eye(self.n), axis=0))
-        h = matrix(np.append(self.subprob.beta, -self.subprob.alpha), (2*self.n, 1))
+        G = np.append(np.eye(self.n), -np.eye(self.n), axis=0)
+        h = np.append(self.subprob.x_max, -self.subprob.x_min)
+        bound_constraints = G*x <= h
+
+
+        constr = []
+        problem = cp.Problem(obj, constr)
+        opt_value = problem.solve()
+        solution = x.value
+
+
+
+
+
 
         return solvers.cp(self.F, G, h)['x']
 
