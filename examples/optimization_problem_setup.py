@@ -81,7 +81,7 @@ def mma_loop(n):
 """
 Advanced users might prefer a type of approximation depend on some convergence property.
 In that case one may, for example, switch between approximation during the optimziation.
-Note in the following example the move limit adn approximations are generated outside of the loop,
+Note in the following example the move limit and approximations are generated outside of the loop,
 whereas the subproblem is re-constructed each iteration. This looks as follows:
 """
 
