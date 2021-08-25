@@ -16,7 +16,7 @@ class Dummy(sao.problems.Problem):
     s.t.    sum(x) > 1
             -1 < x_i < 1,   i=1,...,n
 
-    Solution: all x = 1/n
+    Solution: x_i = 1/n
     """
 
     def __init__(self, n):
@@ -66,12 +66,12 @@ def mma_loop(n):
     x = problem.x0
     converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
 
-    iter = 0
+    counter = 0
     while not converged:
-        iter += 1
+        counter += 1
         f = problem.g(x)
         df = problem.dg(x)
-        print(iter, ":  ", f[0], x)
+        print(counter, ":  ", f[0], x)
         sub_problem.build(x, f, df)
         x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
     fout = problem.g(x)[0]  # Calculate the performance of the final design
@@ -94,13 +94,13 @@ def adaptive_approximation(n):
     x = problem.x0
     converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
 
-    iter = 0
+    counter = 0
     while not converged:
-        iter += 1
+        counter += 1
         f = problem.g(x)
         df = problem.dg(x)
-        print(iter, ":  ", f[0], x)
-        sub_problem = sao.problems.Subproblem(approx1 if iter < 4 else approx2, lim)
+        print(counter, ":  ", f[0], x)
+        sub_problem = sao.problems.Subproblem(approx1 if counter < 4 else approx2, lim)
         sub_problem.build(x, f, df)
         x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
     fout = problem.g(x)[0]
@@ -123,12 +123,12 @@ def conditional_acceptance(n):
     x = problem.x0
     converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
 
-    iter = 0
+    counter = 0
     while not converged:
-        iter += 1
+        counter += 1
         f = problem.g(x)
         df = problem.dg(x)
-        print(iter, ":  ", "g0 ", f[0], "var ", x)
+        print(counter, ":  ", "g0 ", f[0], "var ", x)
         f2 = f[0] + 1
         while f2 > f[0]:
             print(lim.max_dx)

@@ -2,64 +2,49 @@ import numpy as np
 from sao.convergence_criteria import VariableChange
 
 """
-Nguyen/Paulino OC approach.
+OC wrapper.
 """
 
 
-def oc(problem, x0=None, move=0.2, tol=1e-3, stop_tol=1e-6):
-    if x0 is None:
-        x = problem.x0
-    else:
-        x = x0
+def oc(problem, x0=None, target=None, move=0.2, tol=1e-3, stop_tol=1e-6):
+    x = problem.x0 if x0 is None else x0
     converged = VariableChange(x, tolerance=stop_tol)
-    iter = 0
-    diff = 0
+    counter = 0
     while not converged:
-        iter += 1
+        counter += 1
         f = problem.g(x)
-        print(iter, ":  ", f[0], x)
-        x[:], diff = oc2010(problem, x0=x, var_change=diff, move=move, tol=tol)
+        print(counter, ":  ", f[0], x)
+        x[:] = oc1999(problem, x0=x, target=target, move=move, tol=tol)
     f = problem.g(x)
     return x, f[0]
 
 
-def oc2010(problem, x0=None, var_change=0, move=0.2, tol=1e-3, lower=0, upper=1e9):
-    x_new = np.zeros_like(x0)
-    dg = problem.dg(x0)
-    diff = 0
-    while (upper - lower) / (lower + upper) > tol:
-        middle = (lower + upper) / 2
-        x_new[:] = x0 * np.sqrt(-dg[0] / dg[1] / middle)
-        x_new[:] = np.clip(np.clip(x_new, x0 - move, x0 + move), 0, 1)
-        diff = var_change + np.sum((dg[1] * (x_new - x0)))
-        if diff > 0:
-            lower = middle
-        else:
-            upper = middle
-    return x_new, diff
-
-
 """
-OC in line with 99 line Matlab code (Sigmund 1999, Bendsoe 1995).
-Knowing that the constraint is a monotonously decreasing function 
+OC in line with 99 line Matlab code ([Sigmund 1999], [Bendsoe 1995]).
+
+"Knowing that the constraint is a monotonously decreasing function 
 of the Lagrang multiplier, the value of the multiplier 
 that satisfies the constraint can be found by a bi-sectioning algorithm.
 
 The bi-sectioning algorithm is initialized by guessing a 
 lower and upper bound for the Lagrangian multiplier.
 The interval which bounds the Lagrange multiplier is repeatedly halved 
-until its size is less than the convergence criteria.
+until its size is less than the convergence criteria." [Sigmund 1999]
+
+Small modifications are made if target is not provided (target=None).
+In that case the update ensures the material usage stays constant
 """
 
 
-def oc1999(problem, x0=None, target=0.5, move=0.2, tol=1e-3, lower=0, upper=1e9):
-    x_new = np.zeros_like(x0)
-    dg = problem.dg(x0)
-    while (upper - lower) / (lower + upper) > tol:
+def oc1999(problem, x0=None, target=None, move=0.2, tol=1e-3, lower=0, upper=1e9):
+    x_new = problem.x0 if x0 is None else x0
+    target = np.sum(x_new) if target is None else target  # target material usage
+    dg = problem.dg(x0)  # get sensitivities from (sub)problem
+    while (upper - lower) / (lower + upper) > tol:  # loop until Lagrange multiplier is found (within tolerance)
         middle = (lower + upper) / 2
-        x_new[:] = x0 * np.sqrt(-dg[0] / dg[1] / middle)
-        x_new[:] = np.clip(np.clip(x_new, x0 - move, x0 + move), 0, 1)
-        if sum(x_new) > target * np.size(x0):
+        x_new[:] = x0 * np.sqrt(-dg[0] / dg[1] / middle)  # set step in direction of objective sensitivities
+        x_new[:] = np.clip(np.clip(x_new, x0 - move, x0 + move), 0, 1)  # clip by move limit
+        if np.sum(x_new) - target > 0:  # if material usage is too large increase multiplier else decrease
             lower = middle
         else:
             upper = middle
