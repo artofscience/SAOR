@@ -6,7 +6,7 @@ import numpy as np
 
 
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(), limits=Bounds(), problem=None, x_min=None, x_max=None):
+    def __init__(self, approximation=Taylor1(), limits=Bounds(-1e16, 1e16), problem=None, x_min=None, x_max=None):
         super().__init__()
         self.approx = approximation
         self.set_limits(limits)
