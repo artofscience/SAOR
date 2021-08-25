@@ -5,4 +5,5 @@ from sao import approximations, \
     problems, \
     convergence_criteria, \
     solvers, \
+    util, \
     optimizer

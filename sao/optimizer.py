@@ -14,7 +14,7 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def optimize(problem, solver, approximation, criterion, *args, **kwargs):
+def optimize(problem, solver, approximation, criterion, plotter=None, *args, **kwargs):
     """
     This is a wrapper function for the main file of an optimization.
     Takes as arguments the following objects and performs the optimization main loop.
@@ -23,6 +23,7 @@ def optimize(problem, solver, approximation, criterion, *args, **kwargs):
     :param solver: An object that holds the solver to be used.
     :param approximation: An object that holds the approximation (and the intervening vars) to be used, e.g. Taylor1(Linear())
     :param criterion: An object that holds the convergence criterion.
+    :param plotter: An object that performs plotting functionalities as the optimization runs.
     :param args:
     :param kwargs:
     :return:
@@ -38,11 +39,6 @@ def optimize(problem, solver, approximation, criterion, *args, **kwargs):
     # Initialize design and iteration counter
     x_k = kwargs.get('x0', problem.x0)
     itte = 0
-
-    # Optionally, instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
-    plot_flag = kwargs.get('plot', False)
-    if plot_flag:
-        plotter = sao.util.Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
 
     # Optimization loop
     while not criterion.converged:
@@ -62,9 +58,8 @@ def optimize(problem, solver, approximation, criterion, *args, **kwargs):
         logger.info(
             'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
                 itte, np.array2string(x_k[0]), f[0], 0, max(0, max(f[1:]))))
-
-        if plot_flag:
-            plotter.plot([f[0], f[1], 0, max(0, max(f[1:]))])        # TODO: Add functionality to (optionally) plot criterion.value
+        if plotter is not None:
+            plotter.plot([f[0], f[1], 0, max(0, max(f[1:]))])
 
         itte += 1
 

@@ -93,9 +93,10 @@ def main_optimizer(n):
     solver = sao.solvers.primal_dual_interior_point.pdip
     x = np.array([2, 1.5])
     converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
+    plotter = sao.util.Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")    # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
 
     # Call the wrapper function that conducts the optimization loop
-    sao.optimizer.optimize(problem, solver, approximation, converged, x0=x, plot_flag=True)       # TODO: This `converged` here is a bit non-intuitive imo
+    sao.optimizer.optimize(problem, solver, approximation, converged, plotter=plotter, x0=x)       # TODO: This `converged` here is a bit non-intuitive imo
 
 
 """
