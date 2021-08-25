@@ -6,10 +6,24 @@ import numpy as np
 
 
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(), limits=Bounds(xmin=0, xmax=1)):
+    def __init__(self, approximation=Taylor1(), limits=Bounds(), problem=None, x_min=None, x_max=None):
         super().__init__()
         self.approx = approximation
         self.set_limits(limits)
+
+        # if problem provided take over initial design and bounds
+        if problem is not None:
+            self.x0 = problem.x0
+
+            # add problem bounds to existing list of limits
+            self.add_limits(Bounds(problem.x_min, problem.x_max))
+
+        # if lower and/or upper bound is given in construction
+        if x_min is not None:
+            self.add_limits(Bounds(xmin=x_min))
+        if x_max is not None:
+            self.add_limits(Bounds(xmax=x_max))
+
         self.lims = parse_to_list(limits)
 
     def set_limits(self, *limits):
