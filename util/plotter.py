@@ -18,7 +18,7 @@ class Plot2:
         """
         self.iter_pair = 0
         self.iter_contour = 0
-        self.x = np.linspace(prob.xmin, prob.xmax, 100).T
+        self.x = np.linspace(prob.x_min, prob.x_max, 100).T
         self.resp = kwargs.get('responses', np.arange(0, prob.m + 1))
         self.vars = kwargs.get('variables', np.arange(0, prob.n))
         self.fig = []

@@ -10,7 +10,6 @@ class Subproblem(Problem):
         super().__init__()
         self.approx = approximation
         self.set_limits(limits)
-        self.alpha, self.beta = None, None
         self.lims = parse_to_list(limits)
 
     def set_limits(self, *limits):
@@ -20,14 +19,14 @@ class Subproblem(Problem):
         self.lims.extend(parse_to_list(*limits))
 
     def build(self, x, f, df, ddf=None):
-        self.n, self.m = len(x), len(f) - 1  # to fit Stijn's solvers # TODO Get from len(x) in the subsolver
+        self.n, self.m = len(x), len(f) - 1
 
         # Update the approximation
         self.approx.update(x, f, df, ddf)
 
         # Update the local problem bounds
-        self.alpha = np.full_like(x, -np.inf)
-        self.beta = np.full_like(x, +np.inf)
+        self.x_min = np.full_like(x, -np.inf)
+        self.x_max = np.full_like(x, +np.inf)
 
         # Enforce restriction on the possible step size within the subproblem.
         # The step is restricted by the chosen move limit strategy as well as
@@ -35,17 +34,17 @@ class Subproblem(Problem):
         # limits are applied to constraint the step size.
         for ml in self.lims:
             ml.update(x, f, df, ddf)
-            ml.clip(self.alpha)
-            ml.clip(self.beta)
+            ml.clip(self.x_min)
+            ml.clip(self.x_max)
 
         # Additional constraint on the step size by the feasible range of the
         # intervening variables. This prevents the subsolver to make an update
         # that causes the intervening variable to reach unreachable values,
         # e.g. cross the lower/upper bounds in the MMA asymptotes.
-        self.approx.clip(self.alpha)
-        self.approx.clip(self.beta)
+        self.approx.clip(self.x_min)
+        self.approx.clip(self.x_max)
 
-        assert np.isfinite(self.alpha).all() and np.isfinite(self.beta).all(), \
+        assert np.isfinite(self.x_min).all() and np.isfinite(self.x_max).all(), \
             "The bounds must be finite. Use at least one move-limit or bound."
         # TODO: Possibly a check for finiteness of the bounds
 

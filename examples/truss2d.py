@@ -36,11 +36,11 @@ def example_truss2d():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, x_max=prob.x_max)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, x_max=prob.x_max)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',
@@ -95,7 +95,7 @@ def example_truss2d_mixed():
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
     mix.set_intervening(Linear(), var=[0], resp=[0])
-    mix.set_intervening(Exponential(2), var=[1], resp=[0])      # MMA(prob.xmin, prob.xmax)
+    mix.set_intervening(Exponential(2), var=[1], resp=[0])  # MMA(prob.x_min, prob.x_max)
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=SphericalTaylor2(mix))
@@ -105,11 +105,11 @@ def example_truss2d_mixed():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',

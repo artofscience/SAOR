@@ -24,12 +24,12 @@ class Vanderplaats(Problem):
 
         # Initial point
         self.x0 = np.zeros(self.n, dtype=float)
-        self.x0[:self.N] = 5.       # initial -b-
-        self.x0[self.N:] = 40.      # initial -h-
+        self.x0[:self.N] = 5.  # initial -b-
+        self.x0[self.N:] = 40.  # initial -h-
 
         # Variable bounds
-        self.xmin = np.ones(self.n, dtype=float) * 1e-1         # self.xmin
-        self.xmax = np.ones(self.n, dtype=float) * 1e2          # self.xmax
+        self.xmin = np.ones(self.n, dtype=float) * 1e-1  # self.x_min
+        self.xmax = np.ones(self.n, dtype=float) * 1e2  # self.x_max
 
         # Parameters
         self.sig_max = 14e3  # Stress limit

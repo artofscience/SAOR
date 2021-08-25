@@ -31,9 +31,9 @@ def example_polynomial_2D():
 
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor2(Linear()))
-    # mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.xmin, prob.xmax))
-    # mixed_ml.add_move_limit(MoveLimit(move_limit=0.1, dx=prob.xmax-prob.xmin))
-    # mixed_ml.add_move_limit(AdaptiveMoveLimit(move_limit=0.1, dx=prob.xmax[0]-prob.xmin[0]), var=[0])
+    # mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.x_min, prob.x_max))
+    # mixed_ml.add_move_limit(MoveLimit(move_limit=0.1, dx=prob.x_max-prob.x_min))
+    # mixed_ml.add_move_limit(AdaptiveMoveLimit(move_limit=0.1, dx=prob.x_max[0]-prob.x_min[0]), var=[0])
     # subprob.set_limits([mixed_ml])
     # mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
     subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
@@ -42,11 +42,11 @@ def example_polynomial_2D():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path="../../../../Desktop")
@@ -112,11 +112,11 @@ def example_polynomial_2D_mixed():
     solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
-    # criterion = KKT(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = ObjectiveChange()
-    # criterion = VariableChange(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
     # criterion = Feasibility()
-    # criterion = Alltogether(xmin=prob.xmin, xmax=prob.xmax)
+    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path="../../../../Desktop")
