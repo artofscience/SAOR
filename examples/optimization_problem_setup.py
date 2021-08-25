@@ -79,6 +79,32 @@ def mma_loop(n):
 
 
 """
+For other users, it might be more convenient to use the wrapper function `optimizer.py` for the optimization loop.
+An example of such a case can be found below:
+"""
+
+
+def main_optimizer(n):
+    """
+    This is an example where the optimizer wrapper function is used.
+    The result should be equivalent to that of `example_polynomial_2D().`
+
+    :return:
+    """
+
+    # Instantiate problem, solver, approximation and convergence criterion
+    problem = Dummy(n)
+    int_var = sao.intervening_variables.MMA()
+    approximation = sao.approximations.Taylor1(int_var)
+    solver = sao.solvers.primal_dual_interior_point.pdip
+    x = np.array([2, 1.5])
+    converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
+
+    # Call wrapper function that includes the main optimization loop
+    sao.optimizer.optimize(problem, solver, approximation, converged, x0=x, plot_flag=True)       # TODO: This `converged` here is a bit non-intuitive imo
+
+
+"""
 Advanced users might prefer a type of approximation depend on some convergence property.
 In that case one may, for example, switch between approximation during the optimziation.
 Note in the following example the move limit and approximations are generated outside of the loop,
