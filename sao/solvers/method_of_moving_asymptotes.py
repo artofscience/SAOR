@@ -17,10 +17,7 @@ def mma(problem, x0=None, move=0.2, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2
     lims = [lim1, lim2, lim3]
 
     sub_problem = Subproblem(approx, lims)
-    if x0 is None:
-        x = problem.x0
-    else:
-        x = x0
+    x = problem.x0 if x0 is None else x0
     converged = VariableChange(x, tolerance=stop_tol)
 
     iter = 0
