@@ -28,7 +28,7 @@ class CVXOPT:
                 .. math::
 
                     \\tilde{g}_j^{(k)}[mathbf{x}] \\leq 0  ,  j = 1, ..., m \\\\
-                    \\alpha_i^{(k)} \\leq  x_i \\leq  \\beta_i^{(k)}  ,  i = 1, ..., n \\\\
+                    \\x_min_i^{(k)} \\leq  x_i \\leq  \\x_max_i^{(k)}  ,  i = 1, ..., n \\\\
 
                 Input:  subprob
                 Output: x
@@ -38,7 +38,7 @@ class CVXOPT:
 
         # Linear inequality constraints (problem bounds)
         G = matrix(np.append(np.eye(self.n), -np.eye(self.n), axis=0))
-        h = matrix(np.append(self.subprob.beta, -self.subprob.alpha), (2*self.n, 1))
+        h = matrix(np.append(self.subprob.x_max, -self.subprob.x_min), (2*self.n, 1))
 
         return solvers.cp(self.F, G, h)['x']
 
@@ -52,7 +52,7 @@ class CVXOPT:
         """
 
         if x is None:
-            x0 = matrix(0.5*(self.subprob.alpha+self.subprob.beta), (self.n, 1))
+            x0 = matrix(0.5*(self.subprob.x_min+self.subprob.x_max), (self.n, 1))
             return self.m, x0
         f = matrix(self.subprob.g(np.array(x).flatten()), (self.m+1, 1))
         Df = matrix(self.subprob.dg(np.array(x).flatten()), (self.m+1, self.n))
