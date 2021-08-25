@@ -108,7 +108,7 @@ def adaptive_approximation(n):
 
 
 """
-The framework also allows for easy conditiona acceptance. 
+The framework also allows for easy conditional acceptance. 
 In the following example we demonstrate how to adapt the loop to 
 only allow designs that improve the objective:
 """
