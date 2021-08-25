@@ -21,7 +21,7 @@ def optimize(problem, solver, approximation, criterion, plotter=None, *args, **k
 
     :param problem: An object that holds the initial problem to be solved.
     :param solver: An object that holds the solver to be used.
-    :param approximation: An object that holds the approximation (and the intervening vars) to be used, e.g. Taylor1(Linear())
+    :param approximation: An object that holds the approximation (and the intervening variables) to be used.
     :param criterion: An object that holds the convergence criterion.
     :param plotter: An object that performs plotting functionalities as the optimization runs.
     :param args:
@@ -46,7 +46,7 @@ def optimize(problem, solver, approximation, criterion, plotter=None, *args, **k
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = problem.g(x_k)
         df = problem.dg(x_k)
-        ddf = (problem.ddg(x_k) if subproblem.approx.__class__.__name__ == 'Taylor2' else None)
+        ddf = problem.ddg(x_k) if isinstance(approximation, sao.approximations.Taylor2) else None
 
         # Build approximate sub-problem at X^(k)
         subproblem.build(x_k, f, df, ddf)
