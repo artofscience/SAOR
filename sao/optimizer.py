@@ -14,7 +14,7 @@ logger.addHandler(stream_handler)
 np.set_printoptions(precision=4)
 
 
-def optimize(problem, solver, approximation, criterion, plotter=None, *args, **kwargs):
+def optimize(problem, solver, approximation, converged, plotter=None, *args, **kwargs):
     """
     This is a wrapper function for the main file of an optimization.
     Takes as arguments the following objects and performs the optimization main loop.
@@ -22,14 +22,16 @@ def optimize(problem, solver, approximation, criterion, plotter=None, *args, **k
     :param problem: An object that holds the initial problem to be solved.
     :param solver: An object that holds the solver to be used.
     :param approximation: An object that holds the approximation (and the intervening variables) to be used.
-    :param criterion: An object that holds the convergence criterion.
+    :param converged: An object that holds the convergence criterion.
     :param plotter: An object that performs plotting functionalities as the optimization runs.
     :param args:
     :param kwargs:
     :return:
     """
 
-    logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
+    logger.info(f"Solving {problem.__class__.__name__} using "
+                f"{approximation.interv[0].__class__.__name__} intervening variables "
+                f"and {solver.__name__} solver")
 
     # Instantiate the subproblem       # TODO: improve imports (didn't want to use import *)
     subproblem = sao.problems.subproblem.Subproblem(approximation=approximation)
@@ -41,7 +43,7 @@ def optimize(problem, solver, approximation, criterion, plotter=None, *args, **k
     itte = 0
 
     # Optimization loop
-    while not criterion.converged:
+    while not converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = problem.g(x_k)
@@ -53,6 +55,7 @@ def optimize(problem, solver, approximation, criterion, plotter=None, *args, **k
 
         # Call solver (x_k, g and dg are within approx instance)
         x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subproblem)
+        x_k,  = solver.subsolv(subproblem)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(

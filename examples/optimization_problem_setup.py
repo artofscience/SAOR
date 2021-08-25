@@ -165,5 +165,6 @@ def conditional_acceptance(n):
 if __name__ == "__main__":
     mma_wrapper(4)
     mma_loop(4)
+    main_optimizer(4)
     adaptive_approximation(4)
     conditional_acceptance(4)
