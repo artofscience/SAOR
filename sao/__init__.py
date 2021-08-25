@@ -4,4 +4,5 @@ from sao import approximations, \
     move_limits, \
     problems, \
     convergence_criteria, \
-    solvers
+    solvers, \
+    optimizer

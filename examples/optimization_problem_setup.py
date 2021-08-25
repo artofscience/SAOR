@@ -100,7 +100,7 @@ def main_optimizer(n):
     x = np.array([2, 1.5])
     converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
 
-    # Call wrapper function that includes the main optimization loop
+    # Call the wrapper function that conducts the optimization loop
     sao.optimizer.optimize(problem, solver, approximation, converged, x0=x, plot_flag=True)       # TODO: This `converged` here is a bit non-intuitive imo
 
 
