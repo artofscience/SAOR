@@ -6,6 +6,7 @@ from sao.solvers.interior_point import InteriorPointX as ip_x
 from sao.solvers.interior_point import InteriorPointXY as ip_xy
 from sao.solvers.interior_point import InteriorPointXYZ as ip_xyz
 from sao.solvers.SolverIP_Svanberg import SvanbergIP
+from sao.solvers.cvxopt_wrapper import CVXOPT
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -43,13 +44,21 @@ def test_square(n):
     # Test sao.solvers.SolverIP_Svanberg.py
     logger.info("Solve x**2 using SvanbergIP")
     problem_svan = Square(n)
-    mysolver_svan = SvanbergIP(problem_svan.n, 1)
+    mysolver_svan = SvanbergIP(problem_svan.n, problem_svan.m)
     x, y, z, lam, xsi, eta, mu, zet, s = mysolver_svan.subsolv(problem_svan)
     assert np.sum(x) == pytest.approx(1, rel=1e-4)
+
+    # Test sao.solvers.cvxopt_wrapper.py
+    logger.info("Solve x**2 using cvxopt")
+    problem_cvxopt = Square(n)
+    mysolver_cvxopt = CVXOPT(problem_cvxopt.n, problem_cvxopt.m)
+    x_cvxopt = mysolver_cvxopt.subsolv(problem_svan)
+    assert np.sum(x_cvxopt) == pytest.approx(1, rel=1e-4)
 
     # Compare results of solvers
     assert np.linalg.norm(mysolver_xyz.w.x - mysolver_xy.w.x) == pytest.approx(0, abs=1e-4)
     assert np.linalg.norm(x - mysolver_x.w.x) == pytest.approx(0, abs=1e-4)
+    assert np.linalg.norm(x_cvxopt - x) == pytest.approx(0, abs=1e-4)
 
 
 if __name__ == "__main__":

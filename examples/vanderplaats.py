@@ -64,6 +64,7 @@ def example_vanderplaats(N):
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
 
         # Apply scaling strategy
         f, df = scaling.scale(f, df)
@@ -143,6 +144,7 @@ def example_vanderplaats_mixed(N):
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
 
         # Apply scaling strategy
         f, df = scaling.scale(f, df)
