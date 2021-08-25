@@ -4,3 +4,4 @@ from .interior_point import InteriorPointXY
 from .interior_point import InteriorPointXYZ
 from .SolverIP_Svanberg import SvanbergIP
 from .cvxopt_wrapper import CVXOPT
+from .scipy_wrapper import SCIPY

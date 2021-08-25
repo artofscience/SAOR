@@ -18,7 +18,7 @@ class Plot2:
         """
         self.iter_pair = 0
         self.iter_contour = 0
-        self.x = np.linspace(prob.x_min, prob.x_max, 100).T
+        self.x = np.linspace(prob.xmin, prob.xmax, 100).T
         self.resp = kwargs.get('responses', np.arange(0, prob.m + 1))
         self.vars = kwargs.get('variables', np.arange(0, prob.n))
         self.fig = []
@@ -113,9 +113,9 @@ class Plot2:
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='o', markersize=9)
-                    alpha = plt.axvline(x=subprob.alpha[i], color='b', linestyle=(0, (3, 8)),
+                    alpha = plt.axvline(x=subprob.x_min[i], color='b', linestyle=(0, (3, 8)),
                                         label=fr'$\alpha_{i}^{{({itte})}}$')
-                    beta = plt.axvline(x=subprob.beta[i], color='b', linestyle=(0, (3, 8, 1, 8)),
+                    beta = plt.axvline(x=subprob.x_max[i], color='b', linestyle=(0, (3, 8, 1, 8)),
                                        label=fr'$\beta_{i}^{{({itte})}}$')
                 else:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'r--',
@@ -126,9 +126,9 @@ class Plot2:
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='s', markersize=9)
-                    alpha = plt.axvline(x=subprob.alpha[i], color='r', linestyle=(0, (3, 8)),
+                    alpha = plt.axvline(x=subprob.x_min[i], color='r', linestyle=(0, (3, 8)),
                                         label=fr'$\alpha_{i}^{{({itte})}}$')
-                    beta = plt.axvline(x=subprob.beta[i], color='r', linestyle=(0, (3, 8, 1, 8)),
+                    beta = plt.axvline(x=subprob.x_max[i], color='r', linestyle=(0, (3, 8, 1, 8)),
                                        label=fr'$\beta_{i}^{{({itte})}}$')
 
                 # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
@@ -270,9 +270,9 @@ class Plot2:
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
         # Plot approximate subproblem bounds -alpha- and -beta-
-        plt.gca().add_patch(Rectangle((subprob.alpha[0], subprob.alpha[1]),
-                                      subprob.beta[0] - subprob.alpha[0],
-                                      subprob.beta[1] - subprob.alpha[1],
+        plt.gca().add_patch(Rectangle((subprob.x_min[0], subprob.x_min[1]),
+                                      subprob.x_max[0] - subprob.x_min[0],
+                                      subprob.x_max[1] - subprob.x_min[1],
                                       edgecolor='white',
                                       facecolor='none',
                                       linestyle=(0, (15, 5, 1, 5))))
@@ -386,9 +386,9 @@ class Plot3(Plot2):
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='o', markersize=9)
-                    alpha = plt.axvline(x=subprob.alpha[i], color='b', linestyle=(0, (3, 8)),
+                    alpha = plt.axvline(x=subprob.x_min[i], color='b', linestyle=(0, (3, 8)),
                                         label=fr'$\alpha_{i}^{{({itte})}}$')
-                    beta = plt.axvline(x=subprob.beta[i], color='b', linestyle=(0, (3, 8, 1, 8)),
+                    beta = plt.axvline(x=subprob.x_max[i], color='b', linestyle=(0, (3, 8, 1, 8)),
                                        label=fr'$\beta_{i}^{{({itte})}}$')
                 else:
                     approx_resp, = plt.plot(self.x[i, :], approx_response_array[j, :], 'r--',
@@ -399,9 +399,9 @@ class Plot3(Plot2):
                                                '$^{(}$' + '$^{}$'.format({itte}) + '$^{)}$' +
                                                '$ = {}$'.format(np.around(x_k[i], decimals=4)),
                                          color='k', marker='s', markersize=9)
-                    alpha = plt.axvline(x=subprob.alpha[i], color='r', linestyle=(0, (3, 8)),
+                    alpha = plt.axvline(x=subprob.x_min[i], color='r', linestyle=(0, (3, 8)),
                                         label=fr'$\alpha_{i}^{{({itte})}}$')
-                    beta = plt.axvline(x=subprob.beta[i], color='r', linestyle=(0, (3, 8, 1, 8)),
+                    beta = plt.axvline(x=subprob.x_max[i], color='r', linestyle=(0, (3, 8, 1, 8)),
                                        label=fr'$\beta_{i}^{{({itte})}}$')
 
                 # Delete the plot for (k-2), i.e. L_ji, U_ji, g_i(X), g_i_tilde(X) & respective legends
@@ -544,9 +544,9 @@ class Plot3(Plot2):
                                    marker='o', edgecolors='yellow', color='k', s=100)
 
         # Plot approximate subproblem bounds -alpha- and -beta-
-        plt.gca().add_patch(Rectangle((subprob.alpha[0], subprob.alpha[1]),
-                                      subprob.beta[0] - subprob.alpha[0],
-                                      subprob.beta[1] - subprob.alpha[1],
+        plt.gca().add_patch(Rectangle((subprob.x_min[0], subprob.x_min[1]),
+                                      subprob.x_max[0] - subprob.x_min[0],
+                                      subprob.x_max[1] - subprob.x_min[1],
                                       edgecolor='white',
                                       facecolor='none',
                                       linestyle=(0, (15, 5, 1, 5))))

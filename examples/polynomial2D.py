@@ -7,7 +7,7 @@ from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit, MixedMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
-from sao.solvers import SvanbergIP, CVXOPT
+from sao.solvers import SvanbergIP, CVXOPT, SCIPY
 from util.plotter import Plot2, Plot3
 from Problems.Polynomial_2D import Polynomial2D
 
@@ -218,7 +218,64 @@ def example_polynomial_2D_cvxopt():
     logger.info('Optimization loop converged!')
 
 
+def example_polynomial_2D_scipy():
+    logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
+
+    # Instantiate problem
+    prob = Polynomial2D()
+
+    # Instantiate a non-mixed approximation scheme
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
+    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
+
+    # Initialize design and iteration counter
+    x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)
+    itte = 0
+
+    # Instantiate solver
+    solver = SCIPY(prob.n, prob.m, x0=x_k)
+
+    # Instantiate convergence criterion
+    criterion = VariableChange(x_k)
+
+    # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+    plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path="../../../../Desktop")
+    plotter2_flag = True
+    if plotter2_flag:
+        plotter2 = Plot2(prob)
+
+    # Optimization loop
+    while itte < 100:       # not criterion.converged:
+
+        # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
+        f = prob.g(x_k)
+        df = prob.dg(x_k)
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor2) else None
+
+        # Build approximate sub-problem at X^(k)
+        subprob.build(x_k, f, df, ddf)
+
+        # Plot current approximation
+        if plotter2_flag:
+            # plotter2.plot_pair(x_k, f, prob, subprob, itte)
+            plotter2.contour_plot(x_k, f, prob, subprob, itte)
+
+        # Call solver (x_k, g and dg are within approx instance)
+        x_k = solver.subsolv(subprob)
+
+        # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
+        logger.info(
+            'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+                itte, np.array2string(x_k[0]), f[0], 0, max(0, max(f[1:]))))
+        plotter.plot([f[0], f[1], 0, max(0, max(f[1:]))])
+
+        itte += 1
+
+    logger.info('Optimization loop converged!')
+
+
 if __name__ == "__main__":
     # example_polynomial_2D()
     # example_polynomial_2D_mixed()
-    example_polynomial_2D_cvxopt()
+    # example_polynomial_2D_cvxopt()
+    example_polynomial_2D_scipy()
