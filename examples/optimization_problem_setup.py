@@ -85,12 +85,6 @@ An example of such a case can be found below:
 
 
 def main_optimizer(n):
-    """
-    This is an example where the optimizer wrapper function is used.
-    The result should be equivalent to that of `example_polynomial_2D().`
-
-    :return:
-    """
 
     # Instantiate problem, solver, approximation and convergence criterion
     problem = Dummy(n)
