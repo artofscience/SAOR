@@ -35,8 +35,8 @@ def optimize(problem, solver, approximation, converged, plotter=None, *args, **k
 
     # Instantiate the subproblem       # TODO: improve imports (didn't want to use import *)
     subproblem = sao.problems.subproblem.Subproblem(approximation=approximation)
-    subproblem.set_limits([sao.move_limits.Bounds(problem.xmin, problem.xmax),
-                           sao.move_limits.MoveLimit(move_limit=0.1, dx=problem.xmax - problem.xmin)])
+    subproblem.set_limits([sao.move_limits.Bounds(problem.x_min, problem.x_max),
+                           sao.move_limits.MoveLimit(move_limit=0.1, dx=problem.x_max - problem.x_min)])
 
     # Initialize design and iteration counter
     x_k = kwargs.get('x0', problem.x0)

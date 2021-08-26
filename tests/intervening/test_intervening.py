@@ -1,7 +1,7 @@
 import pytest
 import logging
 import numpy as np
-from Problems.nd.Square import Square
+from Problems._nd.Square import Square
 from sao.intervening_variables import Linear, Reciprocal, MMA, MixedIntervening, Exponential
 from sao.intervening_variables.mixed_intervening import fill_set_when_emtpy
 
@@ -192,12 +192,12 @@ def test_add_per_variable_and_response_multiple_overlap(n):
     mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
     mix.add_intervening(Reciprocal(), resp=[0, 1], var=np.arange(2, n))
     mix.add_intervening(Exponential(-2), resp=1)
-    mix.add_intervening(MMA(prob.xmin, prob.xmax), resp=[0, 1], var=np.arange(2))
+    mix.add_intervening(MMA(prob.x_min, prob.x_max), resp=[0, 1], var=np.arange(2))
     mix.add_intervening(Exponential(3), resp=0, var=np.arange(n))
     intAA = Linear()
     intA1 = Reciprocal()
     int1A = Exponential(-2)
-    intA0 = MMA(prob.xmin, prob.xmax)
+    intA0 = MMA(prob.x_min, prob.x_max)
     int0A = Exponential(3)
 
     g = prob.g(prob.x0)

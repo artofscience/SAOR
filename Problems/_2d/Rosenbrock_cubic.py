@@ -10,8 +10,8 @@ class RosenCubic(Problem):
         super().__init__()
         self.n = 2
         self.m = 2
-        self.xmin = np.array([0., 0.])
-        self.xmax = np.array([3., 3.])
+        self.x_min = np.array([0., 0.])
+        self.x_max = np.array([3., 3.])
         self.x0 = np.array([0.5, 0.3])
         self.name = 'RosenCubic'
 

@@ -11,8 +11,8 @@ class Polynomial1D:
     def __init__(self):
         self.n = 1
         self.m = 1
-        self.xmin = np.array([-2.])
-        self.xmax = np.array([1.5])
+        self.x_min = np.array([-2.])
+        self.x_max = np.array([1.5])
         self.x0  = np.array([1.2])      # use 6.9 to avoid local minimum or 11.5 to see if it gets stuck
 
     def g(self, x):

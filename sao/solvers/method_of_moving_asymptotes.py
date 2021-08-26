@@ -11,8 +11,8 @@ def mma(problem, x0=None, move=0.2, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2
     int_variable = MMA(xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr, asybound=asybound,
                        albefa=albefa, oscillation_tol=oscillation_tol)
     approx = Taylor1(int_variable)
-    lim1 = Bounds(problem.xmin, problem.xmax)
-    lim2 = MoveLimit(move * (problem.xmax - problem.xmin))
+    lim1 = Bounds(problem.x_min, problem.x_max)
+    lim2 = MoveLimit(move * (problem.x_max - problem.x_min))
     lim3 = AdaptiveMoveLimit(move_limit=move)
     lims = [lim1, lim2, lim3]
 

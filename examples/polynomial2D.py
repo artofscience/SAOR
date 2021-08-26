@@ -4,10 +4,11 @@ from sao.approximations import Taylor1, Taylor2
 from sao.problems import Subproblem
 from sao.intervening_variables import Linear, MMA, MMAsquared, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit
+from sao.convergence_criteria import VariableChange
 from sao.util import Plot
 from sao.solvers import SvanbergIP, CVXOPT
 from util.plotter import Plot2, Plot3
-from Problems.Polynomial_2D import Polynomial2D
+from Problems._2d.Polynomial_2D import Polynomial2D
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def example_polynomial_2D():
     # mixed_ml.add_move_limit(AdaptiveMoveLimit(move_limit=0.1, dx=prob.x_max[0]-prob.x_min[0]), var=[0])
     # subprob.set_limits([mixed_ml])
     # mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1, dx=prob.x_max - prob.x_min)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -99,12 +100,12 @@ def example_polynomial_2D_mixed():
     prob = Polynomial2D()
 
     # Instantiate a mixed intervening variable
-    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
-    mix.set_intervening(MMAsquared(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.x_min, prob.x_max))
+    mix.set_intervening(MMAsquared(prob.x_min, prob.x_max), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.2)])
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.2)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -166,8 +167,8 @@ def example_polynomial_2D_cvxopt():
     prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1, dx=prob.xmax - prob.xmin)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1, dx=prob.x_max - prob.x_min)])
 
     # Instantiate solver
     solver = CVXOPT(prob.n, prob.m)
@@ -202,7 +203,6 @@ def example_polynomial_2D_cvxopt():
             plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        # x_k, _ = solver.subsolv(subprob)
         x_k = np.array(solver.subsolv(subprob)).flatten()
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)

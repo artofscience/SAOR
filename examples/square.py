@@ -7,7 +7,7 @@ from sao.move_limits import Bounds, MoveLimit
 from sao.util import Plot
 from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
-from Problems.nd.Square import Square
+from Problems._nd.Square import Square
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

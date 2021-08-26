@@ -7,7 +7,7 @@ from sao.move_limits import Bounds, MoveLimit
 from sao.util import Plot
 from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
-from Problems.Li2015_Fig4 import Li2015Fig4
+from Problems._2d.Li2015_Fig4 import Li2015Fig4
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -28,8 +28,8 @@ def example_truss2d():
     prob = Li2015Fig4()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -92,13 +92,13 @@ def example_truss2d_mixed():
     prob = Li2015Fig4()
 
     # Instantiate a mixed intervening variable
-    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.xmin, prob.xmax))
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.x_min, prob.x_max))
     mix.set_intervening(Linear(), var=[0], resp=[0])
     mix.set_intervening(Exponential(2), var=[1], resp=[0])  # MMA(prob.x_min, prob.x_max)
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=SphericalTaylor2(mix))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

@@ -72,8 +72,8 @@ class Pdip(ABC):
     wold: State = NotImplemented
 
     def get_point(self):
-        return self.w.x - self.problem.alpha, \
-               self.problem.beta - self.w.x, \
+        return self.w.x - self.problem.x_min, \
+               self.problem.x_max - self.w.x, \
                self.problem.g(self.w.x), \
                self.problem.dg(self.w.x), \
                self.problem.ddg(self.w.x)
@@ -86,8 +86,8 @@ class Pdip(ABC):
 
     def get_step_size(self, alphab=-1.01):
         step_x = [max(alphab * dw / w) for w, dw in zip(tuple(self.w)[1:], tuple(self.dw)[1:])]
-        step_alpha = max(alphab * self.dw.x / (self.w.x - self.problem.alpha))
-        step_beta = max(-alphab * self.dw.x / (self.problem.beta - self.w.x))
+        step_alpha = max(alphab * self.dw.x / (self.w.x - self.problem.x_min))
+        step_beta = max(-alphab * self.dw.x / (self.problem.x_max - self.w.x))
         return 1.0 / max(1.0, max(step_x), step_alpha, step_beta)
 
 
@@ -97,8 +97,8 @@ class Pdipx(Pdip):
 
         self.w = State(
             x0,
-            np.maximum(1 / (x0 - self.problem.alpha), 1),
-            np.maximum(1 / (self.problem.beta - x0), 1),
+            np.maximum(1 / (x0 - self.problem.x_min), 1),
+            np.maximum(1 / (self.problem.x_max - x0), 1),
             np.ones(self.problem.m),
             np.ones(self.problem.m)
         )
@@ -118,8 +118,8 @@ class Pdipx(Pdip):
         """
         dg = self.problem.dg(self.w.x)
         self.r.x = dg[0] + self.w.lam.dot(dg[1:]) - self.w.xsi + self.w.eta
-        self.r.xsi = self.w.xsi * (self.w.x - self.problem.alpha) - epsi
-        self.r.eta = self.w.eta * (self.problem.beta - self.w.x) - epsi
+        self.r.xsi = self.w.xsi * (self.w.x - self.problem.x_min) - epsi
+        self.r.eta = self.w.eta * (self.problem.x_max - self.w.x) - epsi
         self.r.lam = self.problem.g(self.w.x)[1:] + self.w.s
         self.r.s = self.w.lam * self.w.s - epsi
         return self.r.norm(), self.r.max()
@@ -342,7 +342,7 @@ class Pdipxyz(Pdipxy):
 def pdip(problem, x0=None, variables=Pdipxyz, epsimin=1e-9, max_outer_iter=100,
          max_lines_iter=20, max_inner_iter=20, epsifac=0.9, epsired=0.1):
     if x0 is None:
-        x0 = 0.5 * (problem.alpha + problem.beta)
+        x0 = 0.5 * (problem.x_min + problem.x_max)
 
     iter = 0
     epsi = 1

@@ -42,12 +42,12 @@ class SvanbergIP:
         c = self.cCoef * np.ones(self.m)
         d = np.zeros(self.m)  # self.d = np.ones((self.m + 1, 1))
         epsi = 1
-        x = 0.5 * (subprob.alpha + subprob.beta)
+        x = 0.5 * (subprob.x_min + subprob.x_max)
         y = np.ones(self.m)
         z = 1
         lam = np.ones(self.m)
-        xsi = np.maximum((1.0 / (x - subprob.alpha)), 1)
-        eta = np.maximum((1.0 / (subprob.beta - x)), 1)
+        xsi = np.maximum((1.0 / (x - subprob.x_min)), 1)
+        eta = np.maximum((1.0 / (subprob.x_max - x)), 1)
         mu = np.maximum(1, 0.5 * c)
         zet = 1
         s = np.ones(self.m)
@@ -84,13 +84,13 @@ class SvanbergIP:
                 d2psi_dx2 = (dg_j_tilde2_value[0, :] + np.dot(lam, dg_j_tilde2_value[1:, :]))
 
                 # Calculation of right hand sides of partially reduced system (Svanberg1998/page 16)
-                delx = dpsi_dx - epsi / (x - subprob.alpha) + epsi / (subprob.beta - x)
+                delx = dpsi_dx - epsi / (x - subprob.x_min) + epsi / (subprob.x_max - x)
                 dely = c + d * y - lam - epsi / y
                 delz = a0 - np.dot(a, lam) - epsi / z
                 dellam = g_j_tilde_value[1:] - a * z - y + epsi / lam
 
                 # Calculation of diagonal matrices: Dx, Dy, Dlam
-                diagx = d2psi_dx2 + xsi/(x - subprob.alpha) + eta/(subprob.beta - x)
+                diagx = d2psi_dx2 + xsi/(x - subprob.x_min) + eta/(subprob.x_max - x)
                 diagy = d + mu / y
                 diaglam = s / lam                           # - is missing
                 diaglamyi = diaglam + 1.0 / diagy           # what is that?
@@ -110,8 +110,8 @@ class SvanbergIP:
                 dz = solut[self.m]
                 dx = -delx / diagx - np.dot(dg_j_tilde_value[1:, :].T, dlam) / diagx
                 dy = -dely / diagy + dlam / diagy
-                dxsi = -xsi + epsi / (x - subprob.alpha) - (xsi * dx) / (x - subprob.alpha)
-                deta = -eta + epsi / (subprob.beta - x) + (eta * dx) / (subprob.beta - x)
+                dxsi = -xsi + epsi / (x - subprob.x_min) - (xsi * dx) / (x - subprob.x_min)
+                deta = -eta + epsi / (subprob.x_max - x) + (eta * dx) / (subprob.x_max - x)
                 dmu = -mu + epsi / y - (mu * dy) / y
                 dzet = -zet + epsi / z - zet * dz / z
                 ds = -s + epsi / lam - (s * dlam) / lam
@@ -124,10 +124,10 @@ class SvanbergIP:
                 stepxx = -1.01 * dxx / xx
                 stmxx = np.max(stepxx)
 
-                stepalpha = -1.01 * dx / (x - subprob.alpha)
+                stepalpha = -1.01 * dx / (x - subprob.x_min)
                 stmalpha = np.max(stepalpha)
 
-                stepbeta = 1.01 * dx / (subprob.beta - x)
+                stepbeta = 1.01 * dx / (subprob.x_max - x)
                 stmbeta = np.max(stepbeta)
 
                 # Step-size calculation: We 're looking for the max{theta} that satisfies the above equalities
@@ -195,8 +195,8 @@ class SvanbergIP:
         rey = c + d * y - mu - lam
         rez = a0 - zet - np.dot(a, lam)
         relam = g_j_tilde_value[1:] - a * z - y + s
-        rexsi = xsi * (x - subprob.alpha) - epsi
-        reeta = eta * (subprob.beta - x) - epsi
+        rexsi = xsi * (x - subprob.x_min) - epsi
+        reeta = eta * (subprob.x_max - x) - epsi
         remu = mu * y - epsi
         rezet = zet * z - epsi
         res = lam * s - epsi

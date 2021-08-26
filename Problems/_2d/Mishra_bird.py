@@ -10,7 +10,7 @@ class MishraBird(Problem):
         super().__init__()
         self.n = 2
         self.m = 1
-        self.xmin = np.array([0., 0.])
+        self.x_min = np.array([0., 0.])
         self.xmax = np.array([10., 6.5])
         self.x0 = np.array([7.3, 2.])
         self.name = 'MishraBird'

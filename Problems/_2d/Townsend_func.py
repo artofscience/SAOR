@@ -11,8 +11,8 @@ class Townsend(Problem):
         super().__init__()
         self.n = 2
         self.m = 1
-        self.xmin = np.array([0., 0.])
-        self.xmax = np.array([4.75, 4.25])
+        self.x_min = np.array([0., 0.])
+        self.x_max = np.array([4.75, 4.25])
         self.x0 = np.array([1.2, 1.])
         self.name = 'Townsend'
 

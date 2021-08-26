@@ -10,8 +10,8 @@ class Polynomial2D:
     def __init__(self):
         self.n = 2
         self.m = 3
-        self.xmin = np.array([0.1, 0.1])
-        self.xmax = np.array([3.3, 3.3])
+        self.x_min = np.array([0.1, 0.1])
+        self.x_max = np.array([3.3, 3.3])
         self.x0  = np.array([2, 2.1])
 
     def g(self, x):

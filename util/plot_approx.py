@@ -142,7 +142,7 @@ def plot_approx():
     subprob1 = sao.Subproblem(approximation=sao.Taylor1(sao.Linear()))
     subprob2 = sao.Subproblem(approximation=sao.Taylor2(sao.Linear()))
     subprob3 = sao.Subproblem(approximation=sao.Taylor1(sao.Reciprocal()))
-    subprob4 = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.xmin, prob.xmax)))
+    subprob4 = sao.Subproblem(approximation=sao.Taylor1(sao.MMA(prob.x_min, prob.x_max)))
 
     # Instantiate plotter
     plotter = PlotApprox(prob, variables=np.array([0]), responses=np.array([0]))

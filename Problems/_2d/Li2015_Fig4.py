@@ -12,8 +12,8 @@ class Li2015Fig4(Problem):
         self.m = 2
         self.c1 = 1.0
         self.c2 = 0.124
-        self.xmin = np.array([0.2, 0.1])
-        self.xmax = np.array([4., 1.6])
+        self.x_min = np.array([0.2, 0.1])
+        self.x_max = np.array([4., 1.6])
         self.x0 = np.array([2.5, 1.])
         self.name = 'Li2015Fig4'
 

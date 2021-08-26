@@ -10,8 +10,8 @@ class Simionescu(Problem):
         super().__init__()
         self.n = 2
         self.m = 1
-        self.xmin = np.array([0., 0.])
-        self.xmax = np.array([2.5, 2.5])
+        self.x_min = np.array([0., 0.])
+        self.x_max = np.array([2.5, 2.5])
         self.x0 = np.array([0.6, 0.5])
         self.name = 'Simionescu'
 

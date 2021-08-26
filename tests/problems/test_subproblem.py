@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import logging
-from Problems.nd.Square import Square
+from Problems._nd.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import ConLin, Reciprocal, MMA
 from sao.problems.subproblem import Subproblem
@@ -172,9 +172,9 @@ def test_conlin_taylor2(n, h):
 def test_mma_taylor1(n, h):
     logger.info("Testing Subproblem(Taylor1, y=MMA)")
     prob = Square(n)
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(xmin=prob.xmin, xmax=prob.xmax)))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(xmin=prob.x_min, xmax=prob.x_max)))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
-    inter = MMA(prob.xmin, prob.xmax)
+    inter = MMA(prob.x_min, prob.x_max)
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
     dfdy = prob.dg(prob.x0) * inter.dxdy(prob.x0)
 
@@ -195,9 +195,9 @@ def test_mma_taylor1(n, h):
 def test_mma_taylor2(n, h):
     logger.info("Testing Subproblem(Taylor2, y=MMA)")
     prob = Square(n)
-    subprob = Subproblem(approximation=Taylor2(intervening=MMA(prob.xmin, prob.xmax)))
+    subprob = Subproblem(approximation=Taylor2(intervening=MMA(prob.x_min, prob.x_max)))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
-    inter = MMA(prob.xmin, prob.xmax)
+    inter = MMA(prob.x_min, prob.x_max)
     inter.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
     dfdy = prob.dg(prob.x0) * inter.dxdy(prob.x0)
     ddfddy = prob.ddg(prob.x0) * (inter.dxdy(prob.x0)) ** 2 + prob.dg(prob.x0) * (inter.ddxddy(prob.x0))

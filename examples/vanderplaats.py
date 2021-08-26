@@ -8,7 +8,7 @@ from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScali
 from sao.util import Plot
 from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
-from Problems.nd.VanderplaatsBeam import Vanderplaats
+from Problems._nd.VanderplaatsBeam import Vanderplaats
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
