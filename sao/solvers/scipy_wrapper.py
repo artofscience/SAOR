@@ -41,8 +41,10 @@ class SCIPY:
         ineq_cons = {'type': 'ineq',
                      'fun' : self.constraints,
                      'jac' : self.constraints_der}
-        solution = optimize.minimize(self.objective, x0, bounds=bounds, method='SLSQP',
-                                     jac=self.objective_der, constraints=ineq_cons, options={'ftol': 1e-8})
+        method = kwargs.get('method', 'SLSQP')
+        options = kwargs.get('options', None)
+        solution = optimize.minimize(self.objective, x0, bounds=bounds, method=method,
+                                     jac=self.objective_der, constraints=ineq_cons, options=options)
         return solution.x
 
     def objective(self, x):
