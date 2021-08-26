@@ -41,8 +41,8 @@ class SCIPY:
         ineq_cons = {'type': 'ineq',
                      'fun' : self.constraints,
                      'jac' : self.constraints_der}
-        solution = optimize.minimize(self.objective, x0, bounds=bounds, method='trust-constr',
-                                     jac=self.objective_der, constraints=ineq_cons, options={'gtol': 1e-6})
+        solution = optimize.minimize(self.objective, x0, bounds=bounds, method='SLSQP',
+                                     jac=self.objective_der, constraints=ineq_cons, options={'ftol': 1e-8})
         return solution.x
 
     def objective(self, x):
