@@ -1,11 +1,9 @@
 import numpy as np
 import logging
-from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
-from sao.problems import Problem, Subproblem
+from sao.approximations import Taylor1, Taylor2
+from sao.problems import Subproblem
 from sao.intervening_variables import Linear, MMA, MMAsquared, MixedIntervening
-from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit, MixedMoveLimit
-from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
-from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
+from sao.move_limits import Bounds, MoveLimit
 from sao.util import Plot
 from sao.solvers import SvanbergIP, CVXOPT
 from util.plotter import Plot2, Plot3
@@ -119,7 +117,7 @@ def example_polynomial_2D_mixed():
     # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
-    plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path="../../../../Desktop")
+    plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
     plotter3_flag = True
     if plotter3_flag:
         plotter3 = Plot3(prob)

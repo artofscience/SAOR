@@ -9,13 +9,13 @@ from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScali
 from sao.util import Plot
 from sao.solvers import SvanbergIP
 from util.plotter import Plot2, Plot3
-from Problems.topology_optimization_benchmark.compliance import Compliance
-from Problems.topology_optimization_benchmark.stress import Stress
-from Problems.topology_optimization_benchmark.mechanism import Mechanism
-from Problems.topology_optimization_benchmark.eigenvalue import Eigenvalue
-from Problems.topology_optimization_benchmark.dynamic_compliance import DynamicCompliance
-from Problems.topology_optimization_benchmark.selfweight import Selfweight
-from Problems.topology_optimization_benchmark.thermomech import Thermomech
+from Problems.topology_optimization.compliance import Compliance
+from Problems.topology_optimization.stress import Stress
+from Problems.topology_optimization.mechanism import Mechanism
+from Problems.topology_optimization.eigenvalue import Eigenvalue
+from Problems.topology_optimization.dynamic_compliance import DynamicCompliance
+from Problems.topology_optimization.selfweight import Selfweight
+from Problems.topology_optimization.thermomech import Thermomech
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

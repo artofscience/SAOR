@@ -1,8 +1,8 @@
 import pytest
 import logging
 import numpy as np
-from Problems.Square import Square
-from sao.intervening_variables import Linear, ConLin, Reciprocal, MMA, MixedIntervening, Exponential
+from Problems.nd.Square import Square
+from sao.intervening_variables import Linear, Reciprocal, MMA, MixedIntervening, Exponential
 from sao.intervening_variables.mixed_intervening import fill_set_when_emtpy
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer

@@ -1,10 +1,9 @@
 import pytest
 import numpy as np
 import logging
-from Problems.Square import Square
+from Problems.nd.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import Linear, ConLin, Reciprocal, MMA
-from sao.move_limits.move_limit import Bounds
+from sao.intervening_variables import ConLin, Reciprocal, MMA
 from sao.problems.subproblem import Subproblem
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
