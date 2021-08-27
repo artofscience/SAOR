@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1
 from sao.problems import Subproblem
-from sao.intervening_variables import MMA, MMAsquared, MixedIntervening
+from sao.intervening_variables import MMA, MMAp, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
@@ -30,8 +30,8 @@ def example_vanderplaats(N):
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=5.0)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -102,7 +102,7 @@ def example_vanderplaats_mixed(N):
     assert prob.n == 2 * N
 
     # Instantiate a mixed intervening variable
-    mix = MixedIntervening(prob.n, prob.m + 1, default=MMAsquared(prob.xmin, prob.xmax))
+    mix = MixedIntervening(prob.n, prob.m + 1, default=MMAp(-2, prob.x_min, prob.x_max))
     # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=np.arange(1, N + 1))
     # mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=np.arange(1, N + 1))
     # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=[prob.m])
@@ -111,7 +111,7 @@ def example_vanderplaats_mixed(N):
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), AdaptiveMoveLimit(move_limit=5.0)])
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), AdaptiveMoveLimit(move_limit=5.0)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

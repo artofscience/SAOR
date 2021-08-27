@@ -101,7 +101,7 @@ def example_polynomial_2D_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.x_min, prob.x_max))
-    mix.set_intervening(MMAsquared(prob.x_min, prob.x_max), var=[0], resp=[1])
+    mix.set_intervening(MMAp(-2, prob.x_min, prob.x_max), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
