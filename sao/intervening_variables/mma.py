@@ -105,30 +105,46 @@ class MMA(Intervening):
         return np.clip(x, l, u, out=x)
 
 
-class MMAsquared(MMA):
+class MMAp(MMA):
     """A variant of the MMA intervening variables.
 
     Includes the following set of mixed intervening variables:
-        y_i = 1 / (U_i - x_i) ** 2     ,  if dg_j/dx_i >= 0
-        y_i = 1 / (x_i - L_i) ** 2     ,  if dg_j/dx_i < 0
+        y_i = (U_i - x_i) ** p     ,  if dg_j/dx_i >= 0
+        y_i = (x_i - L_i) ** p     ,  if dg_j/dx_i < 0
     """
+
+    def __init__(self, p=-1, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1,
+                 oscillation_tol=1e-10):
+        """
+        Initialise the exponential intervening variable with a power.
+        :param p: The power
+        :param xlim: Minimum x, in case of negative p, to prevent division by 0
+        """
+        assert p <= -1, f"Invalid power x^{p}, must be less than p<=-1."
+        self.p = p
+        super().__init__(xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr,
+                         asybound=asybound, albefa=albefa, oscillation_tol=oscillation_tol)
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
-        y[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]
-        y[~self.positive] = np.broadcast_to((1 / (x - self.low)**2), self.positive.shape)[~self.positive]
+        y[self.positive] = np.broadcast_to(((self.upp - x) ** self.p), self.positive.shape)[self.positive]
+        y[~self.positive] = np.broadcast_to(((x - self.low) ** self.p), self.positive.shape)[~self.positive]
         return y
 
     def dydx(self, x):
         dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = np.broadcast_to((2 / (self.upp - x)**3), self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to((-2 / (x - self.low)**3), self.positive.shape)[~self.positive]
+        dydx[self.positive] = np.broadcast_to((-self.p * (self.upp - x) ** (self.p-1)),
+                                              self.positive.shape)[self.positive]
+        dydx[~self.positive] = np.broadcast_to((self.p * (x - self.low) ** (self.p-1)),
+                                               self.positive.shape)[~self.positive]
         return dydx
 
     def ddyddx(self, x):
         ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = np.broadcast_to((6 / (self.upp-x)**4), self.positive.shape)[self.positive]
-        ddyddx[~self.positive] = np.broadcast_to((6 / (x-self.low)**4), self.positive.shape)[~self.positive]
+        ddyddx[self.positive] = np.broadcast_to((-self.p * (-(self.p-1)) * (self.upp-x) ** (self.p-2)),
+                                                self.positive.shape)[self.positive]
+        ddyddx[~self.positive] = np.broadcast_to((self.p * (self.p-1) * (x-self.low) ** (self.p-2)),
+                                                 self.positive.shape)[~self.positive]
         return ddyddx
 
 
@@ -157,4 +173,3 @@ class MMAcubed(MMA):
         ddyddx[self.positive] = np.broadcast_to((12 / (self.upp-x)**5), self.positive.shape)[self.positive]
         ddyddx[~self.positive] = np.broadcast_to((12 / (x-self.low)**5), self.positive.shape)[~self.positive]
         return ddyddx
-
