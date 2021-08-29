@@ -5,6 +5,16 @@ from .intervening import Intervening
 
 @dataclass
 class MMAOptions():
+    """Options for the MMA-algorithms and their default values.
+
+    Attributes:
+        asyinit (float): Initial values for the asymptotes.
+        asyincr (float): Factor to increase asymptotes.
+        asydecr (float): Factor to decrease asymptotes.
+        asybounds (float): The bounds for the asymptotes.
+        albefa (float): Tolerance between the asymptote and bounds.
+        oscillation_tol (float): Tolerance for oscillations detection between iterations.
+    """
     asyinit: float = 0.5
     asyincr: float = 1.2
     asydecr: float = 0.7
