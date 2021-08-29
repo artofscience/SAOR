@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.problems import Problem, Subproblem
-from sao.intervening_variables import Linear, MMA, MMAsquared, MixedIntervening
+from sao.intervening_variables import Linear, MMA, MMAsquared, MMAOptions, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
@@ -43,7 +43,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, options=MMAOptions(asyincr=1.3, asydecr=0.7))),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -163,7 +163,7 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, options=MMAOptions(asyincr=1.3, asydecr=0.7))),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -284,7 +284,7 @@ def example_eigenvalue(nelx=100, nely=50, volfrac=0.6, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, options=MMAOptions(asyincr=1.3, asydecr=0.7))),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -344,7 +344,7 @@ def example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, options=MMAOptions(asyincr=1.3, asydecr=0.7))),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
@@ -404,7 +404,7 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, asyincr=1.3, asydecr=0.7)),
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, options=MMAOptions(asyincr=1.3, asydecr=0.7))),
                          limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
