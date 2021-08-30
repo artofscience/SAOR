@@ -1,4 +1,5 @@
 import numpy as np
+from .exponential import Reciprocal, Exponential
 from .intervening import Intervening
 
 
@@ -14,7 +15,7 @@ class MMA(Intervening):
         L_i := Lower asymptote (acts as a lower move-limit & adjusts the approximation's convexity)
     """
 
-    def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1, oscillation_tol=1e-10):
+    def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1, oscillation_tol=1e-10, intervening_variable=Reciprocal()):
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
@@ -35,6 +36,10 @@ class MMA(Intervening):
 
         # A boolean indicator array that keeps track of the positive (and negative) values of the variables
         self.positive = None
+
+        # The intervening variable used for the MMA approximation evaluated
+        # at `self.upp - x` and `x - self.low`.
+        self.intervening = intervening_variable
 
     def update(self, x, f, df, *args, **kwargs):
         """Update state of previous iterations."""
@@ -72,20 +77,20 @@ class MMA(Intervening):
 
     def y(self, x):
         y = np.zeros_like(self.positive, dtype=float)
-        y[self.positive] = np.broadcast_to(1 / (self.upp - x), self.positive.shape)[self.positive]
-        y[~self.positive] = np.broadcast_to(1 / (x - self.low), self.positive.shape)[~self.positive]
+        y[self.positive] = np.broadcast_to(self.intervening.y(self.upp - x), self.positive.shape)[self.positive]
+        y[~self.positive] = np.broadcast_to(self.intervening.y(x - self.low), self.positive.shape)[~self.positive]
         return y
 
     def dydx(self, x):
         dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = np.broadcast_to(1 / (self.upp - x) ** 2, self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to(-1 / (x - self.low) ** 2, self.positive.shape)[~self.positive]
+        dydx[self.positive] = np.broadcast_to(self.intervening.dydx(self.upp - x), self.positive.shape)[self.positive]
+        dydx[~self.positive] = np.broadcast_to(self.intervening.dydx(x - self.low), self.positive.shape)[~self.positive]
         return dydx
 
     def ddyddx(self, x):
         ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = np.broadcast_to(2 / (self.upp - x) ** 3, self.positive.shape)[self.positive]
-        ddyddx[~self.positive] = np.broadcast_to(2 / (x - self.low) ** 3, self.positive.shape)[~self.positive]
+        ddyddx[self.positive] = np.broadcast_to(self.intervening.ddyddx(self.upp - x), self.positive.shape)[self.positive]
+        ddyddx[~self.positive] = np.broadcast_to(self.intervening.ddyddx(x - self.low), self.positive.shape)[~self.positive]
         return ddyddx
 
     def get_move_limit(self):
@@ -123,28 +128,7 @@ class MMAp(MMA):
         :param xlim: Minimum x, in case of negative p, to prevent division by 0
         """
         assert p <= -1, f"Invalid power x^{p}, must be less than p<=-1."
-        self.p = p
+        intervening_variable=Exponential(p)
         super().__init__(xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr,
-                         asybound=asybound, albefa=albefa, oscillation_tol=oscillation_tol)
-
-    def y(self, x):
-        y = np.zeros_like(self.positive, dtype=float)
-        y[self.positive] = np.broadcast_to(((self.upp - x) ** self.p), self.positive.shape)[self.positive]
-        y[~self.positive] = np.broadcast_to(((x - self.low) ** self.p), self.positive.shape)[~self.positive]
-        return y
-
-    def dydx(self, x):
-        dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = np.broadcast_to((-self.p * (self.upp - x) ** (self.p-1)),
-                                              self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to((self.p * (x - self.low) ** (self.p-1)),
-                                               self.positive.shape)[~self.positive]
-        return dydx
-
-    def ddyddx(self, x):
-        ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = np.broadcast_to((-self.p * (-(self.p-1)) * (self.upp-x) ** (self.p-2)),
-                                                self.positive.shape)[self.positive]
-        ddyddx[~self.positive] = np.broadcast_to((self.p * (self.p-1) * (x-self.low) ** (self.p-2)),
-                                                 self.positive.shape)[~self.positive]
-        return ddyddx
+                         asybound=asybound, albefa=albefa, oscillation_tol=oscillation_tol,
+                         intervening_variable=intervening_variable)
