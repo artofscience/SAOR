@@ -3,9 +3,9 @@ import numpy as np
 import logging
 from Problems._nd.Square import Square
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
-from sao.solvers.SolverIP_Svanberg import SvanbergIP
+from sao.solvers.SolverIP_Svanberg import ipsolver
 from sao.solvers.cvxopt_wrapper import CVXOPT
-from sao.solvers.scipy_wrapper import SCIPY
+from sao.solvers.scipy_wrapper import scipy_solver
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -40,8 +40,7 @@ def test_square(n):
     # Test sao.solvers.SolverIP_Svanberg.py
     logger.info("Solve x**2 using SvanbergIP")
     problem_svan = Square(n)
-    mysolver_svan = SvanbergIP(problem_svan.n, problem_svan.m)
-    x_opt_svan, y, z, lam, xsi, eta, mu, zet, s = mysolver_svan.subsolv(problem_svan)
+    x_opt_svan = ipsolver(problem_svan, epsimin=1e-7)
     assert np.sum(x_opt_svan) == pytest.approx(1, rel=1e-4)
 
     # Test sao.solvers.cvxopt_wrapper.py
@@ -54,8 +53,7 @@ def test_square(n):
     # Test sao.solvers.cvxopt_wrapper.py
     logger.info("Solve x**2 using scipy")
     problem_scipy = Square(n)
-    mysolver_scipy = SCIPY(problem_scipy.n, problem_scipy.m)
-    x_opt_scipy = mysolver_scipy.subsolv(problem_scipy)
+    x_opt_scipy = scipy_solver(problem_scipy)
     assert np.sum(x_opt_scipy) == pytest.approx(1, rel=1e-4)
 
     # Compare results of solvers
