@@ -5,8 +5,8 @@ try:
     from cvxopt import solvers, matrix, spdiag
 except ImportError:
     raise Exception(
-        "Package 'some_package' is not available in the current environment. "
-        "Install 'some_package' or install SAOR with feature flags '...'.")
+        "Package cvxopt is not available in the current environment. "
+        "Install cvxopt or install SAOR with feature flags cvxopt.")
     
 
 class CVXOPT:
