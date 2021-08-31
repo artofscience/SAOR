@@ -1,5 +1,26 @@
+from dataclasses import dataclass
 import numpy as np
 from .intervening import Intervening
+
+
+@dataclass
+class MMAOptions():
+    """Options for the MMA-algorithms and their default values.
+
+    Attributes:
+        asyinit (float): Initial values for the asymptotes.
+        asyincr (float): Factor to increase asymptotes.
+        asydecr (float): Factor to decrease asymptotes.
+        asybounds (float): The bounds for the asymptotes.
+        albefa (float): Tolerance between the asymptote and bounds.
+        oscillation_tol (float): Tolerance for oscillations detection between iterations.
+    """
+    asyinit: float = 0.5
+    asyincr: float = 1.2
+    asydecr: float = 0.7
+    asybound: float = 0.5
+    albefa: float = 0.1
+    oscillation_tol: float = 1e-10
 
 
 class MMA(Intervening):
@@ -14,7 +35,7 @@ class MMA(Intervening):
         L_i := Lower asymptote (acts as a lower move-limit & adjusts the approximation's convexity)
     """
 
-    def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1, oscillation_tol=1e-10):
+    def __init__(self, xmin=0.0, xmax=1.0, options=MMAOptions()):
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
@@ -22,16 +43,11 @@ class MMA(Intervening):
         self.xmin, self.xmax = xmin, xmax
 
         # MMA parameter initialization
-        self.asyinit = asyinit
-        self.asyincr = asyincr
-        self.asydecr = asydecr
-        self.asybound = asybound
-        self.albefa = albefa
-        self.osc_tol = oscillation_tol
+        self.options = MMAOptions
         self.factor = None
         self.dx = xmax - xmin
 
-        self.min_factor, self.max_factor = 1 / (self.asybound**2), self.asybound
+        self.min_factor, self.max_factor = 1 / (self.options.asybound**2), self.options.asybound
 
         # A boolean indicator array that keeps track of the positive (and negative) values of the variables
         self.positive = None
@@ -45,7 +61,7 @@ class MMA(Intervening):
     def get_asymptotes(self):
         """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
         if self.factor is None:
-            self.factor = np.full_like(self.x, self.asyinit)
+            self.factor = np.full_like(self.x, self.options.asyinit)
 
         if self.xold2 is None:
             # Initial values of asymptotes
@@ -60,8 +76,8 @@ class MMA(Intervening):
             oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2)) / self.dx
 
             # oscillating variables x_i are increase or decrease the factor
-            self.factor[oscillation > +self.osc_tol] *= self.asyincr
-            self.factor[oscillation < -self.osc_tol] *= self.asydecr
+            self.factor[oscillation > +self.options.oscillation_tol] *= self.options.asyincr
+            self.factor[oscillation < -self.options.oscillation_tol] *= self.options.asydecr
 
             # Clip the asymptote factor
             np.clip(self.factor, self.min_factor, self.max_factor)
@@ -89,8 +105,8 @@ class MMA(Intervening):
         return ddyddx
 
     def get_move_limit(self):
-        zzl2 = self.low + self.albefa * (self.x - self.low)
-        zzu2 = self.upp - self.albefa * (self.upp - self.x)
+        zzl2 = self.low + self.options.albefa * (self.x - self.low)
+        zzu2 = self.upp - self.options.albefa * (self.upp - self.x)
         return zzl2, zzu2
 
     def clip(self, x):
@@ -100,7 +116,7 @@ class MMA(Intervening):
         :param x: The vector to be clipped
         :return: Clipped vector (reference of x)
         """
-        dist = self.albefa * self.factor * self.dx
+        dist = self.options.albefa * self.factor * self.dx
         l, u = self.low + dist, self.upp - dist
         return np.clip(x, l, u, out=x)
 
