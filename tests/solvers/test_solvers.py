@@ -4,7 +4,7 @@ import logging
 from Problems._nd.Square import Square
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
 from sao.solvers.SolverIP_Svanberg import ipsolver
-from sao.solvers.cvxopt_wrapper import CVXOPT
+from sao.solvers.cvxopt_wrapper import cvxopt_solver
 from sao.solvers.scipy_wrapper import scipy_solver
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -46,8 +46,7 @@ def test_square(n):
     # Test sao.solvers.cvxopt_wrapper.py
     logger.info("Solve x**2 using cvxopt")
     problem_cvxopt = Square(n)
-    mysolver_cvxopt = CVXOPT(problem_cvxopt.n, problem_cvxopt.m)
-    x_opt_cvxopt = mysolver_cvxopt.subsolv(problem_cvxopt)
+    x_opt_cvxopt = cvxopt_solver(problem_cvxopt)
     assert np.sum(x_opt_cvxopt) == pytest.approx(1, rel=1e-4)
 
     # Test sao.solvers.cvxopt_wrapper.py

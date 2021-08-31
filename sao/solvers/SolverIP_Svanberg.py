@@ -4,9 +4,9 @@ import numpy as np
 
 ## Svanberg's InteriorPoint solver found in http://www.ingveh.ulg.ac.be/uploads/education/meca-0027-1/MMA_DCAMM_1998.pdf
 def ipsolver(problem, x0=None, epsimin=1e-6, max_inner_iter=20, max_lines_iter=20, max_outer_iter=100,
-            epsifac=0.9, epsired=0.1, cCoef=1000):
+             epsifac=0.9, epsired=0.1, cCoef=1000):
     """
-    This function ipsolver solves the approximate problem P:
+    This function solves a problem P:
 
     minimize
 
@@ -24,7 +24,7 @@ def ipsolver(problem, x0=None, epsimin=1e-6, max_inner_iter=20, max_lines_iter=2
         z \\geq 0
 
     Input:  problem
-    Output: x, y, z, lam, xsi, eta, mu, zet, s
+    Output: x
     """
 
     # Initialization of parameters (once per design iteration)
