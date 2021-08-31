@@ -36,30 +36,34 @@ def scipy_solver(problem, **kwargs):
     ineq_cons = {'type': 'ineq',
                  'fun' : constraints,
                  'jac' : constraints_der,
-                 'args': (problem.g, problem.dg)}
+                 'args': (problem, Ellipsis)}
     method = kwargs.get('method', 'SLSQP')
     options = kwargs.get('options', None)
-    solution = optimize.minimize(objective, x0, args=(problem.g, problem.dg), bounds=bounds, method=method,
+    solution = optimize.minimize(objective, x0, args=(problem, Ellipsis), bounds=bounds, method=method,
                                  jac=objective_der, constraints=ineq_cons, options=options)
     return solution.x
 
 
 def objective(x, *args):
-    return args[0](x)[0]
+    problem, *_ = args
+    return problem.g(x)[0]
 
 
 def objective_der(x, *args):
-    return args[1](x)[0]
+    problem, *_ = args
+    return problem.dg(x)[0]
 
 
 def constraints(x, *args):
     """ The minus sign is there because inequality constraints must be in the form g_j >= 0."""
-    return -args[0](x)[1:]
+    problem, *_ = args
+    return -problem.g(x)[1:]
 
 
 def constraints_der(x, *args):
     """ The minus sign is there because inequality constraints must be in the form g_j >= 0."""
-    return -args[1](x)[1:]
+    problem, *_ = args
+    return -problem.dg(x)[1:]
 
 
 # TODO: Possibly add diagonal Hessian that we currently have (they use a full Hessian with different dimensions)
