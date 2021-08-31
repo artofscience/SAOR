@@ -1,7 +1,13 @@
 ## Imports
 import numpy as np
-from cvxopt import solvers, matrix, spdiag
 
+try:
+    from cvxopt import solvers, matrix, spdiag
+except ImportError:
+    raise Exception(
+        "Package 'some_package' is not available in the current environment. "
+        "Install 'some_package' or install SAOR with feature flags '...'.")
+    
 
 class CVXOPT:
     """
