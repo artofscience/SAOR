@@ -6,9 +6,10 @@ package aims to provide a simple, modular implementation that enables users to
 investigate and modify the optimization routines to match their optimization
 problems.
 
-SAOR provides multiple well-known algorithms, e.g. *Optimality Criteria*,
-[*ConLin*](https://mecheng.iisc.ac.in/suresh/me256/conlin.pdf), and the
-[*Method of Moving Asymptotes (MMA)*](https://fab.cba.mit.edu/classes/865.18/design/optimization/mma.pdf).
+SAOR provides multiple well-known algorithms, e.g.
+*Optimality Criteria* ([Venkayya 1989](https://doi.org/10.1007/BF01046875)),
+*ConLin* ([Fleury, 1989](https://doi.org/10.1007/BF01637664)), and the
+*Method of Moving Asymptotes (MMA)* ([K. Svanberg, 1987](https://doi.org/10.1002/nme.1620240207)).
 Although these are implemented in a modular fashion, simple wrappers are
 provided to use a standard implementation with corresponding default settings.
 
