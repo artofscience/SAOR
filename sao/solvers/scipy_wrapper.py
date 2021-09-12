@@ -43,6 +43,8 @@ def scipy_solver(problem, **kwargs):
                  }
     method = kwargs.get('method', 'SLSQP')
     options = kwargs.get('options', None)
-    solution = optimize.minimize(objective, x0, bounds=bounds, method=method,
-                                 jac=objective_der, constraints=ineq_cons, options=options)
+
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize
+    solution = optimize.minimize(objective, x0, bounds=bounds, method=method, jac=objective_der,
+                                 constraints=ineq_cons, options=options)
     return solution.x
