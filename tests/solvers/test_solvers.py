@@ -49,7 +49,7 @@ def test_square(n):
     x_opt_cvxopt = cvxopt_solver(problem_cvxopt)
     assert np.sum(x_opt_cvxopt) == pytest.approx(1, rel=1e-4)
 
-    # Test sao.solvers.cvxopt_wrapper.py
+    # Test sao.solvers.scipy_wrapper.py
     logger.info("Solve x**2 using scipy")
     problem_scipy = Square(n)
     x_opt_scipy = scipy_solver(problem_scipy)

@@ -29,35 +29,20 @@ def scipy_solver(problem, **kwargs):
         Output: x
         """
 
-    def objective(x, *args):
-        problem, *_ = args
-        return problem.g(x)[0]
-
-    def objective_der(x, *args):
-        problem, *_ = args
-        return problem.dg(x)[0]
-
-    def constraints(x, *args):
-        """ The minus sign is there because inequality constraints must be in the form g_j >= 0."""
-        problem, *_ = args
-        return -problem.g(x)[1:]
-
-    def constraints_der(x, *args):
-        """ The minus sign is there because inequality constraints must be in the form g_j >= 0."""
-        problem, *_ = args
-        return -problem.dg(x)[1:]
-
-    # TODO: Possibly add diagonal Hessian that we currently have (they use a full Hessian with different dimensions)
-
     x0 = kwargs.get('x0', 0.5*(problem.x_min + problem.x_max))
     bounds = optimize.Bounds(problem.x_min, problem.x_max)
-    # ineq_cons = optimize.NonlinearConstraint(constraints, -np.inf, 0, jac=constraints_der)
+    objective = lambda x: problem.g(x)[0]
+    objective_der = lambda x: problem.dg(x)[0]
+    constraints = lambda x: -problem.g(x)[1:]
+    constraints_der = lambda x: -problem.dg(x)[1:]
+    # TODO: Possibly add diagonal Hessian that we currently have (they use a full Hessian with different dimensions)
+
     ineq_cons = {'type': 'ineq',
-                 'fun' : constraints,
-                 'jac' : constraints_der,
-                 'args': (problem, Ellipsis)}
+                 'fun': constraints,
+                 'jac': constraints_der,
+                 }
     method = kwargs.get('method', 'SLSQP')
     options = kwargs.get('options', None)
-    solution = optimize.minimize(objective, x0, args=(problem, Ellipsis), bounds=bounds, method=method,
+    solution = optimize.minimize(objective, x0, bounds=bounds, method=method,
                                  jac=objective_der, constraints=ineq_cons, options=options)
     return solution.x
