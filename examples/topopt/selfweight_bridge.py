@@ -2,18 +2,24 @@ import numpy as np
 import sao
 from examples.topopt import utils
 import matplotlib.pyplot as plt
+from sao.problems import Subproblem
+from sao.move_limits import AdaptiveMoveLimit, MoveLimit, Bounds
+from sao.intervening_variables.mma import MMA, MMAfixedasy
+from sao.intervening_variables import Linear
+from sao.approximations import Taylor1, SphericalTaylor2, NonSphericalTaylor2
 
 
 class Bridge:
 
     def __init__(self, nelx, nely, load=0.0, gravity=0.0, volfrac=0.2, rmin=2):
         self.name = 'self-weight'
-        self.Eps = 1e-6
+        self.Eps = 1e-10
         self.mesh = utils.Mesh(nelx, nely)
+        self.factor = None
 
         self.penal = 3
         self.volfrac = volfrac
-        self.x0 = volfrac * np.ones(self.mesh.n, dtype=float)
+        self.x0 = self.volfrac * np.ones(self.mesh.n, dtype=float)
 
         self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
         self.ce = np.ones(self.mesh.n, dtype=float)
@@ -22,9 +28,9 @@ class Bridge:
 
         # filter
         self.filter = utils.Filter(self.mesh, rmin)
-        self.filter.set_padding([self.mesh.elgrid[0:rmin, 2 * rmin:].flatten(),
-                                 self.mesh.elgrid[-rmin:, 2 * rmin:-2 * rmin].flatten(),
-                                 self.mesh.elgrid[:-2 * rmin, -rmin:].flatten()])
+        # self.filter.set_padding([self.mesh.elgrid[0:rmin, 2 * rmin:].flatten(),
+        #                          self.mesh.elgrid[-rmin:, 2 * rmin:-2 * rmin].flatten(),
+        #                          self.mesh.elgrid[:-2 * rmin, -rmin:].flatten()])
 
         self.dofs = np.arange(self.mesh.ndof)
         self.fixed = np.union1d(self.dofs[0:2 * (self.mesh.nely + 1):2],
@@ -82,85 +88,97 @@ class Bridge:
         return dg
 
 
-def mma(problem, x):
-    int_var = sao.intervening_variables.MMA()
-    approx = sao.approximations.Taylor1(int_var)
-    sub_problem = sao.problems.Subproblem(approx, limits=[sao.move_limits.Bounds(0, 1)])
-    converged = sao.convergence_criteria.IterationCount(20)
+def optimize(problem, x, itercount, type):
+    sub_problem = None
 
+    if type == 0:
+        sub_problem = Subproblem(Taylor1(MMA()), limits=[Bounds(0, 1)])
+    elif type == 1:
+        sub_problem = Subproblem(Taylor1(MMAfixedasy()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+    elif type == 2:
+        sub_problem = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+    elif type == 3:
+        # sub_problem = Subproblem(limits=[Bounds(0,1), AdaptiveMoveLimit(0.2)])
+        sub_problem = Subproblem(NonSphericalTaylor2(intervening=Linear()), limits=[Bounds(0, 1)])
+    elif type == 4:
+        sub_problem = Subproblem(SphericalTaylor2(intervening=Linear), limits=[Bounds(0, 1)])
+
+    converged = sao.convergence_criteria.IterationCount(itercount)
     counter = 0
 
     # setup for plotting design
     plotter = utils.PlotDesign(problem, x)
     g = []
     M = []
+    v = []
+    objchange = []
+    f = [0, 0]
     while not converged:
         counter += 1
 
+        fold = f[0]
         f = problem.g(x)
-        g.append(f[0])
         df = problem.dg(x)
-        print(counter, ":  ", f[0], x)
-        sub_problem.build(x, f, df)
-        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
+
+        if counter == 1:
+            problem.factor = f[0]
+
+        f[0] = f[0] / problem.factor
+        df[0, :] = df[0, :] / problem.factor
+
+        objchange.append(abs(f[0] - fold))
+
         plotter.plot(x, counter)
+        g.append(f[0])
         xPhys = problem.filter.forward(x)
-        M.append(100 * np.sum(4 * xPhys.flatten() * (1 - xPhys.flatten()) / problem.mesh.n))
+        M.append(np.sum(4 * xPhys.flatten() * (1 - xPhys.flatten()) / problem.mesh.n))
+
+        v.append(np.sum(xPhys.flatten()) / problem.mesh.n)
+        print(counter, ":  ", f[0])
+        sub_problem.build(x, f, df)
+
+        # positive = df[0,:] >= 0
+        # x[positive] = sub_problem.x_min[positive]
+        # x[~positive] = sub_problem.x_max[~positive]
+        # else:
+        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
 
     fout = problem.g(x)[0]  # Calculate the performance of the final design
     print("Final design : ", fout, x, "\n")
 
-    return g, M
-
-
-def linear(problem, x):
-    int_var = sao.intervening_variables.Linear()
-    approx = sao.approximations.Taylor1(int_var)
-    bounds = sao.move_limits.Bounds(0, 1)
-    aml = sao.move_limits.AdaptiveMoveLimit(move_limit=0.3)
-    sub_problem = sao.problems.Subproblem(approx, limits=[bounds, aml])
-    converged = sao.convergence_criteria.IterationCount(20)
-
-    counter = 0
-
-    # setup for plotting design
-    plotter = utils.PlotDesign(problem, x)
-    g = []
-    M = []
-    while not converged:
-        counter += 1
-
-        f = problem.g(x)
-        g.append(f[0])
-        df = problem.dg(x)
-        print(counter, ":  ", f[0], x)
-        sub_problem.build(x, f, df)
-        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
-        plotter.plot(x, counter)
-        xPhys = problem.filter.forward(x)
-        M.append(100 * np.sum(4 * xPhys.flatten() * (1 - xPhys.flatten()) / problem.mesh.n))
-
-    fout = problem.g(x)[0]  # Calculate the performance of the final design
-    print("Final design : ", fout, x, "\n")
-
-    return g, M
+    return g, M, objchange, v
 
 
 if __name__ == '__main__':
-    problem = Bridge(200, 100, load=0, gravity=1, volfrac=0.2)
+    itercount = 10
+    x0 = 0.25
+    nelx = 100
+    nely = 50
+    no = 5
 
-    # first solve using standard mma
-    f1, m1 = linear(problem, problem.x0)
+    f = np.zeros((itercount - 1, no), dtype=float)
+    m = np.zeros((itercount - 1, no), dtype=float)
+    df = np.zeros((itercount - 1, no), dtype=float)
+    v = np.zeros((itercount - 1, no), dtype=float)
+    for i in range(0, no):
+        problem = Bridge(nelx, nely, load=0, gravity=1, volfrac=x0)
+        f[:, i], m[:, i], df[:, i], v[:, i] = optimize(problem, problem.x0, itercount, i)
 
-    problem = Bridge(200, 100, load=0, gravity=1, volfrac=0.2)
-    f2, m2 = mma(problem, problem.x0)
+    fig, axs = plt.subplots(4, 1)
+    x = range(1, itercount)
+    for i in range(0, no):
+        axs[0].plot(x, f[:, i])
+        axs[0].set_title('Objective [0:1]')
+        axs[0].legend(['MMA', 'MMA (fixed asy) + AML', 'Linear + AML', 'Spherical', 'NonSpherical'])
 
-    plt.close('all')
-    fig, axs = plt.subplots(2, 1)
-    x = range(1, 20)
-    axs[0].plot(x, f1, label="line 1")
-    axs[0].plot(x, f2, label="line 2")
+        axs[1].plot(x, m[:, i])
+        axs[1].set_title('Measure of non-discreteness [0:1]')
 
-    axs[1].plot(x, m1, label="line 1")
-    axs[1].plot(x, m2, label="line 2")
+        axs[2].plot(x, df[:, i])
+        axs[2].set_title('Objective change [-inf:inf]')
+        axs[2].set_yscale('log')
+
+        axs[3].plot(x, v[:, i])
+        axs[3].set_title('Volume fraction [0:1]')
+
     plt.show(block=True)
