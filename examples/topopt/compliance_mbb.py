@@ -1,18 +1,18 @@
 import numpy as np
-import sao
 from examples.topopt import utils
 import matplotlib.pyplot as plt
 from sao.problems import Subproblem
-from sao.move_limits import AdaptiveMoveLimit, MoveLimit, Bounds
-from sao.intervening_variables import Linear, ConLin, MMA, MixedIntervening
-from sao.intervening_variables.mma import MMAsquared, MMAcubed
-from sao.approximations import Taylor1, SphericalTaylor2, NonSphericalTaylor2
+from sao.move_limits import AdaptiveMoveLimit, Bounds
+from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.approximations import Taylor1
+from sao.solvers.primal_dual_interior_point import pdip
+from sao.convergence_criteria import IterationCount
 
 
-class MBB:
+class ComplianceMBB:
 
     def __init__(self, nelx, nely, volfrac=0.2, rmin=2):
-        self.name = 'compliance'
+        self.name = 'ComplianceMBB'
         self.Eps = 1e-10
         self.mesh = utils.Mesh(nelx, nely)
         self.factor = None
@@ -74,15 +74,16 @@ class MBB:
 def optimize(problem, x, itercount, type):
     sub_problem = None
     if type == 0:
-        sub_problem = Subproblem(Taylor1(MMA()), limits=[Bounds(0, 1)])
+
+        sub_problem = Subproblem(Taylor1(MMA(asyinit=0.2)), limits=[Bounds(0, 1)])
     elif type == 1:
-        sub_problem = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+        sub_problem = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.3)])
     elif type == 2:
         mix = MixedIntervening(problem.mesh.n, problem.m + 1, default=Linear())
-        mix.set_intervening(MMA(), resp=0)
-        sub_problem = Subproblem(Taylor1(mix), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+        mix.set_intervening(MMA(asyinit=0.2), resp=0)
+        sub_problem = Subproblem(Taylor1(mix), limits=[Bounds(0, 1)])
 
-    converged = sao.convergence_criteria.IterationCount(itercount)
+    converged = IterationCount(itercount)
     counter = 0
 
     # setup for plotting design
@@ -90,8 +91,14 @@ def optimize(problem, x, itercount, type):
     g = []
     M = []
     v = []
+    it = []
     objchange = []
     f = [0, 0]
+    varchange = []
+    mvarchange = []
+    dfdk = []
+    xold = np.zeros_like(x)
+    expected = 1
     while not converged:
         counter += 1
 
@@ -106,53 +113,95 @@ def optimize(problem, x, itercount, type):
         df[0, :] = df[0, :] / problem.factor
 
         objchange.append(abs(f[0] - fold))
+        dfdk.append((f[0] - fold) / expected)
 
         plotter.plot(x, counter)
         g.append(f[0])
+        v.append(f[1])
         xPhys = problem.filter.forward(x)
         M.append(np.sum(4 * xPhys.flatten() * (1 - xPhys.flatten()) / problem.mesh.n))
 
-        v.append(np.sum(xPhys.flatten()) / problem.mesh.n)
         print(counter, ":  ", f[0])
         sub_problem.build(x, f, df)
-        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
 
-    fout = problem.g(x)[0]  # Calculate the performance of the final design
-    print("Final design : ", fout, x, "\n")
+        xold[:] = x[:]
+        x[:], a = pdip(sub_problem)
+        change = x - xold
+        varchange.append(np.mean(np.abs(change)))
+        mvarchange.append(np.max(np.abs(change)))
+        it.append(a)
+        expected = np.dot(df[0, :], change)
 
-    return g, M, objchange, v
+    print("Final design : ", f[0], x, "\n")
+
+    return g, M, objchange, v, it, varchange, mvarchange, dfdk
 
 
 if __name__ == '__main__':
-    itercount = 50
-    x0 = 0.3
-    nelx = 100
-    nely = 50
+    itercount = 40
+    x0 = 0.25
+    nelx = 80
+    nely = 40
     no = 3
 
     f = np.zeros((itercount - 1, no), dtype=float)
     m = np.zeros((itercount - 1, no), dtype=float)
     df = np.zeros((itercount - 1, no), dtype=float)
     v = np.zeros((itercount - 1, no), dtype=float)
+    it = np.zeros((itercount - 1, no), dtype=float)
+    varchange = np.zeros((itercount - 1, no), dtype=float)
+    mvarchange = np.zeros((itercount - 1, no), dtype=float)
+    dfdk = np.zeros((itercount - 1, no), dtype=float)
     for i in range(0, no):
-        problem = MBB(nelx, nely, volfrac=x0)
-        f[:, i], m[:, i], df[:, i], v[:, i] = optimize(problem, problem.x0, itercount, i)
+        problem = ComplianceMBB(nelx, nely, volfrac=x0)
+        f[:, i], m[:, i], df[:, i], v[:, i], it[:, i], varchange[:, i], mvarchange[:, i], dfdk[:, i] = \
+            optimize(problem, problem.x0, itercount, i)
 
-    fig, axs = plt.subplots(4, 1)
+    fig, axs = plt.subplots(5, 2)
     x = range(1, itercount)
     for i in range(0, no):
-        axs[0].plot(x, f[:, i])
-        axs[0].set_title('Objective [0:1]')
-        axs[0].legend(['MMA', 'LIN AML0.2', 'MIX MMA LIN'])
+        axs[0, 0].plot(x, f[:, i], marker="o")
+        axs[1, 0].plot(x, f[:, i] - np.min(f, axis=1), marker="o")
+        axs[2, 0].plot(x, df[:, i], marker="o")
+        axs[3, 0].plot(x, v[:, i], marker="o")
+        axs[0, 1].plot(x, varchange[:, i], marker="o")
+        axs[1, 1].plot(x, mvarchange[:, i], marker="o")
+        axs[2, 1].plot(x, it[:, i], marker="o")
+        axs[3, 1].plot(x, m[:, i], marker="o")
+        axs[4, 0].plot(x, dfdk[:, i], marker="o")
 
-        axs[1].plot(x, m[:, i])
-        axs[1].set_title('Measure of non-discreteness [0:1]')
+    axs[1, 0].set_title('Objective - min(objectives)')
+    axs[1, 0].set_yscale('symlog', linthresh=1e-4)
 
-        axs[2].plot(x, df[:, i])
-        axs[2].set_title('Objective change [-inf:inf]')
-        axs[2].set_yscale('log')
+    axs[2, 0].set_title('Objective change [-inf:inf]')
+    axs[2, 0].axhline(y=1e-2, color='r', linestyle='dashed')
+    axs[2, 0].axhline(y=1e-3, color='r', linestyle='dashed')
+    axs[2, 0].axhline(y=1e-4, color='r', linestyle='dashed')
+    axs[2, 0].set_yscale('log')
 
-        axs[3].plot(x, v[:, i])
-        axs[3].set_title('Volume fraction [0:1]')
+    axs[3, 0].set_title('Constraint value [-inf:inf]')
+    axs[3, 0].set_yscale('symlog', linthresh=1e-4)
 
+    axs[0, 1].set_title('Mean absolute variable change [0:1]')
+    axs[0, 1].axhline(y=1e-1, color='r', linestyle='dashed')
+    axs[0, 1].axhline(y=1e-2, color='r', linestyle='dashed')
+    axs[0, 1].axhline(y=1e-3, color='r', linestyle='dashed')
+    axs[0, 1].set_yscale('log')
+
+    axs[1, 1].set_title('Maximum absolute variable change [0:1]')
+
+    axs[0, 0].set_title('Objective [0:1]')
+    axs[0, 0].legend(['MMA', 'Linear + AML', 'Mix MMA+LIN'])
+    axs[0, 0].set_yscale('log')
+
+    axs[2, 1].set_title('No. of inner loops [0:inf]')
+    axs[3, 1].set_title('Measure of non-discreteness [0:1]')
+
+    axs[4, 0].set_title('Expected response change: (df(k-1)/dx(k-1) * (x_k - x_k-1) )/ (f_k - f_k-1)')
+
+    plt.show()
+    figure = plt.gcf()  # get current figure
+    figure.tight_layout(pad=0.01)
+    figure.set_size_inches(30, 15)
+    plt.savefig("compliancedata.pdf", bbox_inches='tight', dpi=100)
     plt.show(block=True)

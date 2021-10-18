@@ -35,19 +35,25 @@ class MMA(Intervening):
         L_i := Lower asymptote (acts as a lower move-limit & adjusts the approximation's convexity)
     """
 
-    def __init__(self, xmin=0.0, xmax=1.0, options=MMAOptions()):
+    def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=0.5, albefa=0.1,
+                 oscillation_tol=1e-10):
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
-
         self.xmin, self.xmax = xmin, xmax
 
+        self.asybound = asybound
+        self.asyinit = asyinit
+        self.asyincr = asyincr
+        self.asydecr = asydecr
+        self.albefa = albefa
+        self.oscillation_tol = oscillation_tol
+
         # MMA parameter initialization
-        self.options = MMAOptions
         self.factor = None
         self.dx = xmax - xmin
 
-        self.min_factor, self.max_factor = 1 / (self.options.asybound**2), self.options.asybound
+        self.min_factor, self.max_factor = 1 / (self.asybound ** 2), self.asybound
 
         # A boolean indicator array that keeps track of the positive (and negative) values of the variables
         self.positive = None
@@ -61,7 +67,7 @@ class MMA(Intervening):
     def get_asymptotes(self):
         """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
         if self.factor is None:
-            self.factor = np.full_like(self.x, self.options.asyinit)
+            self.factor = np.full_like(self.x, self.asyinit)
 
         if self.xold2 is None:
             # Initial values of asymptotes
@@ -76,8 +82,8 @@ class MMA(Intervening):
             oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2)) / self.dx
 
             # oscillating variables x_i are increase or decrease the factor
-            self.factor[oscillation > +self.options.oscillation_tol] *= self.options.asyincr
-            self.factor[oscillation < -self.options.oscillation_tol] *= self.options.asydecr
+            self.factor[oscillation > +self.oscillation_tol] *= self.asyincr
+            self.factor[oscillation < -self.oscillation_tol] *= self.asydecr
 
             # Clip the asymptote factor
             np.clip(self.factor, self.min_factor, self.max_factor)
@@ -105,8 +111,8 @@ class MMA(Intervening):
         return ddyddx
 
     def get_move_limit(self):
-        zzl2 = self.low + self.options.albefa * (self.x - self.low)
-        zzu2 = self.upp - self.options.albefa * (self.upp - self.x)
+        zzl2 = self.low + self.albefa * (self.x - self.low)
+        zzu2 = self.upp - self.albefa * (self.upp - self.x)
         return zzl2, zzu2
 
     def clip(self, x):
@@ -116,7 +122,7 @@ class MMA(Intervening):
         :param x: The vector to be clipped
         :return: Clipped vector (reference of x)
         """
-        dist = self.options.albefa * self.factor * self.dx
+        dist = self.albefa * self.factor * self.dx
         l, u = self.low + dist, self.upp - dist
         return np.clip(x, l, u, out=x)
 
@@ -165,12 +171,26 @@ class MMAcubed(MMA):
     def dydx(self, x):
         dydx = np.zeros_like(self.positive, dtype=float)
         dydx[self.positive] = np.broadcast_to((3 / (self.upp - x)**4), self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to((-3 / (x - self.low)**4), self.positive.shape)[~self.positive]
+        dydx[~self.positive] = np.broadcast_to((-3 / (x - self.low) ** 4), self.positive.shape)[~self.positive]
         return dydx
 
     def ddyddx(self, x):
         ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = np.broadcast_to((12 / (self.upp-x)**5), self.positive.shape)[self.positive]
-        ddyddx[~self.positive] = np.broadcast_to((12 / (x-self.low)**5), self.positive.shape)[~self.positive]
+        ddyddx[self.positive] = np.broadcast_to((12 / (self.upp - x) ** 5), self.positive.shape)[self.positive]
+        ddyddx[~self.positive] = np.broadcast_to((12 / (x - self.low) ** 5), self.positive.shape)[~self.positive]
         return ddyddx
 
+
+class MMAfixedasy(MMA):
+
+    def __init__(self, xmin=0.0, xmax=1.0, low=-0.1, upp=1.1):
+        super().__init__(xmin, xmax)
+        self.low0 = low
+        self.upp0 = upp
+
+    def get_asymptotes(self):
+        self.low = self.low0
+        self.upp = self.upp0
+
+    def clip(self, x):
+        return np.clip(x, self.low, self.upp, out=x)

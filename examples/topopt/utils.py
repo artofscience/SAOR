@@ -18,7 +18,7 @@ class PlotDesign:
         im = ax.imshow(-xPhys.reshape((problem.mesh.nelx, problem.mesh.nely)).T, cmap='gray',
                        interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
         fig.show()
-        plt.pause(0.05)
+        fig.canvas.flush_events()
 
         self.fig = fig
         self.im = im
@@ -30,7 +30,7 @@ class PlotDesign:
         self.ax.set_title(f'{self.problem.__class__.__name__}: n = {self.problem.mesh.n}, iter = {counter}',
                           fontsize=16)
         self.fig.canvas.draw()
-        plt.pause(0.05)
+        self.fig.canvas.flush_events()
 
 
 class Mesh:
@@ -113,6 +113,13 @@ def assemble_K(x, mesh, fixed):
     K = deleterowcol(K, fixed, fixed)
     return K
 
+
+def assemble_M(x, mesh, free, rho=1.0, lx=1.0, ly=1.0, lz=1.0):
+    m_E = lx * ly * lz * rho  # Mass of one element
+    sM = np.kron(x, np.ones(8) * m_E / 4)
+    xdiag = np.zeros(mesh.ndof)
+    np.add.at(xdiag, mesh.edofMat.flatten(), sM)  # Assemble the diagonal
+    return diags(xdiag[free])
 
 def element_matrix_stiffness():
     E = 1

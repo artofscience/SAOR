@@ -1,15 +1,15 @@
 import numpy as np
-import sao
 from examples.topopt import utils
 import matplotlib.pyplot as plt
 from sao.problems import Subproblem
-from sao.move_limits import AdaptiveMoveLimit, MoveLimit, Bounds
-from sao.intervening_variables.mma import MMA, MMAfixedasy
-from sao.intervening_variables import Linear
-from sao.approximations import Taylor1, SphericalTaylor2, NonSphericalTaylor2
+from sao.move_limits import AdaptiveMoveLimit, Bounds
+from sao.intervening_variables import Linear, MMA, MMAfixedasy
+from sao.approximations import Taylor1
+from sao.convergence_criteria import IterationCount
+from sao.solvers.primal_dual_interior_point import pdip
 
 
-class Bridge:
+class SelfweightMBB:
 
     def __init__(self, nelx, nely, load=0.0, gravity=0.0, volfrac=0.2, rmin=2):
         self.name = 'self-weight'
@@ -64,7 +64,7 @@ class Bridge:
         self.ce[:] = (np.dot(self.u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.KE) *
                       self.u[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
-        g[0] = np.asscalar(self.f @ self.u)
+        g[0] = np.dot(self.f, self.u)
         g[1] = 1 - sum(xPhys[:]) / (self.volfrac * self.mesh.n)
         return g
 
@@ -94,16 +94,11 @@ def optimize(problem, x, itercount, type):
     if type == 0:
         sub_problem = Subproblem(Taylor1(MMA()), limits=[Bounds(0, 1)])
     elif type == 1:
-        sub_problem = Subproblem(Taylor1(MMAfixedasy()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+        sub_problem = Subproblem(Taylor1(MMAfixedasy(low=-0.1, upp=1.1)), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
     elif type == 2:
         sub_problem = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
-    elif type == 3:
-        # sub_problem = Subproblem(limits=[Bounds(0,1), AdaptiveMoveLimit(0.2)])
-        sub_problem = Subproblem(NonSphericalTaylor2(intervening=Linear()), limits=[Bounds(0, 1)])
-    elif type == 4:
-        sub_problem = Subproblem(SphericalTaylor2(intervening=Linear), limits=[Bounds(0, 1)])
 
-    converged = sao.convergence_criteria.IterationCount(itercount)
+    converged = IterationCount(itercount)
     counter = 0
 
     # setup for plotting design
@@ -111,8 +106,12 @@ def optimize(problem, x, itercount, type):
     g = []
     M = []
     v = []
+    it = []
     objchange = []
     f = [0, 0]
+    varchange = []
+    mvarchange = []
+    xold = np.zeros_like(x)
     while not converged:
         counter += 1
 
@@ -130,10 +129,10 @@ def optimize(problem, x, itercount, type):
 
         plotter.plot(x, counter)
         g.append(f[0])
+        v.append(f[1])
         xPhys = problem.filter.forward(x)
         M.append(np.sum(4 * xPhys.flatten() * (1 - xPhys.flatten()) / problem.mesh.n))
 
-        v.append(np.sum(xPhys.flatten()) / problem.mesh.n)
         print(counter, ":  ", f[0])
         sub_problem.build(x, f, df)
 
@@ -141,44 +140,84 @@ def optimize(problem, x, itercount, type):
         # x[positive] = sub_problem.x_min[positive]
         # x[~positive] = sub_problem.x_max[~positive]
         # else:
-        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
+        xold[:] = x[:]
+        x[:], a = pdip(sub_problem)
+        change = np.abs(xold - x)
+        varchange.append(np.mean(change))
+        mvarchange.append(np.max(change))
 
-    fout = problem.g(x)[0]  # Calculate the performance of the final design
-    print("Final design : ", fout, x, "\n")
+        it.append(a)
 
-    return g, M, objchange, v
+    print("Final design : ", f[0], "\n")
+
+    return g, M, objchange, v, it, varchange, mvarchange
 
 
 if __name__ == '__main__':
-    itercount = 10
+    itercount = 40
     x0 = 0.25
-    nelx = 100
-    nely = 50
-    no = 5
+    nelx = 80
+    nely = 40
+    no = 3
 
     f = np.zeros((itercount - 1, no), dtype=float)
     m = np.zeros((itercount - 1, no), dtype=float)
     df = np.zeros((itercount - 1, no), dtype=float)
     v = np.zeros((itercount - 1, no), dtype=float)
+    it = np.zeros((itercount - 1, no), dtype=float)
+    varchange = np.zeros((itercount - 1, no), dtype=float)
+    mvarchange = np.zeros((itercount - 1, no), dtype=float)
     for i in range(0, no):
-        problem = Bridge(nelx, nely, load=0, gravity=1, volfrac=x0)
-        f[:, i], m[:, i], df[:, i], v[:, i] = optimize(problem, problem.x0, itercount, i)
+        problem = SelfweightMBB(nelx, nely, load=0, gravity=1, volfrac=x0)
+        f[:, i], m[:, i], df[:, i], v[:, i], it[:, i], varchange[:, i], mvarchange[:, i] = \
+            optimize(problem, problem.x0, itercount, i)
 
-    fig, axs = plt.subplots(4, 1)
+    fig, axs = plt.subplots(4, 2)
     x = range(1, itercount)
     for i in range(0, no):
-        axs[0].plot(x, f[:, i])
-        axs[0].set_title('Objective [0:1]')
-        axs[0].legend(['MMA', 'MMA (fixed asy) + AML', 'Linear + AML', 'Spherical', 'NonSpherical'])
+        axs[0, 0].plot(x, f[:, i], marker="o")
+        axs[0, 0].set_title('Objective [0:1]')
+        axs[0, 0].legend(['MMA', 'MMA (fixed asy) + AML', 'Linear + AML'])
+        axs[0, 0].set_yscale('log')
 
-        axs[1].plot(x, m[:, i])
-        axs[1].set_title('Measure of non-discreteness [0:1]')
+        axs[1, 0].plot(x, f[:, i] - np.min(f, axis=1), marker="o")
+        axs[1, 0].set_title('Objective - min(objectives)')
+        axs[1, 0].set_yscale('symlog', linthresh=1e-4)
 
-        axs[2].plot(x, df[:, i])
-        axs[2].set_title('Objective change [-inf:inf]')
-        axs[2].set_yscale('log')
+        axs[2, 0].plot(x, df[:, i], marker="o")
+        axs[2, 0].set_title('Objective change [-inf:inf]')
+        axs[2, 0].axhline(y=1e-2, color='r', linestyle='dashed')
+        axs[2, 0].axhline(y=1e-3, color='r', linestyle='dashed')
+        axs[2, 0].axhline(y=1e-4, color='r', linestyle='dashed')
+        axs[2, 0].set_yscale('log')
 
-        axs[3].plot(x, v[:, i])
-        axs[3].set_title('Volume fraction [0:1]')
+        axs[3, 0].plot(x, v[:, i], marker="o")
+        axs[3, 0].set_title('Constraint value [-inf:inf]')
+        axs[3, 0].set_yscale('symlog', linthresh=1e-4)
 
+        axs[0, 1].plot(x, varchange[:, i], marker="o")
+        axs[0, 1].set_title('Mean absolute variable change [0:1]')
+        axs[0, 1].axhline(y=1e-1, color='r', linestyle='dashed')
+        axs[0, 1].axhline(y=1e-2, color='r', linestyle='dashed')
+        axs[0, 1].axhline(y=1e-3, color='r', linestyle='dashed')
+        axs[0, 1].set_yscale('log')
+
+        axs[1, 1].plot(x, mvarchange[:, i], marker="o")
+        axs[1, 1].set_title('Maximum absolute variable change [0:1]')
+        axs[1, 1].axhline(y=1e-1, color='r', linestyle='dashed')
+        axs[1, 1].axhline(y=1e-2, color='r', linestyle='dashed')
+        axs[1, 1].axhline(y=1e-3, color='r', linestyle='dashed')
+        axs[1, 1].set_yscale('log')
+
+        axs[2, 1].plot(x, it[:, i], marker="o")
+        axs[2, 1].set_title('No. of inner loops [0:inf]')
+
+        axs[3, 1].plot(x, m[:, i], marker="o")
+        axs[3, 1].set_title('Measure of non-discreteness [0:1]')
+
+    plt.show()
+    figure = plt.gcf()  # get current figure
+    figure.tight_layout(pad=0.1)
+    figure.set_size_inches(20, 15)
+    plt.savefig("selfweightdatu.pdf", bbox_inches='tight', dpi=100)
     plt.show(block=True)
