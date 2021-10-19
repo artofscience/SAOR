@@ -12,7 +12,9 @@ class PlotDesign:
         xPhys = np.asarray(problem.filter.H * x[np.newaxis].T / problem.filter.Hs)[:, 0]
         plt.ion()  # acces interactive mode
         fig, ax = plt.subplots()  # obtain figure and axis objects
-        plt.title(f'{problem.__class__.__name__}: n = {problem.mesh.n}, iter = {0}', fontsize=16)
+        # plt.title(f'{problem.__class__.__name__}: n = {problem.mesh.n}, iter = {0}', fontsize=16)
+        plt.title(problem)
+
         ax.set_ylabel('nely', fontsize=16)
         ax.set_xlabel('nelx', fontsize=16)
         im = ax.imshow(-xPhys.reshape((problem.mesh.nelx, problem.mesh.nely)).T, cmap='gray',

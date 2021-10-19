@@ -11,12 +11,15 @@ from sao.convergence_criteria import IterationCount
 
 class ComplianceMBB:
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}( n: {self.mesh.nelx}x{self.mesh.nely}, v: {self.volfrac}, r: {self.rmin} )'
+
     def __init__(self, nelx, nely, volfrac=0.2, rmin=2):
-        self.name = 'ComplianceMBB'
         self.Eps = 1e-10
         self.mesh = utils.Mesh(nelx, nely)
         self.factor = None
         self.m = 1
+        self.rmin = rmin
 
         self.penal = 3
         self.volfrac = volfrac
@@ -103,8 +106,11 @@ def optimize(problem, x, itercount, type):
         counter += 1
 
         fold = f[0]
+
+        ## RESPONSES
         f = problem.g(x)
         df = problem.dg(x)
+        ##
 
         if counter == 1:
             problem.factor = f[0]
@@ -122,10 +128,17 @@ def optimize(problem, x, itercount, type):
         M.append(np.sum(4 * xPhys.flatten() * (1 - xPhys.flatten()) / problem.mesh.n))
 
         print(counter, ":  ", f[0])
+
+        ## BUILD SUBPROBLEM
         sub_problem.build(x, f, df)
+        ##
 
         xold[:] = x[:]
+
+        ## SOLVE SUBPROBLEM
         x[:], a = pdip(sub_problem)
+        ##
+
         change = x - xold
         varchange.append(np.mean(np.abs(change)))
         mvarchange.append(np.max(np.abs(change)))
@@ -138,7 +151,7 @@ def optimize(problem, x, itercount, type):
 
 
 if __name__ == '__main__':
-    itercount = 40
+    itercount = 4
     x0 = 0.25
     nelx = 80
     nely = 40
@@ -193,6 +206,7 @@ if __name__ == '__main__':
     axs[0, 0].set_title('Objective [0:1]')
     axs[0, 0].legend(['MMA', 'Linear + AML', 'Mix MMA+LIN'])
     axs[0, 0].set_yscale('log')
+    axs[0, 0].set_ylabel(r'$g_0\left[\mathbf{x}^{(k)}\right]$')
 
     axs[2, 1].set_title('No. of inner loops [0:inf]')
     axs[3, 1].set_title('Measure of non-discreteness [0:1]')
