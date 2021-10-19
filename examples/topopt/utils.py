@@ -140,7 +140,7 @@ def element_matrix_stiffness():
 
 
 def deleterowcol(A, delrow, delcol):
-    # Assumes that matrix is in symmetric csc form
+    assert isinstance(A, scipy.sparse.CSC), "deleterowcol assumes A is in csc form"
     m = A.shape[0]
     keep = np.delete(np.arange(0, m), delrow)
     A = A[keep, :]
