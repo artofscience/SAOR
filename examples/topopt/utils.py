@@ -15,8 +15,8 @@ class PlotDesign:
         # plt.title(f'{problem.__class__.__name__}: n = {problem.mesh.n}, iter = {0}', fontsize=16)
         plt.title(problem)
 
-        ax.set_ylabel('nely', fontsize=16)
-        ax.set_xlabel('nelx', fontsize=16)
+        ax.set_ylabel('ny', fontsize=16)
+        ax.set_xlabel('nx', fontsize=16)
         im = ax.imshow(-xPhys.reshape((problem.mesh.nelx, problem.mesh.nely)).T, cmap='gray',
                        interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
         fig.show()
