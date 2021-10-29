@@ -3,145 +3,93 @@ from matplotlib import colors
 
 from examples.topopt import utils
 import matplotlib.pyplot as plt
-
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
 from sao.intervening_variables import Linear, MMA, MixedIntervening
 from sao.approximations import Taylor1
-from sao.solvers.primal_dual_interior_point import pdip
-from sao.convergence_criteria import IterationCount
+
+from compliance_mbb import optimize
 
 
-class ComplianceMBB:
+class SelfweightArch:
 
-    def __repr__(self):
-        return f'{self.__class__.__name__}( n: {self.mesh.nelx}x{self.mesh.nely}, v: {self.vf}, r: {self.fradius} )'
-
-    def __init__(self, nx, ny, vf=0.2, fradius=2):
-        self.eps = 1e-10
-        self.mesh = utils.Mesh(nx, ny)
+    def __init__(self, nelx, nely, load=0.0, gravity=0.0, volfrac=0.2, rmin=2):
+        self.name = 'self-weight'
+        self.Eps = 1e-10
+        self.mesh = utils.Mesh(nelx, nely)
         self.factor = None
-        self.m = 1
-        self.fradius = fradius
 
         self.penal = 3
-        self.vf = vf
-        self.x0 = self.vf * np.ones(self.mesh.n, dtype=float)
+        self.volfrac = volfrac
+        self.x0 = self.volfrac * np.ones(self.mesh.n, dtype=float)
 
         self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
         self.ce = np.ones(self.mesh.n, dtype=float)
 
-        self.ke = utils.element_matrix_stiffness()
+        self.KE = utils.element_matrix_stiffness()
 
-        self.filter = utils.Filter(self.mesh, fradius)
+        self.filter = utils.Filter(self.mesh, rmin)
 
         self.dofs = np.arange(self.mesh.ndof)
-        self.fixed = np.union1d(self.dofs[0:2 * (self.mesh.nely + 1):2],
-                                np.array([self.mesh.ndof - 1]))
+        self.fixed = np.union1d(self.dofs[0:self.mesh.ndofy:2],
+                                np.array([self.mesh.ndof - 2, self.mesh.ndof - 1]))
         self.free = np.setdiff1d(self.dofs, self.fixed)
         self.f = np.zeros(self.mesh.ndof, dtype=float)
         self.u = np.zeros((self.mesh.ndof, 1), dtype=float)
 
         # Applied load at top
+        self.load = load
         self.dout = 1
-        self.f[self.dout] = -1
+        self.gravity = gravity / self.mesh.n
 
     def g(self, x):
-        g = np.zeros(self.m + 1)
+        g = np.zeros(2)
 
-        xphys = self.filter.forward(x)
+        xPhys = self.filter.forward(x)
 
-        ym = self.eps + (xphys.flatten() ** self.penal) * (1 - self.eps)
-        stiffness_matrix = utils.assemble_K(ym, self.mesh, self.fixed)
+        # Gravity load
+        self.f[:] = 0
+        np.add.at(self.f, self.mesh.edofMat[:, 1::2].flatten(),
+                  np.kron(xPhys, -self.gravity * np.ones(4) / 4))
+        self.f[self.dout] -= self.load
 
-        self.u[self.free, :] = utils.linear_solve(stiffness_matrix, self.f[self.free])
+        E = self.Eps + (0.1 * xPhys.flatten() + 0.9 * (xPhys.flatten() ** self.penal)) * (1 - self.Eps)
+        K = utils.assemble_K(E, self.mesh, self.fixed)
+
+        self.u[self.free, :] = utils.linear_solve(K, self.f[self.free])
 
         # Objective and volume constraint
-        self.ce[:] = (np.dot(self.u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
+        self.ce[:] = (np.dot(self.u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.KE) *
                       self.u[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
         g[0] = np.dot(self.f, self.u)
-        g[1] = np.sum(xphys[:]) / (self.vf * self.mesh.n) - 1
+        g[1] = 1 - sum(xPhys[:]) / (self.volfrac * self.mesh.n)
         return g
 
     def dg(self, x):
         dg = np.zeros((2, self.mesh.n), dtype=float)
-        xphys = self.filter.forward(x)
-        dg[0, :] -= (1 - self.eps) * (self.penal * xphys ** (self.penal - 1)) * self.ce
-        dg[1, :] = np.ones(self.mesh.n) / (self.vf * self.mesh.n)
+        xPhys = self.filter.forward(x)
+        dg[0, :] -= (1 - self.Eps) * (0.1 + 0.9 * self.penal * xPhys ** (self.penal - 1)) * self.ce
+
+        # np.add.at(self.f, self.edofMat[:, 1::2].flatten(), np.kron(xPhys, -self.gravity*np.ones(4)/4))
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 1], 0] * self.gravity / 2
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 3], 0] * self.gravity / 2
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 5], 0] * self.gravity / 2
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 7], 0] * self.gravity / 2
+
+        dg[1, :] = -np.ones(self.mesh.n) / (self.volfrac * self.mesh.n)
+
+        # Sensitivity filtering
         dg[0, :] = self.filter.backward(dg[0, :])
         dg[1, :] = self.filter.backward(dg[1, :])
 
         return dg
 
 
-def optimize(problem, sub_problem, x, itercount):
-    converged = IterationCount(itercount)
-    counter = 0
-    output = np.zeros((itercount - 1, 5), dtype=float)
-    output2 = np.zeros((itercount - 1, 5), dtype=float)
-    # setup for plotting design
-    plotter = utils.PlotDesign(problem, x)
-
-    f = [0, 0]
-    xold = np.zeros_like(x)
-    change = np.zeros_like(x)
-    expected = 1
-    while not converged:
-
-        plotter.plot(x, counter)
-
-        fold = f[0]
-        ## RESPONSES
-        f = problem.g(x)
-        df = problem.dg(x)
-        ##
-
-        # Scaling
-        if counter == 0:
-            problem.factor = f[0]
-        f[0] = f[0] / problem.factor
-        df[0, :] = df[0, :] / problem.factor
-
-        print(counter, ":  ", f[0])
-        output[counter, 0:2] = f[:]  # objective and constraint values
-        output[counter, 2] = np.abs(f[0] - fold)  # objective change
-        output2[counter, 0] = (f[0] - fold) / expected  # relative objective change
-
-        xphys = problem.filter.forward(x)
-        output2[counter, 1] = np.sum(4 * xphys.flatten() * (1 - xphys.flatten()) / problem.mesh.n)
-
-        ## BUILD SUBPROBLEM
-        sub_problem.build(x, f, df)
-        ##
-
-        xold[:] = x[:]
-        ## SOLVE SUBPROBLEM
-        x[:], no_inner_iter = pdip(sub_problem)
-        ##
-        output2[counter, 2] = no_inner_iter  # number of inner iterations in pdip
-
-        changeold = change
-        change = x - xold
-        expected = np.dot(df[0, :], change)
-
-        output[counter, 3] = np.mean(np.abs(change))  # mean variable change
-        output[counter, 4] = np.max(np.abs(change))  # max variable change
-        output2[counter, 3] = np.arccos(
-            np.dot(changeold, change) / np.dot(np.linalg.norm(changeold), np.linalg.norm(change)))
-
-        counter += 1
-
-    output[0, [2, 3, 4]] = np.nan
-    output2[0, [0, 3]] = np.nan
-
-    return output, output2, xphys
-
-
 if __name__ == '__main__':
     itercount = 50
-    x0 = 0.5
-    nelx = 100
+    x0 = 0.2
+    nelx = 50
     nely = 50
 
     ## SETUP SUBPROBLEMS
@@ -160,7 +108,7 @@ if __name__ == '__main__':
     mix_mma_lin = Subproblem(Taylor1(mix_int), limits=[Bounds(0, 1)])
     mix_mma_lin.set_name("MIX_MMA_asyinit0.2_LIN")
 
-    sub_problems = [mma, mma_ml, lin_aml, mix_mma_lin]
+    sub_problems = [lin_aml]
 
     figdes, axsdes = plt.subplots(len(sub_problems), sharex=True)
 
@@ -168,7 +116,7 @@ if __name__ == '__main__':
     x = range(0, itercount - 1)
 
     for i, sub_problem in enumerate(sub_problems):
-        problem = ComplianceMBB(nelx, nely, vf=x0)
+        problem = SelfweightArch(nelx, nely, gravity=1.0)
         od1, od2, xphys = optimize(problem, sub_problem, problem.x0, itercount)
         axsdes[i].imshow(-xphys.reshape((problem.mesh.nelx, problem.mesh.nely)).T, cmap='gray',
                          interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
@@ -206,5 +154,5 @@ if __name__ == '__main__':
     figure = plt.gcf()  # get current figure
     figure.tight_layout(pad=0.01)
     # figure.set_size_inches(20, 20)
-    plt.savefig("compliancedata.pdf", bbox_inches='tight', dpi=100)
+    plt.savefig("selfweightdata.pdf", bbox_inches='tight', dpi=100)
     plt.show(block=True)

@@ -42,6 +42,8 @@ class Mesh:
         self.n = nelx * nely
         self.nnod = (nelx + 1) * (nely + 1)
         self.ndof = 2 * self.nnod
+        self.ndofx = 2 * (nelx + 1)
+        self.ndofy = 2 * (nely + 1)
 
         self.edofMat = np.zeros((self.nelx * self.nely, 8), dtype=int)
         for elx in range(self.nelx):
@@ -140,7 +142,6 @@ def element_matrix_stiffness():
 
 
 def deleterowcol(A, delrow, delcol):
-    assert isinstance(A, scipy.sparse.CSC), "deleterowcol assumes A is in csc form"
     m = A.shape[0]
     keep = np.delete(np.arange(0, m), delrow)
     A = A[keep, :]
