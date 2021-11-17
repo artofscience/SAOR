@@ -19,7 +19,7 @@ A problem can be setup using predefined wrappers
 
 ```python
 problem = Square()
-x, f = sao.solvers.method_of_moving_asymptoptes.mma(problem, x0=x0)
+x, f = sao.solvers.method_of_moving_asymptotes.mma(problem, x0=x0)
 print(f'Final design: {x} with objective: {f[0]} and constraints: {f[1:]}')
 ```
 
