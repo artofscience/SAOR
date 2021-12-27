@@ -28,8 +28,8 @@ def example_square(n):
     prob = Square(n)
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.xmin, prob.xmax)))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -96,11 +96,11 @@ def example_square_mixed(n):
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=Linear())
-    mix.set_intervening(MMA(prob.xmin, prob.xmax), var=[0], resp=[1])
+    mix.set_intervening(MMA(prob.x_min, prob.x_max), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.5)])
+    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.5)])
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)

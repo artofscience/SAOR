@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1, Taylor2
 from sao.problems import Subproblem
-from sao.intervening_variables import Linear, MMA, MMAsquared, MixedIntervening
+from sao.intervening_variables import Linear, MMA, MMAp, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit
 from sao.convergence_criteria import VariableChange
 from sao.util import Plot
@@ -29,7 +29,7 @@ def example_polynomial_2D():
     prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor2(Linear()))
+    subprob = Subproblem(approximation=Taylor1(MMAp(-1, prob.x_min, prob.x_max)))
     # mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.x_min, prob.x_max))
     # mixed_ml.add_move_limit(MoveLimit(move_limit=0.1, dx=prob.x_max-prob.x_min))
     # mixed_ml.add_move_limit(AdaptiveMoveLimit(move_limit=0.1, dx=prob.x_max[0]-prob.x_min[0]), var=[0])
@@ -66,7 +66,7 @@ def example_polynomial_2D():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor2) else None
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -101,7 +101,7 @@ def example_polynomial_2D_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.x_min, prob.x_max))
-    mix.set_intervening(MMAsquared(prob.x_min, prob.x_max), var=[0], resp=[1])
+    mix.set_intervening(MMAp(-2, prob.x_min, prob.x_max), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
@@ -133,7 +133,7 @@ def example_polynomial_2D_mixed():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor2) else None
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -192,7 +192,7 @@ def example_polynomial_2D_cvxopt():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
         df = prob.dg(x_k)
-        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
+        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor2) else None
 
         # Build approximate sub-problem at X^(k)
         subprob.build(x_k, f, df, ddf)
@@ -273,7 +273,7 @@ def example_polynomial_2D_scipy():
 
 
 if __name__ == "__main__":
-    # example_polynomial_2D()
+    example_polynomial_2D()
     # example_polynomial_2D_mixed()
     # example_polynomial_2D_cvxopt()
-    example_polynomial_2D_scipy()
+

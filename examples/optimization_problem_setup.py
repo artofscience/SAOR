@@ -21,10 +21,10 @@ class Dummy(sao.problems.Problem):
 
     def __init__(self, n):
         super().__init__()
-        self.xmin = self.alpha = 1e-3 * np.ones(n)
-        self.xmax = self.beta = np.ones(n)
+        self.x_min = 1e-3 * np.ones(n)
+        self.x_max = np.ones(n)
         self.x0 = np.random.rand(n)
-        np.clip(self.x0, self.xmin, self.xmax, out=self.x0)
+        np.clip(self.x0, self.x_min, self.x_max, out=self.x0)
         self.n = n
         self.m = 1
         self.f = np.zeros(m+1)
