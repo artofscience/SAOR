@@ -43,6 +43,7 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
+
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.x_min, prob.x_max, asyincr=1.3, asydecr=0.7)),
                          limits=[Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1)])
 
@@ -163,8 +164,10 @@ def example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
+
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.x_min, prob.x_max, asyincr=1.3, asydecr=0.7)),
                          limits=[Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1)])
+
 
     # Instantiate solver
     solver = SvanbergIP(prob.n, prob.m)
@@ -404,6 +407,7 @@ def example_thermomech(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=1.0
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
+
     subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.x_min, prob.x_max, asyincr=1.3, asydecr=0.7)),
                          limits=[Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1)])
 
