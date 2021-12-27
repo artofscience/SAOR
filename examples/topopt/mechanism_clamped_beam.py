@@ -2,11 +2,10 @@ import numpy as np
 from matplotlib import colors
 from scipy.sparse import coo_matrix
 
-from examples.topopt import utils
+from Problems.topology_optimization import utils
 import matplotlib.pyplot as plt
 
 from examples.topopt.compliance_mbb import optimize
-from examples.topopt.utils import deleterowcol
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
 from sao.intervening_variables import Linear, MMA, MixedIntervening
@@ -67,7 +66,7 @@ class MechanismClampedBeam:
         sk = np.concatenate((((self.ke.flatten()[np.newaxis]).T * ym).flatten(order='F'), self.sstiff))
         stiffness_matrix = coo_matrix((sk, (self.mesh.iK, self.mesh.jK)), shape=(self.mesh.ndof, self.mesh.ndof)).tocsc()
 
-        self.u[self.free, :] = utils.linear_solve(stiffness_matrix[self.free, :][:, self.free], self.f[self.free,:])
+        self.u[self.free, :] = utils.linear_solve(stiffness_matrix[self.free, :][:, self.free], self.f[self.free, :])
         u = self.u[:, 0]
         lag = self.u[:, 1]
 

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
-from examples.topopt import utils
+from Problems.topology_optimization import utils
 from examples.topopt.compliance_mbb import optimize
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
