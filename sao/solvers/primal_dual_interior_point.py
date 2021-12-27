@@ -346,6 +346,7 @@ def pdip(problem, x0=None, variables=Pdipxyz, epsimin=1e-9, max_outer_iter=100,
 
     iter = 0
     epsi = 1
+    counter = 0
 
     state = variables(problem, x0)
 
@@ -357,6 +358,7 @@ def pdip(problem, x0=None, variables=Pdipxyz, epsimin=1e-9, max_outer_iter=100,
         inner_iter = 0
         while inner_iter < max_inner_iter and rmax > epsifac * epsi:
             inner_iter = inner_iter + 1
+            counter += 1
 
             state.get_newton_direction(epsi)
             state.wold = deepcopy(state.w)
@@ -374,4 +376,4 @@ def pdip(problem, x0=None, variables=Pdipxyz, epsimin=1e-9, max_outer_iter=100,
             rnorm = rnew
             step *= 2
         epsi *= epsired
-    return state.w.x
+    return state.w.x, counter

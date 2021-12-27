@@ -1,13 +1,13 @@
 from sao.problems import Subproblem
 from sao.approximations import Taylor1
-from sao.intervening_variables import MMA, MMAOptions
+from sao.intervening_variables import MMA
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.convergence_criteria.criteria import VariableChange
 from sao.solvers.primal_dual_interior_point import pdip
 
 
-def mma(problem, x0=None, move=0.2, xmin=0.0, xmax=1.0, options=MMAOptions(), stop_tol=1e-6):
-    int_variable = MMA(xmin=xmin, xmax=xmax, options=options)
+def mma(problem, x0=None, move=0.2, xmin=0.0, xmax=1.0, stop_tol=1e-6):
+    int_variable = MMA(xmin=xmin, xmax=xmax)
     approx = Taylor1(int_variable)
     lim1 = Bounds(problem.x_min, problem.x_max)
     lim2 = MoveLimit(move * (problem.x_max - problem.x_min))

@@ -19,21 +19,26 @@ class MMAp(PositiveNegative):
         L_i := Lower asymptote (acts as a lower move-limit & adjusts the approximation's convexity)
     """
 
+
     def __init__(self, p=-1, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1, oscillation_tol=1e-10):
         super().__init__(Exponential(p), Exponential(p))
-
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
-
         self.xmin, self.xmax = xmin, xmax
 
+        self.asybound = asybound
+        self.asyinit = asyinit
+        self.asyincr = asyincr
+        self.asydecr = asydecr
+        self.albefa = albefa
+        self.oscillation_tol = oscillation_tol
+
         # MMA parameter initialization
-        self.options = MMAOptions
         self.factor = None
         self.dx = xmax - xmin
 
-        self.min_factor, self.max_factor = 1 / (self.options.asybound**2), self.options.asybound
+        self.min_factor, self.max_factor = 1 / (self.asybound ** 2), self.asybound
 
     def update(self, x, f, df, *args, **kwargs):
         """Update state of previous iterations."""
@@ -44,7 +49,7 @@ class MMAp(PositiveNegative):
     def get_asymptotes(self):
         """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
         if self.factor is None:
-            self.factor = np.full_like(self.x, self.options.asyinit)
+            self.factor = np.full_like(self.x, self.asyinit)
 
         if self.xold2 is None:
             # Initial values of asymptotes
@@ -59,8 +64,8 @@ class MMAp(PositiveNegative):
             oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2)) / self.dx
 
             # oscillating variables x_i are increase or decrease the factor
-            self.factor[oscillation > +self.options.oscillation_tol] *= self.options.asyincr
-            self.factor[oscillation < -self.options.oscillation_tol] *= self.options.asydecr
+            self.factor[oscillation > +self.oscillation_tol] *= self.asyincr
+            self.factor[oscillation < -self.oscillation_tol] *= self.asydecr
 
             # Clip the asymptote factor
             np.clip(self.factor, self.min_factor, self.max_factor)
@@ -82,8 +87,8 @@ class MMAp(PositiveNegative):
         return super().ddyddx(g_x)
 
     def get_move_limit(self):
-        zzl2 = self.low + self.options.albefa * (self.x - self.low)
-        zzu2 = self.upp - self.options.albefa * (self.upp - self.x)
+        zzl2 = self.low + self.albefa * (self.x - self.low)
+        zzu2 = self.upp - self.albefa * (self.upp - self.x)
         return zzl2, zzu2
 
     def clip(self, x):
@@ -93,7 +98,7 @@ class MMAp(PositiveNegative):
         :param x: The vector to be clipped
         :return: Clipped vector (reference of x)
         """
-        dist = self.options.albefa * self.factor * self.dx
+        dist = self.albefa * self.factor * self.dx
         l, u = self.low + dist, self.upp - dist
         return np.clip(x, l, u, out=x)
 
@@ -108,6 +113,7 @@ class MMA(MMAp):
         y_i = (x_i - L_i) ** p     ,  if dg_j/dx_i < 0
     """
 
+
     def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1,
                  oscillation_tol=1e-10):
         """
@@ -118,3 +124,4 @@ class MMA(MMAp):
         super().__init__(p=-1,xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr,
                          asybound=asybound, albefa=albefa, oscillation_tol=oscillation_tol,
                          )
+

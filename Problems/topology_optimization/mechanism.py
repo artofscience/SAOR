@@ -1,4 +1,4 @@
-from .mbbbeam import MBBBeam
+from mbbbeam import MBBBeam
 import numpy as np
 from scipy.sparse import coo_matrix
 
@@ -15,8 +15,8 @@ class Mechanism(MBBBeam):
         self.iK = np.concatenate((self.iK, istiff))
         self.jK = np.concatenate((self.jK, jstiff))
 
-        # self.fixed = np.union1d(self.dofs[0:2*(nely+1):2],
-        #                         self.dofs[-nely:-1])
+        # self.fixed = np.union1d(self.dofs[0:2*(ny+1):2],
+        #                         self.dofs[-ny:-1])
         # self.free = np.setdiff1d(self.dofs, self.fixed)
 
 

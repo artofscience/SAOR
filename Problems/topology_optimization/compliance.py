@@ -5,7 +5,7 @@ import numpy as np
 class Compliance(MBBBeam):
     def __init__(self, nelx, nely, volfrac, penal, rmin):
         super().__init__(nelx, nely, volfrac, penal, rmin)
-        self.name = 'Compliance'
+        self.name = 'ComplianceMBB'
 
         # Solution and RHS vectors
         self.f = np.zeros((self.ndof, 1))
