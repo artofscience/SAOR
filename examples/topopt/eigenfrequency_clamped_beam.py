@@ -4,14 +4,12 @@ from matplotlib import colors
 
 
 from Problems.topology_optimization import utils
-from examples.topopt.compliance_mbb import optimize
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
 from sao.intervening_variables import Linear, MMA, MixedIntervening
 from sao.approximations import Taylor1
-
 from Problems.topology_optimization.eigenfrequency import EigenfrequencyClampedBeam
-
+from examples.topopt.optimize import optimize
 
 itercount = 50
 x0 = 0.4

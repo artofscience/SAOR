@@ -129,3 +129,85 @@ class Flexure:
         dg[1, :] = self.filter.backward(dg[1, :])
 
         return dg
+
+class SelfweightArch:
+
+    def __init__(self, nelx, nely, load=0.0, gravity=10.0, volfrac=0.2, rmin=3, x0=0.5):
+        self.name = 'self-weight'
+        self.Eps = 1e-10
+        self.mesh = utils.Mesh(nelx, nely)
+        self.factor = None
+
+        self.penal = 3
+        self.volfrac = volfrac
+        self.x0 = x0 * np.ones(self.mesh.n, dtype=float)
+
+        self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
+        self.ce = np.ones(self.mesh.n, dtype=float)
+
+        self.KE = utils.element_matrix_stiffness()
+
+        self.filter = utils.Filter(self.mesh, rmin)
+
+        self.dofs = np.arange(self.mesh.ndof)
+        self.fixed = np.union1d(self.dofs[0:self.mesh.ndofy:2],
+                                np.array([self.mesh.ndof - 2, self.mesh.ndof - 1]))
+        self.free = np.setdiff1d(self.dofs, self.fixed)
+        self.f = np.zeros(self.mesh.ndof, dtype=float)
+        self.u = np.zeros((self.mesh.ndof, 1), dtype=float)
+
+        # Applied load at top
+        self.load = load
+        self.dout = 1
+        self.gravity = gravity / self.mesh.n
+
+    def g(self, x):
+        g = np.zeros(2)
+
+        xPhys = self.filter.forward(x)
+
+        # Gravity load
+        self.f[:] = 0
+        np.add.at(self.f, self.mesh.edofMat[:, 1::2].flatten(),
+                  np.kron(xPhys, -self.gravity * np.ones(4) / 4))
+        self.f[self.dout] -= self.load
+
+        E = self.Eps + (0.1 * xPhys.flatten() + 0.9 * (xPhys.flatten() ** self.penal)) * (1 - self.Eps)
+        K = utils.assemble_K(E, self.mesh, self.fixed)
+
+        self.u[self.free, :] = utils.linear_solve(K, self.f[self.free])
+
+        # Objective and volume constraint
+        self.ce[:] = (np.dot(self.u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.KE) *
+                      self.u[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
+
+        g[0] = np.dot(self.f, self.u)
+        g[1] = 1 - sum(xPhys[:]) / (self.volfrac * self.mesh.n)
+        return g
+
+    def dg(self, x):
+        dg = np.zeros((2, self.mesh.n), dtype=float)
+        xPhys = self.filter.forward(x)
+        dg[0, :] -= (1 - self.Eps) * (0.1 + 0.9 * self.penal * xPhys ** (self.penal - 1)) * self.ce
+
+        # np.add.at(self.f, self.edofMat[:, 1::2].flatten(), np.kron(xPhys, -self.gravity*np.ones(4)/4))
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 1], 0] * self.gravity / 2
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 3], 0] * self.gravity / 2
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 5], 0] * self.gravity / 2
+        dg[0, :] -= self.u[self.mesh.edofMat[:, 7], 0] * self.gravity / 2
+
+        dg[1, :] = -np.ones(self.mesh.n) / (self.volfrac * self.mesh.n)
+
+        # Sensitivity filtering
+        dg[0, :] = self.filter.backward(dg[0, :])
+        dg[1, :] = self.filter.backward(dg[1, :])
+
+        return dg
+
+
+class SelfweightMBB(SelfweightArch):
+    def __init__(self, nelx, nely, load=0.0, gravity=10.0, volfrac=0.2, rmin=2, x0=0.5):
+        super().__init__(nelx,nely,load=load,gravity=gravity, volfrac=volfrac,rmin=rmin, x0=x0)
+        self.fixed = np.union1d(self.dofs[0:self.mesh.ndofy:2],
+                                np.array([ self.mesh.ndof - 1]))
+        self.free = np.setdiff1d(self.dofs, self.fixed)
