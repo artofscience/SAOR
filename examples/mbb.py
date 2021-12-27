@@ -7,7 +7,7 @@ from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationCount, Feasibility
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
-from sao.solvers import SvanbergIP
+from sao.solvers.primal_dual_interior_point import pdip
 from util.plotter import Plot2, Plot3
 from Problems.topology_optimization.compliance import Compliance
 from Problems.topology_optimization.stress import Stress
@@ -43,11 +43,11 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
     assert prob.n == nelx * nely
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.xmin, prob.xmax, options=MMAOptions(asyincr=1.3, asydecr=0.7))),
-                         limits=[Bounds(prob.xmin, prob.xmax), MoveLimit(move_limit=0.1)])
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(prob.x_min, prob.x_max, options=MMAOptions(asyincr=1.3, asydecr=0.7))),
+                         limits=[Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1)])
 
     # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
+    #solver = SvanbergIP(prob.n, prob.m)
 
     # Instantiate convergence criterion
     # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
@@ -78,17 +78,17 @@ def example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
         subprob.build(x_k, f, df)
 
         # Solve current subproblem
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k[:] = pdip(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         vis = prob.visualize(x_k, itte, vis)
-        logger.info(
-            'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
-                itte, f[0], f[1], max(0, max(f[1:]))))
-        plotter.plot([f[0], f[1], max(0, max(f[1:]))])
+        #logger.info(
+        #    'iter: {:^4d}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
+        #        itte, f[0], f[1], max(0, max(f[1:]))))
+        #plotter.plot([f[0], f[1], max(0, max(f[1:]))])
 
         itte += 1
 
@@ -730,17 +730,17 @@ def example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3):
 
 if __name__ == "__main__":
     # TODO: Create the `prob` object here and call a function `optimize(prob) to improve running these examples`
-    # Non-mixed optimizers (use nelx=50, nely=20 for plotter2)
-    # example_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_dynamic_compliance(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_stress(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
-    # example_mechanism(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
-    # example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    # example_self_weight(nelx=100, nely=50, volfrac=0.1, penal=3, rmin=3, load=0.1, gravity=10)
-    example_thermomech(nelx=200, nely=200, volfrac=0.3, penal=3, rmin=3, load=-0.1, gravity=100)
+    # Non-mixed optimizers (use nx=50, ny=20 for plotter2)
+    # example_compliance(nx=100, ny=50, vf=0.4, penal=3, fradius=3)
+    # example_dynamic_compliance(nx=100, ny=50, vf=0.4, penal=3, fradius=3)
+    # example_stress(nx=100, ny=50, vf=0.4, penal=3, fradius=3, max_stress=1)
+    # example_mechanism(nx=100, ny=50, vf=0.3, penal=3, fradius=3, kin=0.001, kout=0.0001)
+    example_eigenvalue(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    # example_self_weight(nx=100, ny=50, vf=0.1, penal=3, fradius=3, load=0.1, gravity=10)
+    # example_thermomech(nx=200, ny=200, vf=0.3, penal=3, fradius=3, load=-0.1, gravity=100)
 
     # Mixed optimizers
-    example_compliance_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
-    example_stress_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3, max_stress=1)
-    example_mechanism_mixed(nelx=100, nely=50, volfrac=0.3, penal=3, rmin=3, kin=0.001, kout=0.0001)
-    example_eigenvalue_mixed(nelx=100, nely=50, volfrac=0.4, penal=3, rmin=3)
+    # example_compliance_mixed(nx=100, ny=50, vf=0.4, penal=3, fradius=3)
+    # example_stress_mixed(nx=100, ny=50, vf=0.4, penal=3, fradius=3, max_stress=1)
+    # example_mechanism_mixed(nx=100, ny=50, vf=0.3, penal=3, fradius=3, kin=0.001, kout=0.0001)
+    # example_eigenvalue_mixed(nx=100, ny=50, vf=0.4, penal=3, fradius=3)

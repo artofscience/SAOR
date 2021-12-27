@@ -168,6 +168,7 @@ class VariableChangeNorm(Criterion):
         self.previous = math.inf
         self.value = None
 
+
     def __call__(self):
         """Assert the norm of the variables' change is sufficiently small."""
         current = self.variables
@@ -175,7 +176,7 @@ class VariableChangeNorm(Criterion):
         # The (scaled) change of all variables should be sufficiently small
         # before the variable change is satisfied.
         self.value = np.linalg.norm((current - self.previous) / self.scaling)
-        self.done = self.value < self.tolerance
+        self.done = (self.value < self.tolerance).astype(bool)
 
         # keep track of the previous iterations value of the variables
         self.previous = current.copy()

@@ -42,10 +42,10 @@ class Thermomech(MBBBeam):
                         cc = cc + 1
         self.H = coo_matrix((sH, (iH, jH)), shape=(self.nelx * self.nely, self.nelx * self.nely)).tocsc()
         self.Hs = self.H.sum(1)
-        # a = np.reshape(np.arange(0, self.n), (self.nelx, self.nely)).T
-        # b = a[0:self.rmin, 2 * self.rmin:]
-        # c = a[-self.rmin:, 2 * self.rmin:-2 * self.rmin]
-        # d = a[:-2 * self.rmin, -self.rmin:]
+        # a = np.reshape(np.arange(0, self.n), (self.nx, self.ny)).T
+        # b = a[0:self.fradius, 2 * self.fradius:]
+        # c = a[-self.fradius:, 2 * self.fradius:-2 * self.fradius]
+        # d = a[:-2 * self.fradius, -self.fradius:]
         # padel = np.unique(np.concatenate((b.flatten(), c.flatten(), d.flatten())))
         # self.Hs[padel] = np.max(self.Hs)
 

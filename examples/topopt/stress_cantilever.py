@@ -11,7 +11,7 @@ from sao.approximations import Taylor1
 
 class StressCantilever:
 
-    def __init__(self, nx, ny, vf=0.2, fradius=2, max_stress=0.5):
+    def __init__(self, nx, ny, vf=0.2, fradius=2, max_stress=0.6):
         self.eps = 1e-10
         self.mesh = utils.Mesh(nx, ny)
         self.factor = None
@@ -22,7 +22,7 @@ class StressCantilever:
 
         self.penal = 3
         self.vf = vf
-        self.P = 2
+        self.P = 6
         self.x0 = np.ones(self.mesh.n, dtype=float)
 
         self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
@@ -65,7 +65,7 @@ class StressCantilever:
 
         xphys = self.filter.forward(x)
 
-        ym = self.eps + (xphys.flatten() ** self.penal) * (1 - self.eps)
+        ym = self.eps + (0.1 * xphys.flatten() + 0.9 * (xphys.flatten() ** self.penal)) * (1 - self.eps)
         self.stiffness_matrix = utils.assemble_K(ym, self.mesh, self.fixed)
 
         self.u[self.free, :] = utils.linear_solve(self.stiffness_matrix, self.f[self.free])
@@ -109,7 +109,7 @@ class StressCantilever:
         self.ce[:] = (np.dot(self.u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
                       self.lag[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
-        dg[1, :] = (-self.penal * xphys ** (self.penal - 1) * (1 - self.eps)) * self.ce
+        dg[1, :] = -(1 - self.eps) * (0.1 + 0.9 * self.penal * xphys ** (self.penal - 1)) * self.ce
         dg[1, :] += (dgdgi_scaled * self.gi)
 
         dg[0, :] = np.ones(self.mesh.n) / self.mesh.n
@@ -121,18 +121,18 @@ class StressCantilever:
 
 if __name__ == '__main__':
     itercount = 50
-    nelx = 40
-    nely = 100
+    nelx = 100
+    nely = 50
 
     ## SETUP SUBPROBLEMS
 
     mma = Subproblem(Taylor1(MMA(asyinit=0.2)), limits=[Bounds(0, 1)])
     mma.set_name("MMA_asyinit_0.2")
 
-    mma_ml = Subproblem(Taylor1(MMA(asyinit=0.2)), limits=[Bounds(0, 1), MoveLimit(0.1)])
+    mma_ml = Subproblem(Taylor1(MMA(asyinit=0.2)), limits=[Bounds(0, 1), MoveLimit(0.2)])
     mma_ml.set_name("MMA_asyinit_0.2_ML_0.3")
 
-    lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.1)])
+    lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
     lin_aml.set_name("LIN_AML_0.3")
 
     mix_int = MixedIntervening(nelx * nely, 2, default=MMA(asyinit=0.2))
@@ -174,17 +174,14 @@ if __name__ == '__main__':
 
     axs[0, 1].set_ylabel(
         r'$\frac{g_0\left[\mathbf{x}^{(k)}\right] - g_0\left[\mathbf{x}^{(k-1)}\right]}{\frac{\partial g_0^{(k-1)}}{\partial\mathbf{x}}\cdot \Delta \mathbf{x}^{(k-1)}}$')
+    axs[1, 1].set_ylabel(
+        r'$\frac{g_0\left[\mathbf{x}^{(k)}\right] - g_0\left[\mathbf{x}^{(k-1)}\right]}{a}$')
 
-    axs[1, 1].set_ylabel(r'$\frac{4}{n} \sum_{i}^n \tilde{x}_i \left(1-\tilde{x}_i\right)$')
+    axs[2, 1].set_ylabel(r'$\frac{4}{n} \sum_{i}^n \tilde{x}_i \left(1-\tilde{x}_i\right)$')
 
-    axs[2, 1].set_ylabel('N')
+    axs[3, 1].set_ylabel('N')
 
-    axs[3, 1].set_ylabel(
-        r'$\arccos\left(\frac{\Delta \mathbf{x}^{(k)} \cdot \Delta \mathbf{x}^{(k-1)}}{\left\|\Delta \mathbf{x}^{(k)} \right\| \cdot \left\|\Delta \mathbf{x}^{(k-1)}\right\|}\right)$')
+    axs[4, 1].set_ylabel(
+        r'$\frac{\Delta \mathbf{x}^{(k)} \cdot \Delta \mathbf{x}^{(k-1)}}{\left\|\Delta \mathbf{x}^{(k)} \right\| \cdot \left\|\Delta \mathbf{x}^{(k-1)}\right\|}$')
 
-    plt.show()
-    figure = plt.gcf()  # get current figure
-    figure.tight_layout(pad=0.01)
-    # figure.set_size_inches(20, 20)
-    plt.savefig("stressdata.pdf", bbox_inches='tight', dpi=100)
     plt.show(block=True)

@@ -28,10 +28,10 @@ class MBBBeam(Problem, ABC):
         self.penal = penal
         self.rmin = rmin
         self.n = self.nely * self.nelx
-        self.xmin = np.zeros(self.n, dtype=float)
-        self.xmax = np.ones(self.n, dtype=float)
+        self.x_min = np.zeros(self.n, dtype=float)
+        self.x_max = np.ones(self.n, dtype=float)
         self.x0 = volfrac * np.ones(self.n, dtype=float)            # np.random.rand(self.n)
-        self.xold = self.xmin.copy()
+        self.xold = self.x_min.copy()
         self.m = 1
         # self.g = 0                      # must be initialized to use the NGuyen/Paulino OC approach
         self.dc = np.zeros((self.nely, self.nelx), dtype=float)
@@ -167,8 +167,8 @@ class MBBBeam(Problem, ABC):
             plt.ion()
             fig, ax = plt.subplots()
             plt.title(f'{self.__class__.__name__}: n = {self.n}, iter = {iteration}', fontsize=16)
-            ax.set_ylabel('nely', fontsize=16)
-            ax.set_xlabel('nelx', fontsize=16)
+            ax.set_ylabel('ny', fontsize=16)
+            ax.set_xlabel('nx', fontsize=16)
             im = ax.imshow(-xPhys.reshape((self.nelx, self.nely)).T, cmap='gray',
                            interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
             fig.show()
@@ -177,17 +177,17 @@ class MBBBeam(Problem, ABC):
             # # Plot the indices of xPhys
             # fig, ax = plt.subplots()
             # plt.title('xPhys indices', fontsize=16)
-            # ax.set_ylabel('nely', fontsize=16)
-            # ax.set_xlabel('nelx', fontsize=16)
-            # values = np.arange(0, len(xPhys)).reshape((self.nelx, self.nely)).T
+            # ax.set_ylabel('ny', fontsize=16)
+            # ax.set_xlabel('nx', fontsize=16)
+            # values = np.arange(0, len(xPhys)).reshape((self.nx, self.ny)).T
             # ax.imshow(values, cmap=plt.cm.Blues, interpolation='none')
-            # ax.set_xticks(np.arange(0, self.nelx, 1))
-            # ax.set_yticks(np.arange(0, self.nely, 1))
-            # ax.set_xticks(np.arange(-.5, self.nelx+0.5, 1), minor=True)
-            # ax.set_yticks(np.arange(-.5, self.nely+0.5, 1), minor=True)
+            # ax.set_xticks(np.arange(0, self.nx, 1))
+            # ax.set_yticks(np.arange(0, self.ny, 1))
+            # ax.set_xticks(np.arange(-.5, self.nx+0.5, 1), minor=True)
+            # ax.set_yticks(np.arange(-.5, self.ny+0.5, 1), minor=True)
             # ax.grid(which='minor', color='k', linestyle='-', linewidth=1)
-            # for i in range(0, self.nelx, 3):
-            #     for j in range(0, self.nely, 3):
+            # for i in range(0, self.nx, 3):
+            #     for j in range(0, self.ny, 3):
             #         c = values[j, i]
             #         text = ax.text(i, j, str(c), va='center', ha='center', color='black')
             #         text.set_path_effects([PathEffects.withStroke(linewidth=1.2, foreground='w')])
@@ -209,8 +209,8 @@ class MBBBeam(Problem, ABC):
             plt.ion()
             fig, ax = plt.subplots()
             ax.set_title(f'{self.__class__.__name__}: n = {self.n}, iter = {iteration}', fontsize=16)
-            ax.set_ylabel('nely', fontsize=16)
-            ax.set_xlabel('nelx', fontsize=16)
+            ax.set_ylabel('ny', fontsize=16)
+            ax.set_xlabel('nx', fontsize=16)
             im = ax.imshow(x_k.reshape((self.nelx, self.nely)).T, cmap='jet',
                            interpolation='none', norm=colors.Normalize(vmin=0, vmax=max))
             fig.show()

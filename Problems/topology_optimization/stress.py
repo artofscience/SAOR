@@ -1,4 +1,4 @@
-from .mbbbeam import MBBBeam
+from mbbbeam import MBBBeam
 import numpy as np
 
 

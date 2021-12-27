@@ -1,9 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib import colors
-from scipy.sparse.linalg import eigsh, splu, LinearOperator
+from scipy.sparse import coo_matrix
 
 from examples.topopt import utils
+import matplotlib.pyplot as plt
+
 from examples.topopt.compliance_mbb import optimize
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
@@ -11,71 +12,67 @@ from sao.intervening_variables import Linear, MMA, MixedIntervening
 from sao.approximations import Taylor1
 
 
-class EigenfrequencyClampedBeam:
-
-    def __init__(self, nelx, nely, volfrac=0.2, rmin=2, n_eigenvalues=20, rho=1.0e-2):
-        self.name = 'EigenfrequencyMBB'
-        self.Eps = 1e-10
-        self.mesh = utils.Mesh(nelx, nely)
+class Flexure:
+    def __init__(self, nx, ny, vf=0.5, fradius=2):
+        self.eps = 1e-10
+        self.mesh = utils.Mesh(nx, ny)
         self.factor = None
         self.m = 1
-        self.rho = rho
+        self.fradius = fradius
 
-        self.penal = 3
-        self.volfrac = volfrac
-        self.x0 = self.volfrac * np.ones(self.mesh.n, dtype=float)
+        self.penal = 2
+        self.vf = vf
+        self.x0 = self.vf * np.ones(self.mesh.n, dtype=float)
 
-        self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
-        self.ce = np.ones(self.mesh.n, dtype=float)
+        self.ce = np.ones((self.mesh.n, 2), dtype=float)
 
-        self.KE = utils.element_matrix_stiffness()
+        self.ke = utils.element_matrix_stiffness()
 
-        self.filter = utils.Filter(self.mesh, rmin)
+        self.filter = utils.Filter(self.mesh, fradius)
 
         self.dofs = np.arange(self.mesh.ndof)
-        left = np.union1d(self.dofs[0:self.mesh.ndofy:2], self.dofs[1:self.mesh.ndofy:2])
-        right = np.union1d(self.dofs[self.mesh.ndof - self.mesh.ndofy:self.mesh.ndof:2],
-                           self.dofs[self.mesh.ndof - self.mesh.ndofy + 1:self.mesh.ndof:2])
-        self.fixed = np.union1d(left, right)
+
+        topx = self.dofs[0::self.mesh.ndofy]
+        topy = self.dofs[1::self.mesh.ndofy]
+
+        top = np.union1d(topx, topy)
+        bottom = np.union1d(self.dofs[self.mesh.ndofy-2::self.mesh.ndofy], self.dofs[self.mesh.ndofy-1::self.mesh.ndofy])
+        self.fixed = np.union1d(top, bottom)
         self.free = np.setdiff1d(self.dofs, self.fixed)
-        self.n_eig = n_eigenvalues
-        self.u = np.zeros((self.mesh.ndof, self.n_eig), dtype=float)
+        self.f = np.zeros((self.mesh.ndof, 2), dtype=float)
+        self.u = np.zeros((self.mesh.ndof, 2), dtype=float)
+
+        self.u[topx, 0] = 10
+        self.u[topy, 1] = 10
+
 
     def g(self, x):
         g = np.zeros(self.m + 1)
 
-        xPhys = self.filter.forward(x)
+        xphys = self.filter.forward(x)
 
-        E = self.Eps + (0.1 * xPhys.flatten() + 0.9 * (xPhys.flatten() ** self.penal)) * (1 - self.Eps)
-        K = utils.assemble_K(E, self.mesh, self.fixed)
+        ym = self.eps + (xphys ** self.penal) * (1 - self.eps)
+        sk = ((self.ke.flatten()[np.newaxis]).T * ym).flatten(order='F')
+        stiffness_matrix = coo_matrix((sk, (self.mesh.iK, self.mesh.jK)), shape=(self.mesh.ndof, self.mesh.ndof)).tocsc()
 
-        ro = self.Eps + (1 - self.Eps) * xPhys.flatten()
-        M = utils.assemble_M(ro, self.mesh, self.free, rho=self.rho, lx=1 / self.mesh.nelx, ly=self.mesh.nely)
+        self.u[self.free, :] = utils.linear_solve(stiffness_matrix[self.free, :][:, self.free], -stiffness_matrix[self.free, :][:, self.fixed] * self.u[self.fixed, :])
 
-        Kinv = splu(K)
-        KinvOp = LinearOperator(K.shape, Kinv.solve)
-        self.eigvals, self.u[self.free, :] = eigsh(K, M=M, k=self.n_eig, OPinv=KinvOp, sigma=0.0)
+        # Objective and volume constraint
+        for i in [0, 1]:
+            u = self.u[:,i]
+            self.ce[:,i] = (np.dot(u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
+                      u[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
-        g[0] = np.sum(1 / self.eigvals)
-        g[1] = np.sum(xPhys[:]) / (self.volfrac * self.mesh.n) - 1
+        g[0] = -np.sum(np.dot(self.u[:,0],stiffness_matrix * self.u[:,0]))
+        g[1] = np.sum(np.dot(self.u[:,1],stiffness_matrix * self.u[:,1])) - 1
         return g
 
     def dg(self, x):
         dg = np.zeros((2, self.mesh.n), dtype=float)
-        xPhys = self.filter.forward(x)
-
-        dg_dlam = -1 / self.eigvals ** 2
-
-        ue = self.u[self.mesh.edofMat, :]
-        dg_dsK = np.einsum("E,ijE,jk,ikE->i", dg_dlam, ue, self.KE, ue)
-        dg_dsM = np.einsum("E,ijE,ijE->i",
-                           -self.eigvals * dg_dlam * self.rho * (1 / self.mesh.nelx) * (1 / self.mesh.nely) / 4, ue, ue)
-
-        dg[0, :] += dg_dsK * (1 - self.Eps) * (0.1 + 0.9 * self.penal * xPhys ** (self.penal - 1))
-        dg[0, :] += dg_dsM * (1 - self.Eps)
-        dg[1, :] = np.ones(self.mesh.n) / (self.volfrac * self.mesh.n)
-
-        # Sensitivity filtering
+        xphys = self.filter.forward(x)
+        for i in [0,1]:
+            dg[i, :] = (1 - self.eps) * (self.penal * xphys ** (self.penal - 1)) * self.ce[:,i]
+        dg[0, :] *= -1
         dg[0, :] = self.filter.backward(dg[0, :])
         dg[1, :] = self.filter.backward(dg[1, :])
 
@@ -83,20 +80,20 @@ class EigenfrequencyClampedBeam:
 
 
 if __name__ == '__main__':
-    itercount = 50
-    x0 = 0.4
-    nelx = 160
-    nely = 20
+    itercount = 30
+    x0 = 0.5
+    nelx = 100
+    nely = 100
 
     ## SETUP SUBPROBLEMS
 
     mma = Subproblem(Taylor1(MMA()), limits=[Bounds(0, 1)])
     mma.set_name("MMA_asyinit_0.2")
 
-    mma_ml = Subproblem(Taylor1(MMA()), limits=[Bounds(0, 1), MoveLimit(0.2)])
+    mma_ml = Subproblem(Taylor1(MMA()), limits=[Bounds(0, 1), MoveLimit(0.3)])
     mma_ml.set_name("MMA_asyinit_0.2_ML_0.3")
 
-    lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+    lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.3)])
     lin_aml.set_name("LIN_AML_0.3")
 
     mix_int = MixedIntervening(nelx * nely, 2, default=Linear())
@@ -112,7 +109,7 @@ if __name__ == '__main__':
     x = range(0, itercount - 1)
 
     for i, sub_problem in enumerate(sub_problems):
-        problem = EigenfrequencyClampedBeam(nelx, nely, volfrac=x0)
+        problem = Flexure(nelx, nely, vf=x0)
         od1, od2, xphys = optimize(problem, sub_problem, problem.x0, itercount)
         axsdes[i].imshow(-xphys.reshape((problem.mesh.nelx, problem.mesh.nely)).T, cmap='gray',
                          interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))

@@ -13,7 +13,7 @@ from compliance_mbb import optimize
 
 class SelfweightArch:
 
-    def __init__(self, nelx, nely, load=0.0, gravity=0.0, volfrac=0.2, rmin=2):
+    def __init__(self, nelx, nely, load=0.0, gravity=10.0, volfrac=0.2, rmin=3, x0=0.5):
         self.name = 'self-weight'
         self.Eps = 1e-10
         self.mesh = utils.Mesh(nelx, nely)
@@ -21,7 +21,7 @@ class SelfweightArch:
 
         self.penal = 3
         self.volfrac = volfrac
-        self.x0 = self.volfrac * np.ones(self.mesh.n, dtype=float)
+        self.x0 = x0 * np.ones(self.mesh.n, dtype=float)
 
         self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
         self.ce = np.ones(self.mesh.n, dtype=float)
@@ -86,11 +86,20 @@ class SelfweightArch:
         return dg
 
 
+class SelfweightMBB(SelfweightArch):
+    def __init__(self, nelx, nely, load=0.0, gravity=10.0, volfrac=0.2, rmin=2, x0=0.5):
+        super().__init__(nelx,nely,load=load,gravity=gravity, volfrac=volfrac,rmin=rmin, x0=x0)
+        self.fixed = np.union1d(self.dofs[0:self.mesh.ndofy:2],
+                                np.array([ self.mesh.ndof - 1]))
+        self.free = np.setdiff1d(self.dofs, self.fixed)
+
+
 if __name__ == '__main__':
     itercount = 50
     x0 = 0.2
-    nelx = 50
-    nely = 50
+    volfrac = 0.2
+    nelx = 100
+    nely = 100
 
     ## SETUP SUBPROBLEMS
 
@@ -100,15 +109,18 @@ if __name__ == '__main__':
     mma_ml = Subproblem(Taylor1(MMA()), limits=[Bounds(0, 1), MoveLimit(0.2)])
     mma_ml.set_name("MMA_asyinit_0.2_ML_0.3")
 
-    lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+    lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.5)])
     lin_aml.set_name("LIN_AML_0.3")
+
+    lin = Subproblem(Taylor1(Linear()), limits=[Bounds(0,1), MoveLimit(0.1)])
+    lin.set_name("LIN_0.5")
 
     mix_int = MixedIntervening(nelx * nely, 2, default=Linear())
     mix_int.set_intervening(MMA(), resp=0)
     mix_mma_lin = Subproblem(Taylor1(mix_int), limits=[Bounds(0, 1)])
     mix_mma_lin.set_name("MIX_MMA_asyinit0.2_LIN")
 
-    sub_problems = [lin_aml]
+    sub_problems = [lin_aml, mma]
 
     figdes, axsdes = plt.subplots(len(sub_problems), sharex=True)
 
@@ -116,7 +128,7 @@ if __name__ == '__main__':
     x = range(0, itercount - 1)
 
     for i, sub_problem in enumerate(sub_problems):
-        problem = SelfweightArch(nelx, nely, gravity=1.0)
+        problem = SelfweightArch(nelx, nely, gravity=1.0, x0=x0, volfrac=volfrac)
         od1, od2, xphys = optimize(problem, sub_problem, problem.x0, itercount)
         axsdes[i].imshow(-xphys.reshape((problem.mesh.nelx, problem.mesh.nely)).T, cmap='gray',
                          interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
@@ -142,17 +154,14 @@ if __name__ == '__main__':
 
     axs[0, 1].set_ylabel(
         r'$\frac{g_0\left[\mathbf{x}^{(k)}\right] - g_0\left[\mathbf{x}^{(k-1)}\right]}{\frac{\partial g_0^{(k-1)}}{\partial\mathbf{x}}\cdot \Delta \mathbf{x}^{(k-1)}}$')
+    axs[1, 1].set_ylabel(
+        r'$\frac{g_0\left[\mathbf{x}^{(k)}\right] - g_0\left[\mathbf{x}^{(k-1)}\right]}{a}$')
 
-    axs[1, 1].set_ylabel(r'$\frac{4}{n} \sum_{i}^n \tilde{x}_i \left(1-\tilde{x}_i\right)$')
+    axs[2, 1].set_ylabel(r'$\frac{4}{n} \sum_{i}^n \tilde{x}_i \left(1-\tilde{x}_i\right)$')
 
-    axs[2, 1].set_ylabel('N')
+    axs[3, 1].set_ylabel('N')
 
-    axs[3, 1].set_ylabel(
-        r'$\arccos\left(\frac{\Delta \mathbf{x}^{(k)} \cdot \Delta \mathbf{x}^{(k-1)}}{\left\|\Delta \mathbf{x}^{(k)} \right\| \cdot \left\|\Delta \mathbf{x}^{(k-1)}\right\|}\right)$')
+    axs[4, 1].set_ylabel(
+        r'$\frac{\Delta \mathbf{x}^{(k)} \cdot \Delta \mathbf{x}^{(k-1)}}{\left\|\Delta \mathbf{x}^{(k)} \right\| \cdot \left\|\Delta \mathbf{x}^{(k-1)}\right\|}$')
 
-    plt.show()
-    figure = plt.gcf()  # get current figure
-    figure.tight_layout(pad=0.01)
-    # figure.set_size_inches(20, 20)
-    plt.savefig("selfweightdata.pdf", bbox_inches='tight', dpi=100)
     plt.show(block=True)
