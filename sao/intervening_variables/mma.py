@@ -1,29 +1,13 @@
 from dataclasses import dataclass
 import numpy as np
+from .exponential import Reciprocal, Exponential
 from .intervening import Intervening
+from .split import PositiveNegative
 
 
-@dataclass
-class MMAOptions():
-    """Options for the MMA-algorithms and their default values.
 
-    Attributes:
-        asyinit (float): Initial values for the asymptotes.
-        asyincr (float): Factor to increase asymptotes.
-        asydecr (float): Factor to decrease asymptotes.
-        asybounds (float): The bounds for the asymptotes.
-        albefa (float): Tolerance between the asymptote and bounds.
-        oscillation_tol (float): Tolerance for oscillations detection between iterations.
-    """
-    asyinit: float = 0.5
-    asyincr: float = 1.2
-    asydecr: float = 0.7
-    asybound: float = 0.5
-    albefa: float = 0.1
-    oscillation_tol: float = 1e-10
+class MMAp(PositiveNegative):
 
-
-class MMA(Intervening):
     """The MMA algorithm, given by: http://www.ingveh.ulg.ac.be/uploads/education/meca-0027-1/MMA_DCAMM_1998.pdf
 
     Includes the following set of mixed intervening variables:
@@ -35,7 +19,9 @@ class MMA(Intervening):
         L_i := Lower asymptote (acts as a lower move-limit & adjusts the approximation's convexity)
     """
 
-    def __init__(self, xmin=0.0, xmax=1.0, options=MMAOptions()):
+    def __init__(self, p=-1, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1, oscillation_tol=1e-10):
+        super().__init__(Exponential(p), Exponential(p))
+
         self.x = None
         self.xold1, self.xold2 = None, None
         self.low, self.upp = None, None
@@ -48,9 +34,6 @@ class MMA(Intervening):
         self.dx = xmax - xmin
 
         self.min_factor, self.max_factor = 1 / (self.options.asybound**2), self.options.asybound
-
-        # A boolean indicator array that keeps track of the positive (and negative) values of the variables
-        self.positive = None
 
     def update(self, x, f, df, *args, **kwargs):
         """Update state of previous iterations."""
@@ -87,22 +70,16 @@ class MMA(Intervening):
             self.upp = self.x + self.factor * self.dx
 
     def y(self, x):
-        y = np.zeros_like(self.positive, dtype=float)
-        y[self.positive] = np.broadcast_to(1 / (self.upp - x), self.positive.shape)[self.positive]
-        y[~self.positive] = np.broadcast_to(1 / (x - self.low), self.positive.shape)[~self.positive]
-        return y
+        return super().y(np.where(self.positive, self.upp - x, x - self.low))
 
     def dydx(self, x):
-        dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = np.broadcast_to(1 / (self.upp - x) ** 2, self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to(-1 / (x - self.low) ** 2, self.positive.shape)[~self.positive]
-        return dydx
+        g_x = np.where(self.positive, self.upp - x, x - self.low)
+        dg_x = np.where(self.positive, -1, +1)
+        return super().dydx(g_x) * dg_x
 
     def ddyddx(self, x):
-        ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = np.broadcast_to(2 / (self.upp - x) ** 3, self.positive.shape)[self.positive]
-        ddyddx[~self.positive] = np.broadcast_to(2 / (x - self.low) ** 3, self.positive.shape)[~self.positive]
-        return ddyddx
+        g_x = np.where(self.positive, self.upp - x, x - self.low)
+        return super().ddyddx(g_x)
 
     def get_move_limit(self):
         zzl2 = self.low + self.options.albefa * (self.x - self.low)
@@ -121,56 +98,23 @@ class MMA(Intervening):
         return np.clip(x, l, u, out=x)
 
 
-class MMAsquared(MMA):
+class MMA(MMAp):
     """A variant of the MMA intervening variables.
+       As the exponent p decreases, the approximation becomes more conservative.
+       Only p<=1 are allowed.
 
     Includes the following set of mixed intervening variables:
-        y_i = 1 / (U_i - x_i) ** 2     ,  if dg_j/dx_i >= 0
-        y_i = 1 / (x_i - L_i) ** 2     ,  if dg_j/dx_i < 0
+        y_i = (U_i - x_i) ** p     ,  if dg_j/dx_i >= 0
+        y_i = (x_i - L_i) ** p     ,  if dg_j/dx_i < 0
     """
 
-    def y(self, x):
-        y = np.zeros_like(self.positive, dtype=float)
-        y[self.positive] = np.broadcast_to((1 / (self.upp - x)**2), self.positive.shape)[self.positive]
-        y[~self.positive] = np.broadcast_to((1 / (x - self.low)**2), self.positive.shape)[~self.positive]
-        return y
-
-    def dydx(self, x):
-        dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = np.broadcast_to((2 / (self.upp - x)**3), self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to((-2 / (x - self.low)**3), self.positive.shape)[~self.positive]
-        return dydx
-
-    def ddyddx(self, x):
-        ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = np.broadcast_to((6 / (self.upp-x)**4), self.positive.shape)[self.positive]
-        ddyddx[~self.positive] = np.broadcast_to((6 / (x-self.low)**4), self.positive.shape)[~self.positive]
-        return ddyddx
-
-
-class MMAcubed(MMA):
-    """A variant of the MMA intervening variables.
-
-    Includes the following set of mixed intervening variables:
-        y_i = 1 / (U_i - x_i) ** 3     ,  if dg_j/dx_i >= 0
-        y_i = 1 / (x_i - L_i) ** 3     ,  if dg_j/dx_i < 0
-    """
-
-    def y(self, x):
-        y = np.zeros_like(self.positive, dtype=float)
-        y[self.positive] = np.broadcast_to((1 / (self.upp - x)**3), self.positive.shape)[self.positive]
-        y[~self.positive] = np.broadcast_to((1 / (x - self.low)**3), self.positive.shape)[~self.positive]
-        return y
-
-    def dydx(self, x):
-        dydx = np.zeros_like(self.positive, dtype=float)
-        dydx[self.positive] = np.broadcast_to((3 / (self.upp - x)**4), self.positive.shape)[self.positive]
-        dydx[~self.positive] = np.broadcast_to((-3 / (x - self.low)**4), self.positive.shape)[~self.positive]
-        return dydx
-
-    def ddyddx(self, x):
-        ddyddx = np.zeros_like(self.positive, dtype=float)
-        ddyddx[self.positive] = np.broadcast_to((12 / (self.upp-x)**5), self.positive.shape)[self.positive]
-        ddyddx[~self.positive] = np.broadcast_to((12 / (x-self.low)**5), self.positive.shape)[~self.positive]
-        return ddyddx
-
+    def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1,
+                 oscillation_tol=1e-10):
+        """
+        Initialise the exponential intervening variable with a power.
+        :param p: The power
+        :param xlim: Minimum x, in case of negative p, to prevent division by 0
+        """
+        super().__init__(p=-1,xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr,
+                         asybound=asybound, albefa=albefa, oscillation_tol=oscillation_tol,
+                         )
