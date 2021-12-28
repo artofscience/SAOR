@@ -5,9 +5,10 @@ from sao.move_limits.move_limit import Bounds, MoveLimitST
 from sao.approximations.taylor import Taylor1
 from sao.problems.subproblem import Subproblem
 from sao.intervening_variables import MixedIntervening
-from sao.intervening_variables import MMA
+from sao.intervening_variables import MMAp
 from sao.convergence_criteria import IterationCount
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx
+from sao.intervening_variables.mma import Svanberg2002
 
 @pytest.mark.parametrize('n',[5])
 @pytest.mark.parametrize('t',[1/16, 1/8, 1/4, 1/3, 1/2, 2/3, 3/4])
@@ -27,12 +28,10 @@ def test_2_bar_truss_mma():
 
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitST(factor=2)
-    intvar = MixedIntervening(problem.n, problem.m + 1)
-    intvar.set_intervening(MMA(problem.x_min, problem.x_max, asyincr=4/3), var=0)
-    intvar.set_intervening(MMA(problem.x_min, problem.x_max), var=1)
     converged = IterationCount(10)
+    intvar = MMAp(p=-1, updaterule=Svanberg2002(x_min=problem.x_min, x_max=problem.x_max, asyincr=4/3, asydecr=0.5))
 
-    subproblem = Subproblem(Taylor1(MMA(problem.x_min, problem.x_max, asyincr=4/3, asydecr=0.5)), limits=[bounds, movelimit])
+    subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
     x = problem.x0
 
     while not converged:

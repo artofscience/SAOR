@@ -4,6 +4,7 @@ from .exponential import Reciprocal, Exponential
 from .intervening import Intervening
 from .split import PositiveNegative
 
+from .asymmptote_update_rules.asymptote_update_strategies import Svanberg2002
 
 
 class MMAp(PositiveNegative):
@@ -20,59 +21,21 @@ class MMAp(PositiveNegative):
     """
 
 
-    def __init__(self, p=-1, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1, oscillation_tol=1e-10):
+    def __init__(self, p=-1, albefa=0.1, updaterule=Svanberg2002(x_min=0.0, x_max=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7,
+                                                     asybound=10.0, oscillation_tol=1e-10)):
         super().__init__(Exponential(p), Exponential(p))
-        self.x = None
-        self.xold1, self.xold2 = None, None
+
         self.low, self.upp = None, None
-        self.xmin, self.xmax = xmin, xmax
-
-        self.asybound = asybound
-        self.asyinit = asyinit
-        self.asyincr = asyincr
-        self.asydecr = asydecr
+        self.update_rule = updaterule
         self.albefa = albefa
-        self.oscillation_tol = oscillation_tol
 
-        # MMA parameter initialization
-        self.factor = None
-        self.dx = xmax - xmin
-
-        self.min_factor, self.max_factor = 1 / (self.asybound ** 2), self.asybound
 
     def update(self, x, f, df, *args, **kwargs):
         """Update state of previous iterations."""
-        self.xold2, self.xold1, self.x = self.xold1, self.x, x.copy()
+
         self.positive = df >= 0         # size of [m_p, n_l]
-        self.get_asymptotes()
+        [self.low, self.upp] = self.update_rule.get_asymptotes(x)
 
-    def get_asymptotes(self):
-        """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
-        if self.factor is None:
-            self.factor = np.full_like(self.x, self.asyinit)
-
-        if self.xold2 is None:
-            # Initial values of asymptotes
-            self.low = self.x - self.factor * self.dx
-            self.upp = self.x + self.factor * self.dx
-        else:
-            # Update scheme for asymptotes
-            # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
-            # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
-
-            # check for oscillations in variables (if > 0: no oscillations, if < 0: oscillations)
-            oscillation = ((self.x - self.xold1) * (self.xold1 - self.xold2)) / self.dx
-
-            # oscillating variables x_i are increase or decrease the factor
-            self.factor[oscillation > +self.oscillation_tol] *= self.asyincr
-            self.factor[oscillation < -self.oscillation_tol] *= self.asydecr
-
-            # Clip the asymptote factor
-            np.clip(self.factor, self.min_factor, self.max_factor)
-
-            # update lower and upper asymptotes
-            self.low = self.x - self.factor * self.dx
-            self.upp = self.x + self.factor * self.dx
 
     def y(self, x):
         return super().y(np.where(self.positive, self.upp - x, x - self.low))
@@ -86,10 +49,10 @@ class MMAp(PositiveNegative):
         g_x = np.where(self.positive, self.upp - x, x - self.low)
         return super().ddyddx(g_x)
 
-    def get_move_limit(self):
-        zzl2 = self.low + self.albefa * (self.x - self.low)
-        zzu2 = self.upp - self.albefa * (self.upp - self.x)
-        return zzl2, zzu2
+    # def get_move_limit(self,x):
+    #     x_min = self.low + self.albefa * (x - self.low)
+    #     x_max = self.upp - self.albefa * (self.upp - x)
+    #     return x_min, x_max
 
     def clip(self, x):
         """
@@ -98,9 +61,10 @@ class MMAp(PositiveNegative):
         :param x: The vector to be clipped
         :return: Clipped vector (reference of x)
         """
-        dist = self.albefa * self.factor * self.dx
-        l, u = self.low + dist, self.upp - dist
-        return np.clip(x, l, u, out=x)
+
+        x_min = self.low + self.albefa * (x - self.low)
+        x_max = self.upp - self.albefa * (self.upp - x)
+        return np.clip(x, x_min, x_max, out=x)
 
 
 class MMA(MMAp):
@@ -121,7 +85,5 @@ class MMA(MMAp):
         :param p: The power
         :param xlim: Minimum x, in case of negative p, to prevent division by 0
         """
-        super().__init__(p=-1,xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr,
-                         asybound=asybound, albefa=albefa, oscillation_tol=oscillation_tol,
-                         )
-
+        super().__init__(p=-1, albefa=albefa, updaterule=Svanberg2002(xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr,
+                         asybound=asybound, oscillation_tol=oscillation_tol)                         )
