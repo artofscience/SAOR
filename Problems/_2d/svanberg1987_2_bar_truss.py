@@ -54,3 +54,21 @@ class TwoBarTruss(Problem):
         dg[2][1] = self.c2/(2*tmp1)*tmp4*tmp3 + self.c2*tmp1/(x[0]*x[1]**2)
 
         return dg
+
+if __name__ == "__main__":
+    prob = TwoBarTruss()
+    x = (prob.x_min + prob.x_max)/2
+    g0 = prob.g(x)
+    dg_an = prob.dg(x)
+
+    dx = 1e-7
+    dg_fd = np.zeros_like(dg_an)
+    for i in range(prob.n):
+        x0 = x[i]
+        x[i] += dx
+        gp = prob.g(x)
+        x[i] = x0
+        dg_fd[:, i] = (gp - g0) / dx
+        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i]/dg_fd[:, i] - 1.0}")
+
+

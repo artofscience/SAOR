@@ -70,6 +70,20 @@ class MoveLimit(Bounds):
         self.x_max = x + self.max_dx
         return self
 
+class MoveLimitST(Bounds):
+    """
+    The move limit strategy by (Svanberg 1987) of the 'Traditional method', that is
+    x_min = x/a
+    x_max = x*a, with a = 2.0
+    """
+    def __init__(self, factor=2):
+        self.factor = factor
+
+    def update(self, x, f=None, df=None, ddf=None):
+        self.x_min = x/self.factor
+        self.x_max = x*self.factor
+        return self
+
 
 class AdaptiveMoveLimit(MoveLimit):
     """
