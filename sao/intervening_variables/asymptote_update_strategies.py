@@ -61,8 +61,8 @@ class Svanberg1987_t(AsymptoteUpdateStrategy):
         self.t = t
 
     def get_asymptotes(self, x):
-        low = x*t
-        upp = x/t
+        low = x*self.t
+        upp = x/self.t
         return low, upp
 
 class Svanberg1987_s_fixed(AsymptoteUpdateStrategy):

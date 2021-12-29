@@ -59,7 +59,7 @@ class MMAp(PositiveNegative):
         :param x: The vector to be clipped
         :return: Clipped vector (reference of x)
         """
-        [x_min, x_max] = clipSvanberg1987eq8(x, self.low, self.upp, self.albefa)
+        [x_min, x_max] = self.clipSvanberg1987eq8(x, self.low, self.upp, self.albefa)
 
         return np.clip(x, x_min, x_max, out=x)
 
@@ -88,12 +88,11 @@ class MMA(MMAp):
     """
 
 
-    def __init__(self, xmin=0.0, xmax=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0, albefa=0.1,
-                 oscillation_tol=1e-10):
+    def __init__(self, albefa=0.1, updaterule=Svanberg2002(x_min=0.0, x_max=1.0, asyinit=0.5, asyincr=1.2, asydecr=0.7, asybound=10.0,
+                 oscillation_tol=1e-10)):
         """
         Initialise the exponential intervening variable with a power.
         :param p: The power
         :param xlim: Minimum x, in case of negative p, to prevent division by 0
         """
-        super().__init__(p=-1, albefa=albefa, updaterule=Svanberg2002(xmin=xmin, xmax=xmax, asyinit=asyinit, asyincr=asyincr, asydecr=asydecr,
-                         asybound=asybound, oscillation_tol=oscillation_tol)                         )
+        super().__init__(p=-1, albefa=albefa, updaterule=updaterule)
