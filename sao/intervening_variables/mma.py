@@ -1,10 +1,8 @@
-from dataclasses import dataclass
 import numpy as np
-from .exponential import Reciprocal, Exponential
-from .intervening import Intervening
+from .exponential import Exponential
 from .split import PositiveNegative
 
-from .asymmptote_update_rules.asymptote_update_strategies import Svanberg2002
+from sao.intervening_variables.asymptote_update_strategies import Svanberg2002
 
 
 class MMAp(PositiveNegative):
