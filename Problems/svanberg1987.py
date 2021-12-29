@@ -39,6 +39,37 @@ class CantileverBeam(Problem):
         dg[1][:] = -3*self.c2/x**4
         return dg
 
+class EigthBarTruss(Problem):
+    """
+    1. Consider a simple truss containing 8 elements (bars).
+    2. There is one load case: an external force F = [Fx, Fy, Fz] at node 5.
+    3. Fx = 40 kN, Fy = 20 kN, Fz = 200 kN.
+    4. The design variables are the cross-sectional areas of the elements.
+    5. Lowerbounds are 100 mm2, upperbound are inf (very large)
+    6. The objective function is the weight of the structure.
+    7. The only constraints are 8 stress constraints (100 N/mm2)
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.n = 8
+        self.m = 8
+        self.x0 = 400 * np.ones((self.n), dtype=float)
+        self.x_min = 100 * np.ones_like(self.x0)
+        self.x_max = 1e9 * np.ones_like(self.x0)
+        self.name = 'EightBarTruss'
+        self.F = 1.0e3 * np.array([40, 20, 200], dtype=float)
+        self.x_opt = np.array([880, 720, 260, 520, 100, 100, 100, 100], dtype=float)
+        self.f_opt = 11.23
+
+    def g(self, x):
+        g = np.zeros((self.m+1), dtype=float)
+        return g
+
+    def dg(self, x):
+        dg = np.zeros((self.m+1, self.n), dtype=float)
+        return dg
+
 class TwoBarTruss(Problem):
     '''
     1. One element sizing variable x1 and one configuration variable x2
