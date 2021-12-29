@@ -98,5 +98,5 @@ def test_2_bar_truss_mma():
     assert pytest.approx(x1_storage, rel=1e-1) == [0.5, 0.25, 0.50, 0.25, 0.38, 0.38]
 
 if __name__ == "__main__":
-    test_cantilever_beam()
+    test_cantilever_beam_mma()
     test_2_bar_truss_mma()
