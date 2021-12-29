@@ -59,10 +59,22 @@ class MMAp(PositiveNegative):
         :param x: The vector to be clipped
         :return: Clipped vector (reference of x)
         """
+        [x_min, x_max] = clipSvanberg1987eq8(x, self.low, self.upp, self.albefa)
 
-        x_min = self.low + self.albefa * (x - self.low)
-        x_max = self.upp - self.albefa * (self.upp - x)
         return np.clip(x, x_min, x_max, out=x)
+
+    @staticmethod
+    def clipSvanberg1987eq8(x, low, upp, factor):
+        x_min = low + factor * (x - low)
+        x_max = upp - factor * (upp - x)
+        return x_min, x_max
+
+    @staticmethod
+    def clipSvanberg1987eq24(low, upp, factor):
+        x_min = (1.0 + factor)*low
+        x_max = (1.0 - factor)*upp
+        return x_min, x_max
+
 
 
 class MMA(MMAp):
