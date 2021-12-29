@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from Problems._2d.svanberg1987_2_bar_truss import TwoBarTruss
+from Problems.svanberg1987_2_bar_truss import TwoBarTruss
 from sao.move_limits.move_limit import Bounds, MoveLimitST
 from sao.approximations.taylor import Taylor1
 from sao.problems.subproblem import Subproblem
