@@ -92,6 +92,7 @@ class TwoBarTruss(Problem):
         self.x0 = np.array([1.5, 0.5])
         self.name = 'TwoBarTruss'
         self.c2 = 0.124
+        self.f_opt = 1.51
 
     def g(self, x):
         g = np.zeros((self.m+1), dtype=float)

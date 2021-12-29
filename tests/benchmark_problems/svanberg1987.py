@@ -10,7 +10,7 @@ from sao.convergence_criteria import IterationCount
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 from sao.intervening_variables.asymptote_update_strategies import Svanberg1987_t, Svanberg1987_s_move
 
-def test_cantilever_beam():
+def test_cantilever_beam_mma():
     f_analytical = [1.560, 1.285, 1.307, 1.331, 1.337, 1.339, 1.340]
     problem = CantileverBeam()
     movelimit = MoveLimitST(factor=2)
@@ -85,7 +85,7 @@ def test_2_bar_truss_mma():
 
         infeasibility = max(0.0, f[1], f[2])
         print("{}: {:.3f} {:.3f}".format(converged.iteration, f[0], infeasibility))
-        if (infeasibility < 0.001) and (f[0] < 1.001*f_analytical[-1]):
+        if (infeasibility < 0.001) and (f[0] < 1.001*problem.f_opt):
             break
 
         subproblem.build(x, f, df)
