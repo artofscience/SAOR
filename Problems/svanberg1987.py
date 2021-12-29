@@ -1,5 +1,43 @@
 from sao.problems.problem import Problem
 import numpy as np
+from Problems.utils import finite_difference
+
+class CantileverBeam(Problem):
+    """
+    1. Consider a cantilever beam built from n beam elements.
+    2. Each beam element has a quadratic cross-section.
+    3. The beam is rigidly supported at node 1.
+    4. A given external vertical force is acting at node 6.
+    5. The design variables are the heights of the beam elements
+    6. The thicknesses are held fixed.
+    7. The objective is the weight of the beam.
+    8. The constraint is the tip displacement.
+    9. The variable bounds are so small/large that they never become active.
+    """
+    def __init__(self):
+        super().__init__()
+        self.n = 5
+        self.m = 1
+        self.x0 = 5.0 * np.ones((self.n), dtype=float)
+        self.x_min = 1.0e-3 * np.ones_like(self.x0)
+        self.x_max = 1.0e3 * np.ones_like(self.x0)
+        self.name = 'CantileverBeam'
+        self.c1 = 0.0624
+        self.c2 = np.array([61, 37, 19, 7, 1], dtype=float)
+        self.x_opt = np.array([6.016, 5.309, 4.494, 3.502, 2.153])
+        self.f_opt = 1.340
+
+    def g(self, x):
+        g = np.zeros((self.m+1), dtype=float)
+        g[0] = self.c1 * np.sum(x)
+        g[1] = np.dot(self.c2, 1/x**3) - 1
+        return g
+
+    def dg(self, x):
+        dg = np.zeros((self.m+1, self.n), dtype=float)
+        dg[0][:] = self.c1
+        dg[1][:] = -3*self.c2/x**4
+        return dg
 
 class TwoBarTruss(Problem):
     '''
@@ -55,20 +93,14 @@ class TwoBarTruss(Problem):
 
         return dg
 
-if __name__ == "__main__":
-    prob = TwoBarTruss()
-    x = (prob.x_min + prob.x_max)/2
-    g0 = prob.g(x)
-    dg_an = prob.dg(x)
 
+if __name__ == "__main__":
     dx = 1e-7
-    dg_fd = np.zeros_like(dg_an)
-    for i in range(prob.n):
-        x0 = x[i]
-        x[i] += dx
-        gp = prob.g(x)
-        x[i] = x0
-        dg_fd[:, i] = (gp - g0) / dx
-        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i]/dg_fd[:, i] - 1.0}")
+    problem = TwoBarTruss()
+    finite_difference(problem, problem.x0+1, dx)
+
+    problem = CantileverBeam()
+    finite_difference(problem, problem.x0, dx)
+
 
 
