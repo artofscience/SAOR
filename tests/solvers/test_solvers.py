@@ -24,17 +24,17 @@ def test_square(n):
     # Test sao.solvers.interior_point.py
     logger.info("Solve x**2 using ipopt with x, y, z")
     problem_xyz = Square(n)
-    x_opt_xyz = pdip(problem_xyz, variables=Pdipxyz, epsimin=1e-7)
+    x_opt_xyz = pdip(problem_xyz, variables=Pdipxyz, epsimin=1e-7)[0]
     assert np.sum(x_opt_xyz) == pytest.approx(1, rel=1e-4)
 
     logger.info("Solve x**2 using ipopt with x, y")
     problem_xy = Square(n)
-    x_opt_xy = pdip(problem_xy, variables=Pdipxy, epsimin=1e-7)
+    x_opt_xy = pdip(problem_xy, variables=Pdipxy, epsimin=1e-7)[0]
     assert np.sum(x_opt_xy) == pytest.approx(1, rel=1e-4)
 
     logger.info("Solve x**2 using ipopt with x")
     problem_x = Square(n)
-    x_opt_x = pdip(problem_x, variables=Pdipx, epsimin=1e-7)
+    x_opt_x = pdip(problem_x, variables=Pdipx, epsimin=1e-7)[0]
     assert np.sum(x_opt_x) == pytest.approx(1, rel=1e-4)
 
     # Test sao.solvers.SolverIP_Svanberg.py
