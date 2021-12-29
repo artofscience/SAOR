@@ -8,6 +8,7 @@ from sao.convergence_criteria import ObjectiveChange, VariableChange, IterationC
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
 from sao.solvers.primal_dual_interior_point import pdip
+from sao.solvers import SolverIP_Svanberg
 from util.plotter import Plot2, Plot3
 from Problems.topology_optimization.compliance import Compliance
 from Problems.topology_optimization.stress import Stress
