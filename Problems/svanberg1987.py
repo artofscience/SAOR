@@ -19,8 +19,8 @@ class CantileverBeam(Problem):
         self.n = 5
         self.m = 1
         self.x0 = 5.0 * np.ones((self.n), dtype=float)
-        self.x_min = 1.0e-3 * np.ones_like(self.x0)
-        self.x_max = 1.0e3 * np.ones_like(self.x0)
+        self.x_min = 1.0 * np.ones_like(self.x0)
+        self.x_max = 10.0 * np.ones_like(self.x0)
         self.name = 'CantileverBeam'
         self.c1 = 0.0624
         self.c2 = np.array([61, 37, 19, 7, 1], dtype=float)
@@ -38,6 +38,12 @@ class CantileverBeam(Problem):
         dg[0][:] = self.c1
         dg[1][:] = -3*self.c2/x**4
         return dg
+
+    def ddg(self, x):
+        ddg = np.zeros((self.m+1, self.n), dtype=float)
+        ddg[0][:] = 0.0
+        ddg[1][:] = 12*self.c2/x**5
+        return ddg
 
 class EigthBarTruss(Problem):
     """
