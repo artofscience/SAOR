@@ -1,6 +1,6 @@
 from Problems.svanberg1987 import TwoBarTruss
 from sao.move_limits.move_limit import Bounds, MoveLimit, MoveLimitST, AdaptiveMoveLimit
-from sao.intervening_variables.mma import MMA
+from sao.intervening_variables.mma import MMA, MMA87A,MMA87B, MMA87C
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
 from sao.intervening_variables.asymptote_update_strategies import *
@@ -20,10 +20,10 @@ def original():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitST(factor=2)
-    mma0 = MMA(updaterule=Svanberg1987_t(t=0.2))
-    mma1 = MMA(updaterule=Svanberg1987_s_move(x_min=problem.x_min, x_max=problem.x_max, factor=0.5))
-    intvar = MixedIntervening(problem.n, problem.m + 1, default=mma0)
-    intvar.set_intervening(mma1, var=1)
+    intvar = MixedIntervening(problem.n, problem.m + 1, default=MMA87A(t=0.2))
+    mma_var_1 = MMA87C(sdecr=0.75, sincr=0.5,
+                       x_min=problem.x_min, x_max=problem.x_max)
+    intvar.set_intervening(mma_var_1, var=1)
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 
@@ -84,7 +84,3 @@ def optimizer(problem, subproblem, converged):
 
 if __name__ == "__main__":
     original()
-    default_mma()
-    mma_aml()
-    lp_aml()
-    mixed_lp_mma()
