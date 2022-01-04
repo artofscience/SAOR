@@ -25,8 +25,7 @@ def original():
     intvar = MixedIntervening(problem.n, problem.m + 1, default=mma0)
     intvar.set_intervening(mma1, var=1)
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
-    converged = IterationCount(10)
-    optimizer(problem, subproblem, converged)
+    optimizer(problem, subproblem, IterationCount(10))
 
 """
 Now let's see what our "default" MMA does
@@ -35,8 +34,7 @@ def default_mma():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     subproblem = Subproblem(Taylor1(MMA()), limits=[bounds, MoveLimit()])
-    converged = IterationCount(10)
-    optimizer(problem, subproblem, converged)
+    optimizer(problem, subproblem, IterationCount(10))
 
 """
 What about MMA with an Adaptive Move Limit strategy?
@@ -46,8 +44,7 @@ def mma_aml():
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = AdaptiveMoveLimit(move_limit=0.3, dx=problem.x_max - problem.x_min)
     subproblem = Subproblem(Taylor1(MMA()), limits=[bounds, movelimit])
-    converged = IterationCount(10)
-    optimizer(problem, subproblem, converged)
+    optimizer(problem, subproblem, IterationCount(10))
 
 """
 Let's check out LP + AML
@@ -57,8 +54,7 @@ def lp_aml():
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = AdaptiveMoveLimit(move_limit=0.1, dx=problem.x_max - problem.x_min)
     subproblem = Subproblem(Taylor1(), limits=[bounds, movelimit])
-    converged = IterationCount(10)
-    optimizer(problem, subproblem, converged)
+    optimizer(problem, subproblem, IterationCount(10))
 
 """
 Let's check a mixed scheme.
@@ -70,8 +66,7 @@ def mixed_lp_mma():
     intvar = MixedIntervening(problem.n, problem.m+1)
     intvar.set_intervening(MMA(), var=1)
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
-    converged = IterationCount(10)
-    optimizer(problem, subproblem, converged)
+    optimizer(problem, subproblem, IterationCount(10))
 
 def optimizer(problem, subproblem, converged):
     x = problem.x0
@@ -79,8 +74,9 @@ def optimizer(problem, subproblem, converged):
         f = problem.g(x)
         df = problem.dg(x)
         infeasibility = max(0.0, f[1], f[2])
-        print("{}: {:.3f} {:.3f}".format(converged.iteration, f[0], infeasibility))
+        print("{}: {:.3f} {:.3f}".format(converged.iteration-1, f[0], infeasibility))
         if (infeasibility < 0.001) and (f[0] < 1.001*1.51):
+            print("The optimum solution found")
             break
         subproblem.build(x, f, df)
         x[:] = pdip(subproblem, variables=Pdipx)[0]
