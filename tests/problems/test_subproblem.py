@@ -3,7 +3,8 @@ import numpy as np
 import logging
 from Problems._nd.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import ConLin, Reciprocal, MMA
+from sao.intervening_variables import ConLin, Reciprocal
+from sao.intervening_variables.mma import MMA02 as MMA
 from sao.problems.subproblem import Subproblem
 from sao.intervening_variables.asymptote_update_strategies import Svanberg2002
 
