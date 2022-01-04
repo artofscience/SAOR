@@ -1,6 +1,6 @@
 from Problems.svanberg1987 import TwoBarTruss
 from sao.move_limits.move_limit import Bounds, MoveLimit, MoveLimitST, AdaptiveMoveLimit
-from sao.intervening_variables.mma import MMA, MMA87A,MMA87B, MMA87C
+from sao.intervening_variables.mma import MMA87A,MMA87B, MMA87C, MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
 from sao.intervening_variables.asymptote_update_strategies import *
@@ -33,7 +33,8 @@ Now let's see what our "default" MMA does
 def default_mma():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    subproblem = Subproblem(Taylor1(MMA()), limits=[bounds, MoveLimit()])
+    approx = Taylor1(MMA02(x_min=problem.x_min, x_max=problem.x_max))
+    subproblem = Subproblem(approx, limits=[bounds, MoveLimit()])
     optimizer(problem, subproblem, IterationCount(10))
 
 """
@@ -42,8 +43,8 @@ What about MMA with an Adaptive Move Limit strategy?
 def mma_aml():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    movelimit = AdaptiveMoveLimit(move_limit=0.3, dx=problem.x_max - problem.x_min)
-    subproblem = Subproblem(Taylor1(MMA()), limits=[bounds, movelimit])
+    movelimit = AdaptiveMoveLimit(move_limit=0.5, dx=problem.x_max - problem.x_min)
+    subproblem = Subproblem(Taylor1(MMA02(x_min=problem.x_min, x_max=problem.x_max)), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 
 """
@@ -62,10 +63,18 @@ Let's check a mixed scheme.
 def mixed_lp_mma():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    movelimit = AdaptiveMoveLimit(move_limit=0.1, dx=problem.x_max-problem.x_min)
     intvar = MixedIntervening(problem.n, problem.m+1)
-    intvar.set_intervening(MMA(), var=1)
-    subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
+    intvar.set_intervening(MMA87A(t=3/4), var=1)
+    subproblem = Subproblem(Taylor1(intvar), limits=[bounds])
+    optimizer(problem, subproblem, IterationCount(10))
+
+    """
+Let's check a mixed scheme.
+"""
+def mma2():
+    problem = TwoBarTruss()
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    subproblem = Subproblem(Taylor1(MMA87A(t=3/4)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
 def optimizer(problem, subproblem, converged):
@@ -84,3 +93,8 @@ def optimizer(problem, subproblem, converged):
 
 if __name__ == "__main__":
     original()
+    default_mma()
+    mma_aml()
+    lp_aml()
+    mixed_lp_mma()
+    mma2()

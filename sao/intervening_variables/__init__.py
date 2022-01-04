@@ -5,12 +5,12 @@ from .conlin import ConLin
 from .fitted import ReciFit
 
 
-from .mma import MMA, MMAp
+from .mma import MMAp
 
 from .mixed_intervening import MixedIntervening
 
 __all__ = [
         'Linear', 'ConLin', 'Exponential', 'Reciprocal', 'ReciSquared',
 
-        'ReciCubed', 'ReciFit', 'MMA', 'MMAp', 'MixedIntervening'
+        'ReciCubed', 'ReciFit', 'MMAp', 'MixedIntervening'
 ]

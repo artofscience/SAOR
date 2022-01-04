@@ -108,7 +108,7 @@ class MMA87C(MMAp):
     """
     The MMA as used in (Svanberg 1987) - "Test problem 3: 2-bar truss"
     """
-    def __init__(self, sdecr=0.5, sincr=0.75, x_min=-1000, x_max=1000,
+    def __init__(self, sdecr=0.75, sincr=2, x_min=-1000, x_max=1000,
                  oscillation_tol = 1e-10, p=-1, factor=0.01):
         super().__init__(p=p, factor=factor)
         self.x, self.xold1, self.xold2 = None, None, None
@@ -160,7 +160,7 @@ class MMA02(MMAp):
         self.xold2, self.xold1, self.x = self.xold1, self.x, x.copy()
         """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
         if self.dist is None:
-            self.dist = np.full_like(self.x, self.asyinit)
+            self.dist = np.full_like(self.x, self.sinit)
 
         if self.xold2 is None:
             # Initial values of asymptotes

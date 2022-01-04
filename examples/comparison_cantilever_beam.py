@@ -1,6 +1,6 @@
 from Problems.svanberg1987 import CantileverBeam
 from sao.move_limits.move_limit import Bounds, MoveLimit, MoveLimitST, AdaptiveMoveLimit
-from sao.intervening_variables.mma import MMA, MMA87A
+from sao.intervening_variables.mma import MMA87A, MMA02, MMA87C
 from sao.intervening_variables import Linear, ConLin, ReciCubed, Reciprocal, Exponential
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
@@ -32,8 +32,7 @@ def mma2():
     problem = CantileverBeam()
     movelimit = MoveLimit(move_limit=1, dx=60)
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    mma = MMA()
-    subproblem = Subproblem(Taylor1(mma), limits=[bounds, movelimit])
+    subproblem = Subproblem(Taylor1(MMA87C()), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 
 
@@ -54,7 +53,7 @@ def mma_aml():
     problem = CantileverBeam()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = AdaptiveMoveLimit(move_limit=0.3, dx=problem.x_max - problem.x_min)
-    subproblem = Subproblem(Taylor1(MMA()), limits=[bounds, movelimit])
+    subproblem = Subproblem(Taylor1(MMA02(problem.x_min, problem.x_max)), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 
 
@@ -67,8 +66,7 @@ def mixed_lp_mma():
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = AdaptiveMoveLimit(move_limit=1, dx=2)
     intvar = MixedIntervening(problem.n, problem.m+1, default=Linear())
-    mma = MMA()
-    intvar.set_intervening(mma, var=1)
+    intvar.set_intervening(MMA87A(), var=1)
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 
@@ -100,4 +98,9 @@ def optimizer(problem, subproblem, converged):
 
 if __name__ == "__main__":
     original()
+    mma2()
+    lp_aml()
+    mma_aml()
+    mixed_lp_mma()
+    taylor2exp(p=-0.1)
 
