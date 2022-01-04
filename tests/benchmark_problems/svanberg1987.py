@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from Problems.svanberg1987 import CantileverBeam, TwoBarTruss
-from sao.move_limits.move_limit import Bounds, MoveLimitST
+from sao.move_limits.move_limit import Bounds, MoveLimitFraction
 from sao.approximations.taylor import Taylor1
 from sao.problems.subproblem import Subproblem
 from sao.intervening_variables import MixedIntervening
@@ -12,7 +12,7 @@ from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 def test_cantilever_beam_mma():
     f_analytical = [1.560, 1.285, 1.307, 1.331, 1.337, 1.339, 1.340]
     problem = CantileverBeam()
-    movelimit = MoveLimitST(factor=2)
+    movelimit = MoveLimitFraction(fraction=2)
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
 
     g0 = problem.g(problem.x0)
@@ -58,7 +58,7 @@ def test_2_bar_truss_mma():
 
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    movelimit = MoveLimitST(factor=2)
+    movelimit = MoveLimitFraction(fraction=2)
     intvar = MixedIntervening(problem.n, problem.m + 1, default=MMA87A(t=0.2))
     mma_var_1 = MMA87C(sdecr=0.75, sincr=0.5,
                        x_min=problem.x_min, x_max=problem.x_max)

@@ -1,5 +1,5 @@
 from Problems.svanberg1987 import CantileverBeam
-from sao.move_limits.move_limit import Bounds, MoveLimit, MoveLimitST, AdaptiveMoveLimit
+from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
 from sao.intervening_variables.mma import MMA87A, MMA02, MMA87C
 from sao.intervening_variables import Linear, ConLin, ReciCubed, Reciprocal, Exponential
 from sao.intervening_variables.mixed_intervening import MixedIntervening
@@ -20,7 +20,7 @@ We start with the scheme as presented in the paper.
 def original():
     problem = CantileverBeam()
     bounds = Bounds(problem.x_min, problem.x_max)
-    movelimit = MoveLimitST(factor=2.0)
+    movelimit = MoveLimitFraction(fraction=2.0)
     subproblem = Subproblem(Taylor1(MMA87A(t=1/8)), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 

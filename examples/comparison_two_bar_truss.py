@@ -1,5 +1,5 @@
 from Problems.svanberg1987 import TwoBarTruss
-from sao.move_limits.move_limit import Bounds, MoveLimit, MoveLimitST, AdaptiveMoveLimit
+from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
 from sao.intervening_variables.mma import MMA87A,MMA87B, MMA87C, MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
@@ -19,7 +19,7 @@ We start with the scheme as presented in the paper.
 def original():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    movelimit = MoveLimitST(factor=2)
+    movelimit = MoveLimitFraction(fraction=2)
     intvar = MixedIntervening(problem.n, problem.m + 1, default=MMA87A(t=0.2))
     mma_var_1 = MMA87C(sdecr=0.75, sincr=0.5,
                        x_min=problem.x_min, x_max=problem.x_max)
