@@ -3,9 +3,10 @@ import numpy as np
 import logging
 from Problems._nd.Square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
-from sao.intervening_variables import ConLin, Reciprocal, MMA
+from sao.intervening_variables import ConLin, Reciprocal
+from sao.intervening_variables.mma import MMA02 as MMA
 from sao.problems.subproblem import Subproblem
-from sao.intervening_variables.asymptote_update_strategies import Svanberg2002
+
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -173,9 +174,9 @@ def test_conlin_taylor2(n, h):
 def test_mma_taylor1(n, h):
     logger.info("Testing Subproblem(Taylor1, y=MMA)")
     prob = Square(n)
-    subprob = Subproblem(approximation=Taylor1(intervening=MMA(updaterule=Svanberg2002(x_min=prob.x_min, x_max=prob.x_max))))
+    subprob = Subproblem(approximation=Taylor1(intervening=MMA(x_min=prob.x_min, x_max=prob.x_max)))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
-    inter = MMA(updaterule=Svanberg2002(x_min=prob.x_min, x_max=prob.x_max))
+    inter = MMA(x_min=prob.x_min, x_max=prob.x_max)
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
     dfdy = prob.dg(prob.x0) * inter.dxdy(prob.x0)
 
@@ -196,9 +197,9 @@ def test_mma_taylor1(n, h):
 def test_mma_taylor2(n, h):
     logger.info("Testing Subproblem(Taylor2, y=MMA)")
     prob = Square(n)
-    subprob = Subproblem(approximation=Taylor2(intervening=MMA(updaterule=Svanberg2002(x_min=prob.x_min, x_max=prob.x_max))))
+    subprob = Subproblem(approximation=Taylor2(intervening=MMA(x_min=prob.x_min, x_max=prob.x_max)))
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0), prob.ddg(prob.x0))
-    inter = MMA(updaterule=Svanberg2002(x_min=prob.x_min, x_max=prob.x_max))
+    inter = MMA(x_min=prob.x_min, x_max=prob.x_max)
     inter.update(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
     dfdy = prob.dg(prob.x0) * inter.dxdy(prob.x0)
     ddfddy = prob.ddg(prob.x0) * (inter.dxdy(prob.x0)) ** 2 + prob.dg(prob.x0) * (inter.ddxddy(prob.x0))

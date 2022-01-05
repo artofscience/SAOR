@@ -1,20 +1,21 @@
 import pytest
 import numpy as np
 from Problems.svanberg1987 import CantileverBeam, TwoBarTruss
-from sao.move_limits.move_limit import Bounds, MoveLimitST
+from sao.move_limits.move_limit import Bounds, MoveLimitFraction
 from sao.approximations.taylor import Taylor1
 from sao.problems.subproblem import Subproblem
 from sao.intervening_variables import MixedIntervening
-from sao.intervening_variables import MMA
+from sao.intervening_variables.mma import MMA87A, MMA87C
 from sao.convergence_criteria import IterationCount
+
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
-from sao.intervening_variables.asymptote_update_strategies import Svanberg1987_t, Svanberg1987_s_move
+
 
 @pytest.mark.parametrize('pdiptype', [Pdipx, Pdipxy, Pdipxyz])
 def test_cantilever_beam_mma(pdiptype):
     f_analytical = [1.560, 1.285, 1.307, 1.331, 1.337, 1.339, 1.340]
     problem = CantileverBeam()
-    movelimit = MoveLimitST(factor=2)
+    movelimit = MoveLimitFraction(fraction=2)
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
 
     g0 = problem.g(problem.x0)
@@ -22,7 +23,7 @@ def test_cantilever_beam_mma(pdiptype):
     assert pytest.approx(g0[1]+1, rel=1e-3) == 1.000
 
     converged = IterationCount(20)
-    subproblem = Subproblem(Taylor1(MMA(updaterule=Svanberg1987_t(t=1/8))),
+    subproblem = Subproblem(Taylor1(MMA87A(t=1/8)),
                             limits=[bounds, movelimit])
     x = problem.x0
 
@@ -38,7 +39,7 @@ def test_cantilever_beam_mma(pdiptype):
         sigma0_storage.append(f[1] + 1.0)
 
         infeasibility = max(0.0, f[1])
-        print("{}: {:.4f} {:.4f}".format(converged.iteration, f[0], infeasibility))
+
         if (infeasibility < 0.001) and (f[0] < 1.001*problem.f_opt):
             break
 
@@ -59,15 +60,16 @@ def test_2_bar_truss_mma(pdiptype):
     assert pytest.approx(g0[1]+1, rel=1e-3) == 0.925
     f_analytical = [1.68, 1.43, 1.37, 1.44, 1.47, 1.51]
 
+    problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    movelimit = MoveLimitST(factor=2)
-    converged = IterationCount(10)
-    mma0 = MMA(updaterule=Svanberg1987_t(t=0.2))
-    mma1 = MMA(updaterule=Svanberg1987_s_move(x_min=problem.x_min, x_max=problem.x_max, factor=0.5))
-    intvar = MixedIntervening(problem.n, problem.m + 1, default=mma0)
-    intvar.set_intervening(mma1, var=1)
-
+    movelimit = MoveLimitFraction(fraction=2)
+    intvar = MixedIntervening(problem.n, problem.m + 1, default=MMA87A(t=0.2))
+    mma_var_1 = MMA87C(sdecr=0.75, sincr=0.5,
+                       x_min=problem.x_min, x_max=problem.x_max)
+    intvar.set_intervening(mma_var_1, var=1)
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
+    converged = IterationCount(20)
+
     x = problem.x0
 
     f_storage = []
@@ -86,7 +88,7 @@ def test_2_bar_truss_mma(pdiptype):
         sigma0_storage.append(f[1]+1.0)
 
         infeasibility = max(0.0, f[1], f[2])
-        print("{}: {:.3f} {:.3f}".format(converged.iteration, f[0], infeasibility))
+
         if (infeasibility < 0.001) and (f[0] < 1.001*problem.f_opt):
             break
 

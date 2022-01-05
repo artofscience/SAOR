@@ -1,6 +1,6 @@
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
-from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.intervening_variables import Linear, MixedIntervening
 from sao.approximations import Taylor1
 from sao.solvers.primal_dual_interior_point import pdip
 from sao.convergence_criteria import IterationCount
