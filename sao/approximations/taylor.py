@@ -186,13 +186,23 @@ class SphericalTaylor2(Taylor2):
         self.xold1 = self.x
         self.x = x
         Taylor1.update(self, x, f, df, ddf)
+        assert ddf is None, "SphericalTaylor2 generates its own curvature info; if 2nd-order info is known, use Taylor2"
 
-        # If iter > 0, approximate curvature by using previous point information
+        # If iter > 0, approximate curvature by using previous point information (else use Taylor1)
         if self.xold1 is not None:
             self.yold1 = [intv.y(self.xold1) for intv in self.interv]
             self.set_curvature()
         else:
             self.ddgddy = [df*intv.ddxddy(x) for intv in self.interv]
+
+        # Add zero order terms of 2nd-order Taylor expansion to self.g0
+        for ddgddy, y0 in zip(self.ddgddy, self.y0):
+            self.g0 += 0.5 * np.sum(ddgddy * y0 ** 2, axis=1)
+
+        # Add computations that can be done once per design iteration to self.dgdy0
+        for ddgddy, dgdy, y0 in zip(self.ddgddy, self.dgdy, self.y0):
+            self.dgdy0 = [dgdy - ddgddy * y0]
+
         return self
 
     def set_curvature(self):
