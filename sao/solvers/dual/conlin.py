@@ -3,12 +3,10 @@ from scipy.optimize import minimize
 from sao.approximations.taylor import Taylor1
 from sao.intervening_variables import ConLin
 
-def sub_con(prob, x, y,):
+def sub_con(prob, x, y):
     """
     CONLIN DUAL SOLVER
 
-    :param n: number of design variables
-    :param m: number of constraints
     :param x: current design variables (primal variables)
     :param y: current lagrange multipliers (dual variables)
     :return:
@@ -26,8 +24,8 @@ def sub_con(prob, x, y,):
                  method='L-BFGS-B',
                  bounds=tuple([[0e0,1e8] for i in range(prob.m)]),
                  options={'disp':False})
-    y[:]=sol.x
-    x=x_dual(y, prob.n, prob.m, x, g, dg, prob.x_min, prob.x_max)
+    y[:] = sol.x
+    x = x_dual(y, prob.n, prob.m, x, g, dg, prob.x_min, prob.x_max)
     return [x,y]
 
 # CONLIN: x in terms of dual variables
