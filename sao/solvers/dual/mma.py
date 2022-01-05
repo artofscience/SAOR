@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize
 from sao.approximations.taylor import Taylor1
-from sao.intervening_variables import MMAp
+from sao.intervening_variables import MMAp, MixedIntervening
 
 def sub_mma(prob, x, y):
     """
@@ -12,14 +12,21 @@ def sub_mma(prob, x, y):
     :return:
     """
     assert isinstance(prob.approx, Taylor1)
-    assert len(prob.approx.interv) == 1 # currently only works with single MMA-like
-    assert isinstance(prob.approx.interv[0], MMAp)
+    if isinstance(prob.approx.interv[0], MixedIntervening):
+        for y_of_x in prob.approx.interv[0].iv_mapping:
+            assert isinstance(y_of_x[0], MMAp)
+        # CHECK FOR OVERLAP BETWEEN RESPONSES
+        # MULTIPLE ASYMPTOTES PER VARIABLE NOT ALLOWED
+        for i in range(0, prob.m+1):
+            for y_of_x in prob.approx.interv[0].iv_mapping:
+                pass # SET ASMPTOTE VALUES
+    else:
+        assert isinstance(prob.approx.interv[0], MMAp)
+        L = prob.approx.interv[0].low
+        U = prob.approx.interv[0].upp
 
     g = prob.g(x)
     dg = prob.dg(x)
-
-    L = prob.approx.interv[0].low
-    U = prob.approx.interv[0].upp
 
     r = np.zeros((prob.m+1),dtype=np.float64)
     p = np.zeros((prob.m+1,prob.n),dtype=np.float64)
