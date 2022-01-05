@@ -4,10 +4,10 @@ from Problems.svanberg1987 import CantileverBeam, TwoBarTruss
 from sao.move_limits.move_limit import Bounds, MoveLimitFraction
 from sao.approximations.taylor import Taylor1
 from sao.problems.subproblem import Subproblem
-from sao.intervening_variables import MixedIntervening
+from sao.intervening_variables import MixedIntervening, ConLin
 from sao.intervening_variables.mma import MMA87A, MMA87C
 from sao.convergence_criteria import IterationCount
-
+from sao.solvers.dual.conlin import sub_con
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
 
 
@@ -101,7 +101,56 @@ def test_2_bar_truss_mma(pdiptype):
     assert pytest.approx(x0_storage, rel=1e-2) == [1.5, 1.39, 1.22, 1.39, 1.37, 1.41]
     assert pytest.approx(x1_storage, rel=1e-1) == [0.5, 0.25, 0.50, 0.25, 0.38, 0.38]
 
+
+def test_2_bar_truss_conlin_dual():
+    problem = TwoBarTruss()
+
+    g0 = problem.g(problem.x0)
+    assert pytest.approx(g0[0], rel=1e-3) == 1.677
+    assert pytest.approx(g0[1]+1, rel=1e-3) == 0.925
+
+    problem = TwoBarTruss()
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    movelimit = MoveLimitFraction(fraction=2)
+    subproblem = Subproblem(Taylor1(ConLin()), limits=[bounds, movelimit])
+    converged = IterationCount(6)
+
+    x = problem.x0
+
+    f_storage = []
+    x0_storage = []
+    x1_storage = []
+    sigma0_storage = []
+
+    y = np.array([1e9, 1e9], dtype=float)
+
+    while not converged:
+
+        f = problem.g(x)
+        df = problem.dg(x)
+
+        x0_storage.append(x[0])
+        x1_storage.append(x[1])
+        f_storage.append(f[0])
+        sigma0_storage.append(f[1]+1)
+
+        infeasibility = max(0.0, f[1], f[2])
+        # print("{}: {:.3f} {:.3f}".format(converged.iteration-1, f[0], f[1]+1))
+        if (infeasibility < 0.001) and (f[0] < 1.001*problem.f_opt):
+            break
+
+        subproblem.build(x, f, df)
+
+        x[:], y[:] = sub_con(subproblem, x, y)
+
+    assert pytest.approx(f_storage, rel=1e-2) == [1.68, 1.43, 1.49, 1.43, 1.49]
+    assert pytest.approx(sigma0_storage, rel=1e-2) == [0.92, 1.11, 1.04, 1.11, 1.04]
+    assert pytest.approx(x0_storage, rel=1e-2) == [1.50, 1.39, 1.33, 1.39, 1.33]
+    assert pytest.approx(x1_storage, rel=1e-1) == [0.50, 0.25, 0.50, 0.25, 0.50]
+
 if __name__ == "__main__":
+    test_2_bar_truss_conlin_dual()
+
     test_2_bar_truss_mma(Pdipx)
     test_2_bar_truss_mma(Pdipxy)
     test_2_bar_truss_mma(Pdipxyz)
@@ -109,3 +158,5 @@ if __name__ == "__main__":
     test_cantilever_beam_mma(Pdipx)
     test_cantilever_beam_mma(Pdipxy)
     test_cantilever_beam_mma(Pdipxyz)
+
+
