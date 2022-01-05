@@ -7,9 +7,12 @@ from sao.problems.subproblem import Subproblem
 from sao.intervening_variables import MixedIntervening
 from sao.intervening_variables.mma import MMA87A, MMA87C
 from sao.convergence_criteria import IterationCount
-from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 
-def test_cantilever_beam_mma():
+from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
+
+
+@pytest.mark.parametrize('pdiptype', [Pdipx, Pdipxy, Pdipxyz])
+def test_cantilever_beam_mma(pdiptype):
     f_analytical = [1.560, 1.285, 1.307, 1.331, 1.337, 1.339, 1.340]
     problem = CantileverBeam()
     movelimit = MoveLimitFraction(fraction=2)
@@ -42,13 +45,14 @@ def test_cantilever_beam_mma():
 
         subproblem.build(x, f, df)
 
-        x[:] = pdip(subproblem, variables=Pdipx)[0]
+        x[:] = pdip(subproblem, variables=pdiptype)[0]
 
     assert pytest.approx(f_storage, rel=1e-3) == f_analytical
     assert pytest.approx(x, rel=1e-1) == problem.x_opt
     assert pytest.approx(sigma0_storage, rel=1e-2) == [1.000, 1.23, 1.11, 1.03, 1.008, 1.002, 1.001]
 
-def test_2_bar_truss_mma():
+@pytest.mark.parametrize('type', [Pdipx, Pdipxy, Pdipxyz])
+def test_2_bar_truss_mma(pdiptype):
     problem = TwoBarTruss()
 
     g0 = problem.g(problem.x0)
@@ -90,7 +94,7 @@ def test_2_bar_truss_mma():
 
         subproblem.build(x, f, df)
 
-        x[:] = pdip(subproblem, variables=Pdipx)[0]
+        x[:] = pdip(subproblem, variables=pdiptype)[0]
 
     assert pytest.approx(f_storage, rel=1e-2) == f_analytical
     assert pytest.approx(sigma0_storage, rel=1e-2) == [0.92, 1.10, 1.13, 1.10, 1.03, 1.00]
@@ -98,5 +102,10 @@ def test_2_bar_truss_mma():
     assert pytest.approx(x1_storage, rel=1e-1) == [0.5, 0.25, 0.50, 0.25, 0.38, 0.38]
 
 if __name__ == "__main__":
-    test_cantilever_beam_mma()
-    test_2_bar_truss_mma()
+    test_2_bar_truss_mma(Pdipx)
+    test_2_bar_truss_mma(Pdipxy)
+    test_2_bar_truss_mma(Pdipxyz)
+
+    test_cantilever_beam_mma(Pdipx)
+    test_cantilever_beam_mma(Pdipxy)
+    test_cantilever_beam_mma(Pdipxyz)

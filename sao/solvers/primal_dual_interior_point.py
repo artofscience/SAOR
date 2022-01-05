@@ -211,22 +211,6 @@ class Pdipxy(Pdipx):
         diag_lambday = diag_lambda + 1 / diag_y
         delta_lambday = delta_lambda + delta_y / diag_y
 
-        # #FIXME: the m > n needs to be checked
-        # if self.m > self.n:
-        #     # dldl = delta_lambda/diag_lambda
-        #     Bx = -delta_x - (delta_lambday/diag_lambday).dot(dg[1:])
-        #     Ax = diags(diag_x) + dg[1:].transpose().dot(diags(1/diag_lambday) * dg[1:])
-        #     ax = - (self.a/diag_lambday).dot(dg[1:])
-        #     az = self.w.zeta/self.w.z + - (self.a/diag_lambday).dot(self.a)
-        #
-        #     # solve for dx
-        #     X = np.linalg.solve(np.block([[Ax, ax], [ax.transpose(), az]]),
-        #                                     np.block([[Bx], [-delta_z + - (delta_lambday/diag_lambday).dot(self.a)]]))  # n x n
-        #     self.dw[0][:] = X[:-1]
-        #     self.dw[7][:] = X[-1]
-        #     self.dw[3][:] = (delta_lambday + self.dw[0].dot(dg[1:]) + self.dw[7]*self.a)/diag_lambday
-        #
-        # else:
         dxdx = delta_x / diag_x
         Blam = delta_lambday - dxdx.dot(dg[1:].transpose())
         Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1 / diag_x, dg[1:])  # calculate dx[lam]
@@ -289,46 +273,28 @@ class Pdipxyz(Pdipxy):
     def get_newton_direction(self, epsi):
         a, b, g, dg, ddg = self.get_point()
 
-        # delta_lambda
-        delta_lambda = g[1:] - self.a * self.w.z - self.w.y + epsi / self.w.lam
+            # delta_lambda
+        delta_lambda = g[1:] - self.w.y + epsi / self.w.lam  - self.a*self.w.z
         delta_x = dg[0] + self.w.lam.dot(dg[1:]) - epsi / a + epsi / b
-        delta_y = self.c + self.d * self.w.y - self.w.lam - epsi / self.w.y
-        delta_z = self.a0 - self.w.lam.dot(self.a) - epsi / self.w.z
+        delta_y = self.c - self.w.lam - epsi / self.w.y
+        delta_z = self.a0 - np.dot(self.w.lam,self.a) - epsi/self.w.z
 
         diag_lambda = self.w.s / self.w.lam  # s./lam
         diag_x = ddg[0] + self.w.lam.dot(ddg[1:]) + self.w.xsi / a + self.w.eta / b
-        diag_y = self.d + self.w.mu / self.w.y
+        diag_y = self.w.mu / self.w.y
 
         diag_lambday = diag_lambda + 1 / diag_y
         delta_lambday = delta_lambda + delta_y / diag_y
 
-        # FIXME: the m > n needs to be checked
-        if self.problem.m > self.problem.n:
-            # dldl = delta_lambda/diag_lambda
-            Bx = -delta_x - (delta_lambday / diag_lambday).dot(dg[1:])
-            Ax = diags(diag_x) + dg[1:].transpose().dot(diags(1 / diag_lambday) * dg[1:])
-            ax = - (self.a / diag_lambday).dot(dg[1:])
-            az = self.w.zeta / self.w.z + - (self.a / diag_lambday).dot(self.a)
+        dxdx = delta_x / diag_x
+        zzeta = self.w.z/self.w.zeta
+        Blam = delta_lambday - dxdx.dot(dg[1:].transpose()) + zzeta*self.a*delta_z
+        Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1 / diag_x, dg[1:]) + zzeta*self.a*self.a.T
 
-            # solve for dx
-            X = np.linalg.solve(np.block([[Ax, ax[np.newaxis, :].transpose()], [ax[np.newaxis, :], az]]),
-                                np.block([[Bx[:, np.newaxis]],
-                                          [-delta_z - (delta_lambday / diag_lambday).dot(self.a)]])).flatten()  # n x n
-            self.dw.x = X[:-1]
-            self.dw.z = X[-1]
-            self.dw.lam = (delta_lambday + dg[1:].dot(self.dw.x) + self.dw.z * self.a) / diag_lambday
-
-        else:
-            dxdx = delta_x / diag_x
-            Blam = delta_lambday - dxdx.dot(dg[1:].transpose())
-            Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1 / diag_x, dg[1:])  # calculate dx[lam]
-
-            # solve for dlam
-            X = np.linalg.solve(np.block([[Alam, self.a], [self.a.transpose(), -self.w.zeta / self.w.z]]),
-                                np.block([[Blam], [delta_z]]))
-            self.dw.lam[:] = X[:-1]  # m x m # here I cannot remove the [:], why?
-            self.dw.z = X[-1]
-            self.dw.x = -dxdx - (self.dw.lam.dot(dg[1:])) / diag_x
+        # solve for dlam
+        self.dw.lam[:] = np.linalg.solve(Alam, Blam)
+        self.dw.x = -dxdx - (self.dw.lam.dot(dg[1:])) / diag_x
+        self.dw.z = zzeta*(np.dot(self.a,self.dw.lam) - delta_z)
 
         # get dxsi[dx], deta[dx] and ds[dlam]
         self.dw.xsi = -self.w.xsi + epsi / a - (self.w.xsi * self.dw.x) / a
@@ -336,7 +302,7 @@ class Pdipxyz(Pdipxy):
         self.dw.s = -self.w.s + epsi / self.w.lam - (self.w.s * self.dw.lam) / self.w.lam
         self.dw.y = (self.dw.lam - delta_y) / diag_y
         self.dw.mu = -self.w.mu + epsi / self.w.y - (self.w.mu * self.dw.y) / self.w.y
-        self.dw.zeta = -self.w.zeta + epsi / self.w.z - (self.w.zeta * self.dw.z) / self.w.z
+        self.dw.zeta = -1/zzeta*self.dw.z - self.w.zeta + epsi/self.w.z
 
 
 def pdip(problem, x0=None, variables=Pdipxyz, epsimin=1e-9, max_outer_iter=100,
