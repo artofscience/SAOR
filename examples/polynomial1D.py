@@ -7,7 +7,6 @@ from sao.intervening_variables.mma import MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
 from sao.util import Plot
-from sao.solvers import SolverIP_Svanberg
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
 from util.plotter import Plot2, Plot3
 from Problems._1d.Polynomial_1D import Polynomial1D
