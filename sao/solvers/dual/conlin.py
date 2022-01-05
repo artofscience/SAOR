@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize
+from sao.approximations.taylor import Taylor1
+from sao.intervening_variables import ConLin
 
 def sub_con(prob, x, y,):
     """
@@ -11,6 +13,10 @@ def sub_con(prob, x, y,):
     :param y: current lagrange multipliers (dual variables)
     :return:
     """
+    assert isinstance(prob.approx, Taylor1)
+    for y_of_x in prob.approx.interv:
+        assert isinstance(y_of_x, ConLin)
+
     g = prob.g(x)
     dg = prob.dg(x)
 
