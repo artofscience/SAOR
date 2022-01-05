@@ -1,23 +1,37 @@
-from mbbbeam import MBBBeam
+
+from ..topology_optimization import utils
 import numpy as np
+from scipy.sparse import coo_matrix
 
+class StressCantilever:
 
-class Stress(MBBBeam):
-    def __init__(self, nelx, nely, volfrac, penal, rmin, max_stress=10):
-        super().__init__(nelx, nely, volfrac, penal, rmin)
+    def __init__(self, nx, ny, vf=0.2, fradius=3, max_stress=0.1):
+        self.eps = 1e-10
+        self.mesh = utils.Mesh(nx, ny)
+        self.factor = None
+        self.m = 1
+        self.fradius = fradius
+
         self.max_stress = max_stress
-        self.name = 'Stress'
-        self.P = 6
-        self.iter = 1
 
-        # Solution and RHS vectors
-        self.f = np.zeros((self.ndof, 1))
-        self.u = np.zeros((self.ndof, 1))
-        self.stress = np.zeros(self.n)
+        self.penal = 3
+        self.vf = vf
+        self.P = 4
+        self.x0 = np.ones(self.mesh.n, dtype=float)
 
+        self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
+        self.ce = np.ones(self.mesh.n, dtype=float)
 
-        # Set load
-        self.f[self.dout, 0] = -1
+        self.ke = utils.element_matrix_stiffness()
+
+        self.filter = utils.Filter(self.mesh, fradius)
+
+        self.dofs = np.arange(self.mesh.ndof)
+        self.fixed = np.union1d(self.dofs[0:self.mesh.ndof:self.mesh.ndofy],
+                                self.dofs[1:self.mesh.ndof:self.mesh.ndofy])
+        self.free = np.setdiff1d(self.dofs, self.fixed)
+        self.f = np.zeros(self.mesh.ndof, dtype=float)
+        self.u = np.zeros((self.mesh.ndof, 1), dtype=float)
 
         self.B = 0.5 * np.array(
             [[-1, 0, 1, 0, 1, 0, -1, 0],
@@ -34,20 +48,23 @@ class Stress(MBBBeam):
                            [-0.5, 1, 0],
                            [0, 0, 3]])
 
-        self.iter = False
-        self.factor = 0
+        self.lag = np.zeros((self.mesh.ndof, 1))
+
+        # Applied load at top
+        self.dout = self.dofs[self.mesh.ndofy * (self.mesh.nelx // 2 + 1) - 2]
+        self.f[self.dout] = 1
 
     def g(self, x):
+        g = np.zeros(self.m + 1)
 
-        g_j = np.empty(self.m + 1)
+        xphys = self.filter.forward(x)
 
-        # Filter design variables
-        xPhys = np.asarray(self.H * x[np.newaxis].T / self.Hs)[:, 0]
+        ym = self.eps + (1.0 * xphys.flatten() + 0.9 * (xphys.flatten() ** self.penal)) * (1 - self.eps)
+        self.stiffness_matrix = utils.assemble_K(ym, self.mesh, self.fixed)
 
-        self.K = self.assemble_K(xPhys)
-        self.u[self.free, :] = self.linear_solve(self.K, self.f[self.free, :])
+        self.u[self.free, :] = utils.linear_solve(self.stiffness_matrix, self.f[self.free])
 
-        self.elemental_strain = self.B.dot(self.u.flatten()[self.edofMat].transpose())
+        self.elemental_strain = self.B.dot(self.u.flatten()[self.mesh.edofMat].transpose())
         self.elemental_strain[2, :] *= 2  # voigt notation
 
         self.elemental_stress = self.D.dot(self.elemental_strain).transpose()
@@ -55,69 +72,42 @@ class Stress(MBBBeam):
         self.stress_vm0 = (self.elemental_stress.dot(self.V) * self.elemental_stress).sum(1)
         self.stress_vm = np.sqrt(self.stress_vm0)
 
-        self.stress[:] = xPhys * self.stress_vm.flatten()
+        # self.stress[:] = xphys * self.stress_vm.flatten()
         self.gi = (self.stress_vm / self.max_stress) - 1
-        self.gi_scaled = xPhys * self.gi
+        self.gi_scaled = xphys * self.gi
         self.giplus = self.gi_scaled + 1
-        self.giP = self.giplus**self.P
-        self.gisum = (1/self.n) * np.sum(self.giP)
-        giPP = self.gisum**(1/self.P)
-        g_j[1] = giPP - 1
-        if self.iter == False:
-            self.factor = sum(xPhys[:]) / self.n
-            self.iter = True
+        self.giP = self.giplus ** self.P
+        self.gisum = (1 / self.mesh.n) * np.sum(self.giP)
+        giPP = self.gisum ** (1 / self.P)
+        g[1] = giPP - 1
 
-        g_j[0] = 100 * (sum(xPhys[:]) / self.n) / self.factor
-        return g_j
+        g[0] = np.sum(xphys[:]) / self.mesh.n
+        return g
 
-    def dg(self, x_k):
-        dg_j = np.empty((self.m + 1, self.n))
+    def dg(self, x):
+        dg = np.zeros((2, self.mesh.n), dtype=float)
+        xphys = self.filter.forward(x)
 
-        # Filter design variable sensitivities
-        # TODO unfortunately we filter twice (both in g and dg), can we circumvent this?
-        xPhys = np.asarray(self.H * x_k[np.newaxis].T / self.Hs)[:, 0]
-
-        dgdgi_scaled = (1/self.n) * self.gisum**(1/self.P - 1) * self.giplus**(self.P - 1)
-        dgidstress = dgdgi_scaled[:, np.newaxis] * xPhys[:, np.newaxis] * (self.stress_vm0**(-0.5)/self.max_stress)[:, np.newaxis] * self.elemental_stress.dot(self.V)
+        dgdgi_scaled = (1 / self.mesh.n) * self.gisum ** (1 / self.P - 1) * self.giplus ** (self.P - 1)
+        dgidstress = dgdgi_scaled[:, np.newaxis] * xphys[:, np.newaxis] * \
+                     (self.stress_vm0 ** (-0.5) / self.max_stress)[:, np.newaxis] * \
+                     self.elemental_stress.dot(self.V)
         dgdsstrainmat = np.einsum('jk,kl->jl', dgidstress, self.D)
         dgdsstrainmat[:, 2] *= 2
         dgdue = np.einsum('ij,jl->il', dgdsstrainmat, self.B)
-        y = np.zeros(self.ndof)
-        for i in range(0, self.n):
-            y[self.edofMat[i, :]] += dgdue[i, :]
+        y = np.zeros(self.mesh.ndof)
+        for i in range(0, self.mesh.n):
+            y[self.mesh.edofMat[i, :]] += dgdue[i, :]
 
-        lag = np.zeros((self.ndof,1))
-        lag[self.free,:] = self.linear_solve(self.K, y[self.free])
-        ce = (np.dot(self.u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
-                      lag[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
+        self.lag[self.free, :] = utils.linear_solve(self.stiffness_matrix, y[self.free])
+        self.ce[:] = (np.dot(self.u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
+                      self.lag[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
-        bro = (-self.penal * xPhys ** (self.penal - 1) * (1 - self.Eps)) * ce
+        dg[1, :] = -(1 - self.eps) * (1.0 + 0.9 * self.penal * xphys ** (self.penal - 1)) * self.ce
+        dg[1, :] += (dgdgi_scaled * self.gi)
 
-        dg_j[1,:] = bro
-        dg_j[1,:] += (dgdgi_scaled * self.gi)
+        dg[0, :] = np.ones(self.mesh.n) / self.mesh.n
+        dg[0, :] = self.filter.backward(dg[0, :])
+        dg[1, :] = self.filter.backward(dg[1, :])
 
-        dg_j[0, :] = 100 * (np.ones(self.n) / (self.n))/self.factor
-
-        # Sensitivity filtering
-        dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
-        dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
-
-        return dg_j
-
-
-if __name__ == "__main__":
-    prob = Stress(8, 3, 0.6, 3, 2)
-    x = np.random.rand(prob.n)*1.0
-    g0 = prob.g(x)
-    dg_an = prob.dg(x)
-
-    dx = 1e-4
-    dg_fd = np.zeros_like(dg_an)
-    for i in range(prob.n):
-        x0 = x[i]
-        x[i] += dx
-        gp = prob.g(x)
-        x[i] = x0
-        dg_fd[:, i] = (gp - g0) / dx
-        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i]/dg_fd[:, i] - 1.0}")
-
+        return dg

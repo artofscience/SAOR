@@ -1,94 +1,79 @@
-from mbbbeam import MBBBeam
+from ..topology_optimization import utils
 import numpy as np
 from scipy.sparse import coo_matrix
 
-
-class Mechanism(MBBBeam):
-    def __init__(self, nelx, nely, volfrac, penal, rmin, kin=0.01, kout=0.01):
-        super().__init__(nelx, nely, volfrac, penal, rmin)
-        self.name = 'Inverter'
+class MechanismClampedBeam:
+    def __init__(self, nx, ny, vf=0.2, fradius=2, kin=100, kout=100):
+        self.eps = 1e-10
+        self.mesh = utils.Mesh(nx, ny)
+        self.factor = None
         self.m = 1
+        self.fradius = fradius
+
+        self.penal = 3
+        self.vf = vf
+        self.x0 = self.vf * np.ones(self.mesh.n, dtype=float)
+
+        self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
+        self.ce = np.ones(self.mesh.n, dtype=float)
+
+        self.ke = utils.element_matrix_stiffness()
+
+        self.filter = utils.Filter(self.mesh, fradius)
+
+        self.dofs = np.arange(self.mesh.ndof)
+        left = self.dofs[0:self.mesh.ndofy:2]
+        right = np.union1d(self.dofs[self.mesh.ndof - self.mesh.ndofy//2:self.mesh.ndof:2],
+                           self.dofs[self.mesh.ndof - self.mesh.ndofy//2 + 1:self.mesh.ndof:2])
+        self.fixed = np.union1d(left, right)
+        self.fixed = np.union1d(left, right)
+
+        self.free = np.setdiff1d(self.dofs, self.fixed)
+        self.f = np.zeros((self.mesh.ndof, 2), dtype=float)
+        self.u = np.zeros((self.mesh.ndof, 2), dtype=float)
+
+        self.din = self.mesh.ndofy-1
+        self.dout = 1
+
+        self.f[self.din, 0] = 1
+        self.f[self.dout, 1] = -1
 
         istiff = np.array([self.din, self.dout])
         jstiff = np.array([self.din, self.dout])
         self.sstiff = np.array([kin, kout])
-        self.iK = np.concatenate((self.iK, istiff))
-        self.jK = np.concatenate((self.jK, jstiff))
-
-        # self.fixed = np.union1d(self.dofs[0:2*(ny+1):2],
-        #                         self.dofs[-ny:-1])
-        # self.free = np.setdiff1d(self.dofs, self.fixed)
-
-
-
-        # Solution and RHS vectors
-        self.f = np.zeros((self.ndof, 2))
-        self.u = np.zeros((self.ndof, 2))
-
-        # Set load
-        self.f[self.din, 0] = 1
-        self.f[self.dout, 1] = -1
-
-        self.xPhys = None
+        self.mesh.iK = np.concatenate((self.mesh.iK, istiff))
+        self.mesh.jK = np.concatenate((self.mesh.jK, jstiff))
 
     def g(self, x):
-        g_j = np.empty(self.m + 1)
+        g = np.zeros(self.m + 1)
+        # y = x.reshape(self.mesh.nelx, self.mesh.nely)
+        # y[0:2,0:4] = 1
+        # y[0:2,-4::] = 1
+        # y[self.mesh.nely-self.mesh.nely//10:self.mesh.nely-1,0:self.mesh.nelx//10] = 1
+        xphys = self.filter.forward(x.flatten())
 
-        # Filter design variables
-        self.xPhys = np.asarray(self.H * x[np.newaxis].T / self.Hs)[:, 0]
+        ym = self.eps + (xphys.flatten() ** self.penal) * (1 - self.eps)
+        sk = np.concatenate((((self.ke.flatten()[np.newaxis]).T * ym).flatten(order='F'), self.sstiff))
+        stiffness_matrix = coo_matrix((sk, (self.mesh.iK, self.mesh.jK)), shape=(self.mesh.ndof, self.mesh.ndof)).tocsc()
 
-        # add additional springs
-
-        x_scale = (self.Eps + self.xPhys ** self.penal * (1 - self.Eps))
-
-        # Setup and solve FE problem
-        sK = ((self.KE.flatten()[np.newaxis]).T * x_scale).flatten(order='F')
-        sK = np.concatenate((sK, self.sstiff))
-        K = coo_matrix((sK, (self.iK, self.jK)), shape=(self.ndof, self.ndof)).tocsc()
-        # FIXME: Here coo is converted to csc
-        # Remove constrained dofs from matrix
-        K = self.deleterowcol(K, self.fixed, self.fixed)  # FIXME: Here it is (was) converted back to coo?
-
-        self.u[self.free, :] = self.linear_solve(K, self.f[self.free, :])
+        self.u[self.free, :] = utils.linear_solve(stiffness_matrix[self.free, :][:, self.free], self.f[self.free, :])
         u = self.u[:, 0]
         lag = self.u[:, 1]
 
         # Objective and volume constraint
-        self.ce[:] = (np.dot(u[self.edofMat].reshape(self.nelx * self.nely, 8), self.KE) *
-                      lag[self.edofMat].reshape(self.nelx * self.nely, 8)).sum(1)
+        self.ce[:] = (np.dot(u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
+                      lag[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
-        g_j[0] = u[self.dout]
-        g_j[1] = sum(self.xPhys[:]) / (self.volfrac * self.n) - 1
-        return g_j
+        g[0] = u[self.dout]
+        g[1] = np.sum(xphys[:]) / (self.vf * self.mesh.n) - 1
+        return g
 
-    def dg(self, x_k):
-        dg_j = np.empty((self.m + 1, self.n))
+    def dg(self, x):
+        dg = np.zeros((2, self.mesh.n), dtype=float)
+        xphys = self.filter.forward(x)
+        dg[0, :] = (1 - self.eps) * (self.penal * xphys ** (self.penal - 1)) * self.ce
+        dg[1, :] = np.ones(self.mesh.n) / (self.vf * self.mesh.n)
+        dg[0, :] = self.filter.backward(dg[0, :])
+        dg[1, :] = self.filter.backward(dg[1, :])
 
-        # Note the minus before self.penal is removed!
-        dg_j[0, :] = (self.penal * self.xPhys ** (self.penal - 1) * (1 - self.Eps)) * self.ce
-        dg_j[1, :] = np.ones(self.nely * self.nelx) / (self.volfrac * self.n)
-
-        # Sensitivity filtering
-        dg_j[0, :] = np.asarray(self.H * (dg_j[0, :][np.newaxis].T / self.Hs))[:, 0]
-        dg_j[1, :] = np.asarray(self.H * (dg_j[1, :][np.newaxis].T / self.Hs))[:, 0]
-
-        return dg_j
-
-
-if __name__ == "__main__":
-    prob = Mechanism(20, 10, 0.3, 3, 2)
-    x = np.random.rand(prob.n)*1.0
-    g0 = prob.g(x)
-    dg_an = prob.dg(x)
-
-    dx = 1e-4
-    dg_fd = np.zeros_like(dg_an)
-    for i in range(prob.n):
-        x0 = x[i]
-        x[i] += dx
-        gp = prob.g(x)
-        x[i] = x0
-        dg_fd[:, i] = (gp - g0) / dx
-        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i]/dg_fd[:, i] - 1.0}")
-
-
+        return dg
