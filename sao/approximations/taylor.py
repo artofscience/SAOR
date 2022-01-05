@@ -235,11 +235,11 @@ class NonSphericalTaylor2(SphericalTaylor2):
     def update(self, x, f, df, ddf=None):
         """This method updates the approximation instance for the NonSphericalTaylor2 expansion."""
         self.fold1 = self.f
-        self.f = f.copy()
+        self.f = f
+        self.dfold1 = self.df
+        self.df = df
         self.xold1 = self.x
         self.x = x.copy()
-        self.dfold1 = self.df
-        self.df = df.copy()
         Taylor1.update(self, x, f, df, ddf)
 
         # If iter > 0, approximate curvature by using previous point information
