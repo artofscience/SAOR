@@ -4,7 +4,9 @@ from matplotlib import colors
 from Problems.topology_optimization import utils
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
-from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.intervening_variables import Linear, MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
+from sao.intervening_variables.mma import MMA87A
 from sao.approximations import Taylor1
 
 from Problems.topology_optimization.stress import StressCantilever
@@ -12,26 +14,26 @@ from examples.topopt.optimize import optimize
 
 
 itercount = 50
-nelx = 100
-nely = 50
+nelx = 50
+nely = 100
 
 ## SETUP SUBPROBLEMS
 
-mma = Subproblem(Taylor1(MMA(asyinit=0.2)), limits=[Bounds(0, 1)])
+mma = Subproblem(Taylor1(MMA(sinit=0.2)), limits=[Bounds(0, 1)])
 mma.set_name("MMA_asyinit_0.2")
 
-mma_ml = Subproblem(Taylor1(MMA(asyinit=0.2)), limits=[Bounds(0, 1), MoveLimit(0.2)])
+mma_ml = Subproblem(Taylor1(MMA87A(t=1/3)), limits=[Bounds(0, 1)])
 mma_ml.set_name("MMA_asyinit_0.2_ML_0.3")
 
-lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.2)])
+lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.1)])
 lin_aml.set_name("LIN_AML_0.3")
 
-mix_int = MixedIntervening(nelx * nely, 2, default=MMA(asyinit=0.2))
+mix_int = MixedIntervening(nelx * nely, 2, default=MMA(sinit=0.2))
 mix_int.set_intervening(Linear(), resp=0)
-mix_mma_lin = Subproblem(Taylor1(mix_int), limits=[Bounds(0, 1)])
+mix_mma_lin = Subproblem(Taylor1(mix_int), limits=[Bounds(0, 1), MoveLimit(0.1)])
 mix_mma_lin.set_name("MIX_MMA_asyinit0.2_LIN")
 
-sub_problems = [mma, mma_ml, lin_aml, mix_mma_lin]
+sub_problems = [mma_ml, lin_aml, mix_mma_lin]
 
 figdes, axsdes = plt.subplots(len(sub_problems), sharex=True)
 

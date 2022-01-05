@@ -5,7 +5,7 @@ from scipy.sparse import coo_matrix
 
 class StressCantilever:
 
-    def __init__(self, nx, ny, vf=0.2, fradius=2, max_stress=0.6):
+    def __init__(self, nx, ny, vf=0.2, fradius=3, max_stress=0.1):
         self.eps = 1e-10
         self.mesh = utils.Mesh(nx, ny)
         self.factor = None
@@ -16,7 +16,7 @@ class StressCantilever:
 
         self.penal = 3
         self.vf = vf
-        self.P = 6
+        self.P = 4
         self.x0 = np.ones(self.mesh.n, dtype=float)
 
         self.dc = np.zeros((self.mesh.nely, self.mesh.nelx), dtype=float)
@@ -59,7 +59,7 @@ class StressCantilever:
 
         xphys = self.filter.forward(x)
 
-        ym = self.eps + (0.1 * xphys.flatten() + 0.9 * (xphys.flatten() ** self.penal)) * (1 - self.eps)
+        ym = self.eps + (1.0 * xphys.flatten() + 0.9 * (xphys.flatten() ** self.penal)) * (1 - self.eps)
         self.stiffness_matrix = utils.assemble_K(ym, self.mesh, self.fixed)
 
         self.u[self.free, :] = utils.linear_solve(self.stiffness_matrix, self.f[self.free])
@@ -103,7 +103,7 @@ class StressCantilever:
         self.ce[:] = (np.dot(self.u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
                       self.lag[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
-        dg[1, :] = -(1 - self.eps) * (0.1 + 0.9 * self.penal * xphys ** (self.penal - 1)) * self.ce
+        dg[1, :] = -(1 - self.eps) * (1.0 + 0.9 * self.penal * xphys ** (self.penal - 1)) * self.ce
         dg[1, :] += (dgdgi_scaled * self.gi)
 
         dg[0, :] = np.ones(self.mesh.n) / self.mesh.n

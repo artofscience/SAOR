@@ -3,9 +3,9 @@ from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLi
 from sao.intervening_variables.mma import MMA87A,MMA87B, MMA87C, MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
-from sao.intervening_variables.asymptote_update_strategies import *
+from sao.intervening_variables import Exponential
 from sao.problems.subproblem import Subproblem
-from sao.approximations import Taylor1
+from sao.approximations import Taylor1, Taylor2
 from sao.convergence_criteria import IterationCount
 
 """
@@ -77,6 +77,8 @@ def mma2():
     subproblem = Subproblem(Taylor1(MMA87A(t=3/4)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
+
+
 def optimizer(problem, subproblem, converged):
     x = problem.x0
     while not converged:
@@ -98,3 +100,4 @@ if __name__ == "__main__":
     lp_aml()
     mixed_lp_mma()
     mma2()
+
