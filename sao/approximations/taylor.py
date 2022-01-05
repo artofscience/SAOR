@@ -168,9 +168,9 @@ class SphericalTaylor2(Taylor2):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.x, self.xold1 = None, None
-        self.fold1 = None
+        self.f, self.fold1 = None, None
         self.yold1 = None
-        self.g0old1 = None
+
 
     def update(self, x, f, df, ddf=None):
         """
@@ -182,9 +182,10 @@ class SphericalTaylor2(Taylor2):
         :param kwargs: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
-        self.g0old1 = self.g0
+        self.fold1 = self.f
+        self.f = f.copy()
         self.xold1 = self.x
-        self.x = x
+        self.x = x.copy()
         Taylor1.update(self, x, f, df, ddf)
         assert ddf is None, "SphericalTaylor2 generates its own curvature info; if 2nd-order info is known, use Taylor2"
 
@@ -211,7 +212,7 @@ class SphericalTaylor2(Taylor2):
             dot_prod = np.dot(self.dgdy[0], (self.yold1[0] - self.y0[0]))
         else:
             dot_prod = np.einsum('ij,ij->i', self.dgdy[0], (self.yold1[0] - self.y0[0]))
-        c_j = 2 * (self.g0old1 - self.g0 - dot_prod) / sum((self.yold1[0] - self.y0[0]).T ** 2)
+        c_j = 2 * (self.fold1 - self.f - dot_prod) / sum((self.yold1[0] - self.y0[0]).T ** 2)
         n_resp = c_j.shape[0]
         n_var = self.y0[0].shape[-1]
         self.ddgddy[0][:] = np.broadcast_to(c_j, (n_var, n_resp)).T
@@ -233,11 +234,12 @@ class NonSphericalTaylor2(SphericalTaylor2):
 
     def update(self, x, f, df, ddf=None):
         """This method updates the approximation instance for the NonSphericalTaylor2 expansion."""
-        self.g0old1 = self.g0
+        self.fold1 = self.f
+        self.f = f.copy()
         self.xold1 = self.x
-        self.x = x
+        self.x = x.copy()
         self.dfold1 = self.df
-        self.df = df
+        self.df = df.copy()
         Taylor1.update(self, x, f, df, ddf)
 
         # If iter > 0, approximate curvature by using previous point information
@@ -247,6 +249,15 @@ class NonSphericalTaylor2(SphericalTaylor2):
             self.set_curvature()
         else:
             self.ddgddy = [df * intv.ddxddy(x) for intv in self.interv]
+
+        # Add zero order terms of 2nd-order Taylor expansion to self.g0
+        for ddgddy, y0 in zip(self.ddgddy, self.y0):
+            self.g0 += 0.5 * np.sum(ddgddy * y0 ** 2, axis=1)
+
+        # Add computations that can be done once per design iteration to self.dgdy0
+        for ddgddy, dgdy, y0 in zip(self.ddgddy, self.dgdy, self.y0):
+            self.dgdy0 = [dgdy - ddgddy * y0]
+
         return self
 
     def set_curvature(self):
