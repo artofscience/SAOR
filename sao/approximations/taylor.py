@@ -183,7 +183,7 @@ class SphericalTaylor2(Taylor2):
         :return: self: For method cascading
         """
         self.fold1 = self.f
-        self.f = f.copy()
+        self.f = f
         self.xold1 = self.x
         self.x = x.copy()
         Taylor1.update(self, x, f, df, ddf)

@@ -30,8 +30,8 @@ def example_polynomial_1D():
     problem = Polynomial1D()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitFraction(fraction=2)
-    intvar = Linear()       # MMA02(x_min=problem.x_min, x_max=problem.x_max)
-    subproblem = Subproblem(NonSphericalTaylor2(intvar), limits=[bounds, movelimit])
+    intvar = Linear()     # MMA02(x_min=problem.x_min, x_max=problem.x_max)
+    subproblem = Subproblem(SphericalTaylor2(intvar), limits=[bounds, movelimit])
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
@@ -49,8 +49,7 @@ def example_polynomial_1D():
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = problem.g(x_k)
         df = problem.dg(x_k)
-        ddf = None
-        # ddf = problem.ddg(x_k) if isinstance(subproblem.approx, Taylor2) else None
+        ddf = problem.ddg(x_k) if subproblem.approx.__class__.__name__ == 'Taylor2' else None
 
         # Build approximate sub-problem at X^(k)
         subproblem.build(x_k, f, df, ddf)
