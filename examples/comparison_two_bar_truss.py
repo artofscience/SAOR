@@ -87,22 +87,20 @@ def mma2():
 """
 Let's check the SphericalTaylor2 class.
 """
-def spherical_taylor2():
+def spherical_taylor2(p=1):
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    intvar = Linear()
-    subproblem = Subproblem(SphericalTaylor2(intvar), limits=[bounds])
+    subproblem = Subproblem(SphericalTaylor2(Exponential(p)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
 
 """
 Let's check the SphericalTaylor2 class.
 """
-def nonspherical_taylor2():
+def nonspherical_taylor2(p=1):
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    intvar = Linear()
-    subproblem = Subproblem(NonSphericalTaylor2(intvar), limits=[bounds])
+    subproblem = Subproblem(NonSphericalTaylor2(Exponential(p)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
 
@@ -128,6 +126,6 @@ if __name__ == "__main__":
     lp_aml()
     mixed_lp_mma()
     mma2()
-    spherical_taylor2()
-    nonspherical_taylor2()
+    spherical_taylor2(-1)
+    nonspherical_taylor2(-1)
 
