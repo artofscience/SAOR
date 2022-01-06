@@ -5,9 +5,8 @@ from sao.intervening_variables import Linear, ConLin, ReciCubed, Reciprocal, Exp
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
 from sao.problems.subproblem import Subproblem
-from sao.approximations import Taylor1
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.convergence_criteria import IterationCount
-from sao.approximations import Taylor2
 
 """
 This example compares different SAO schemes for solving the Svanberg 1987 Two Bar Truss problem.
@@ -79,6 +78,24 @@ def taylor2exp(p=2):
     subproblem = Subproblem(Taylor2(Exponential(p=p)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
+"""
+Let's check the SphericalTaylor2 class.
+"""
+def spherical_taylor2(p=1):
+    problem = CantileverBeam()
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    subproblem = Subproblem(SphericalTaylor2(Exponential(p)), limits=[bounds])
+    optimizer(problem, subproblem, IterationCount(10))
+
+
+"""
+Let's check the SphericalTaylor2 class.
+"""
+def nonspherical_taylor2(p=1):
+    problem = CantileverBeam()
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    subproblem = Subproblem(NonSphericalTaylor2(Exponential(p)), limits=[bounds])
+    optimizer(problem, subproblem, IterationCount(10))
 
 def optimizer(problem, subproblem, converged):
     x = problem.x0
@@ -92,7 +109,7 @@ def optimizer(problem, subproblem, converged):
             break
 
         ddf = problem.ddg(x) if isinstance(subproblem.approx, Taylor2) else None
-        subproblem.build(x, f, df, ddf)
+        subproblem.build(x, f, df)
         x[:] = pdip(subproblem, variables=Pdipx)[0]
     print("\n")
 
@@ -102,5 +119,7 @@ if __name__ == "__main__":
     lp_aml()
     mma_aml()
     mixed_lp_mma()
-    taylor2exp(p=-0.1)
+    # taylor2exp(p=-0.1)
+    spherical_taylor2(-0.1)
+    nonspherical_taylor2(-1)
 
