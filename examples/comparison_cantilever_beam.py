@@ -84,10 +84,10 @@ def taylor2exp(p=2):
 What about approximating curvature info by satisfying the previous point?
 (see "Incomplete series expansion for function approximation" by Groenwold et al. / Eq. 16)
 """
-def spherical_taylor2():
+def spherical_taylor2(p=1):
     problem = CantileverBeam()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    subproblem = Subproblem(SphericalTaylor2(Linear()), limits=[bounds])
+    subproblem = Subproblem(SphericalTaylor2(Exponential(p)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
 
@@ -95,10 +95,10 @@ def spherical_taylor2():
 What about approximating curvature info by satisfying the previous point gradient?
 (see "Incomplete series expansion for function approximation" by Groenwold et al. / Eq. 23)
 """
-def nonspherical_taylor2():
+def nonspherical_taylor2(p=1):
     problem = CantileverBeam()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    subproblem = Subproblem(NonSphericalTaylor2(Linear()), limits=[bounds])
+    subproblem = Subproblem(NonSphericalTaylor2(Exponential(p)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
 
@@ -126,5 +126,5 @@ if __name__ == "__main__":
     mma_aml()
     mixed_lp_mma()
     taylor2exp(p=-0.1)
-    spherical_taylor2()
-    nonspherical_taylor2()
+    spherical_taylor2(-0.1)
+    nonspherical_taylor2(-1)
