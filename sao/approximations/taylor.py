@@ -185,9 +185,9 @@ class SphericalTaylor2(Taylor2):
         self.fold1 = self.f
         self.f = f
         self.xold1 = self.x
-        self.x = x.copy()
+        self.x = x.copy()       # keep .copy(), otherwise previous value won't be stored
         Taylor1.update(self, x, f, df, ddf)
-        assert ddf is None, "SphericalTaylor2 generates its own curvature info; if 2nd-order info is known, use Taylor2"
+        assert ddf is None, "SphericalTaylor2 generates its own curvature; if 2nd-order info is known, use Taylor2"
 
         # If iter > 0, approximate curvature by using previous point information (else use Taylor1)
         if self.xold1 is not None:
@@ -239,8 +239,9 @@ class NonSphericalTaylor2(SphericalTaylor2):
         self.dfold1 = self.df
         self.df = df
         self.xold1 = self.x
-        self.x = x.copy()
+        self.x = x.copy()           # keep .copy(), otherwise previous value won't be stored
         Taylor1.update(self, x, f, df, ddf)
+        assert ddf is None, "NonSphericalTaylor2 generates its own curvature; if 2nd-order info is known, use Taylor2"
 
         # If iter > 0, approximate curvature by using previous point information
         if self.xold1 is not None:

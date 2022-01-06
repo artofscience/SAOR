@@ -123,5 +123,5 @@ def example_polynomial_1D_mixed():
 
 
 if __name__ == "__main__":
-    # example_polynomial_1D()
+    example_polynomial_1D()
     example_polynomial_1D_mixed()
