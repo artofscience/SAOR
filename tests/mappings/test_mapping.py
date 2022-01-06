@@ -15,17 +15,10 @@ def test_mapping():
     ddf = prob.ddg(x)
 
     map1 = Exponential(-1)
-    map2 = Exponential(map1)
-    map3 = Taylor1(map2)
-    map3.update(x,f,df,ddf)
+    # map2 = Exponential(map1)
+    map3 = Taylor1(map1)
+    # map3.update(x,f,df,ddf)
 
-
-    print(map1.g(x))
-    print(map2.g(x))
-    print(map3.g(x))
-    print(map1.g(10))
-    print(map2.g(10))
-    print(map3.g(10))
 
 
 

@@ -20,7 +20,7 @@ class Taylor1(Mapping):
 
     def __init__(self, map=Exponential(1)):
         """Initialize the approximation, with optional intervening variable object."""
-        self.map = parse_to_list(map)
+        self.map = map
         self.g0 = None
         self.y0 = None
         self.dgdy = None
@@ -40,12 +40,10 @@ class Taylor1(Mapping):
 
     def g(self, x, out=None):
         """Evaluates the approximation at design point `x`."""
-        y_of_x = [intv.g(x) for intv in self.interv]
         if out is None:
             out = np.zeros(self.nresp)
         out[:] = self.g0
-        for dgdy, y in zip(self.dgdy, y_of_x):
-            out += np.sum(dgdy * y, axis=1)
+        out += self.dgdy * self.map.g(x)
         return out
 
     def dg(self, x, out=None):
@@ -54,8 +52,7 @@ class Taylor1(Mapping):
             out = np.zeros((self.nresp, self.nvar))
         else:
             out[:] = 0.
-        for dgdy, intv in zip(self.dgdy, self.interv):
-            out += dgdy * intv.dydx(x)
+        out += self.dgdy * self.map.dg(x)
         return out
 
     def ddg(self, x, out=None):
@@ -64,8 +61,7 @@ class Taylor1(Mapping):
             out = np.zeros((self.nresp, self.nvar))
         else:
             out[:] = 0.
-        for dgdy, intv in zip(self.dgdy, self.interv):
-            out += dgdy * intv.ddg(x)
+        out += self.dgdy * self.map.ddg(x)
         return out
 
     def clip(self, x):
