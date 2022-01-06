@@ -20,7 +20,7 @@ class Taylor1(Mapping):
 
     def __init__(self, map=Exponential(1)):
         """Initialize the approximation, with optional intervening variable object."""
-        self.map = parse_to_list(mapping)
+        self.map = parse_to_list(map)
         self.g0 = None
         self.y0 = None
         self.dgdy = None
