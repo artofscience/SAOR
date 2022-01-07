@@ -1,11 +1,12 @@
 from Problems.svanberg1987 import TwoBarTruss
 from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
+from sao.intervening_variables.exponential import Linear
 from sao.intervening_variables.mma import MMA87A,MMA87B, MMA87C, MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
 from sao.intervening_variables import Exponential
 from sao.problems.subproblem import Subproblem
-from sao.approximations import Taylor1, Taylor2
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.convergence_criteria import IterationCount
 
 """
@@ -27,6 +28,7 @@ def original():
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 
+
 """
 Now let's see what our "default" MMA does
 """
@@ -36,6 +38,7 @@ def default_mma():
     approx = Taylor1(MMA02(x_min=problem.x_min, x_max=problem.x_max))
     subproblem = Subproblem(approx, limits=[bounds, MoveLimit()])
     optimizer(problem, subproblem, IterationCount(10))
+
 
 """
 What about MMA with an Adaptive Move Limit strategy?
@@ -47,6 +50,7 @@ def mma_aml():
     subproblem = Subproblem(Taylor1(MMA02(x_min=problem.x_min, x_max=problem.x_max)), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
 
+
 """
 Let's check out LP + AML
 """
@@ -56,6 +60,7 @@ def lp_aml():
     movelimit = AdaptiveMoveLimit(move_limit=0.1, dx=problem.x_max - problem.x_min)
     subproblem = Subproblem(Taylor1(), limits=[bounds, movelimit])
     optimizer(problem, subproblem, IterationCount(10))
+
 
 """
 Let's check a mixed scheme.
@@ -68,7 +73,8 @@ def mixed_lp_mma():
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
-    """
+
+"""
 Let's check a mixed scheme.
 """
 def mma2():
@@ -77,6 +83,25 @@ def mma2():
     subproblem = Subproblem(Taylor1(MMA87A(t=3/4)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
+
+"""
+Let's check the SphericalTaylor2 class.
+"""
+def spherical_taylor2(p=1):
+    problem = TwoBarTruss()
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    subproblem = Subproblem(SphericalTaylor2(Exponential(p)), limits=[bounds])
+    optimizer(problem, subproblem, IterationCount(10))
+
+
+"""
+Let's check the SphericalTaylor2 class.
+"""
+def nonspherical_taylor2(p=1):
+    problem = TwoBarTruss()
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    subproblem = Subproblem(NonSphericalTaylor2(Exponential(p)), limits=[bounds])
+    optimizer(problem, subproblem, IterationCount(10))
 
 
 def optimizer(problem, subproblem, converged):
@@ -93,6 +118,7 @@ def optimizer(problem, subproblem, converged):
         x[:] = pdip(subproblem, variables=Pdipx)[0]
     print("\n")
 
+
 if __name__ == "__main__":
     original()
     default_mma()
@@ -100,4 +126,6 @@ if __name__ == "__main__":
     lp_aml()
     mixed_lp_mma()
     mma2()
+    spherical_taylor2(-1)
+    nonspherical_taylor2(-1)
 

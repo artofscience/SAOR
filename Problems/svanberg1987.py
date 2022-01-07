@@ -2,6 +2,7 @@ from sao.problems.problem import Problem
 import numpy as np
 from Problems.utils import finite_difference
 
+
 class CantileverBeam(Problem):
     """
     1. Consider a cantilever beam built from n beam elements.
@@ -45,6 +46,7 @@ class CantileverBeam(Problem):
         ddg[1][:] = 12*self.c2/x**5
         return ddg
 
+
 class EigthBarTruss(Problem):
     """
     1. Consider a simple truss containing 8 elements (bars).
@@ -75,6 +77,7 @@ class EigthBarTruss(Problem):
     def dg(self, x):
         dg = np.zeros((self.m+1, self.n), dtype=float)
         return dg
+
 
 class TwoBarTruss(Problem):
     '''
