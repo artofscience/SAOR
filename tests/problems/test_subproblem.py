@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import logging
-from problems._nd.Square import Square
+from problems.n_dim.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import ConLin, Reciprocal
 from sao.intervening_variables.mma import MMA02 as MMA

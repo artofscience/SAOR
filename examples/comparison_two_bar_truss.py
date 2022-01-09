@@ -1,12 +1,11 @@
 from problems.svanberg1987 import TwoBarTruss
 from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
-from sao.intervening_variables.exponential import Linear
-from sao.intervening_variables.mma import MMA87A,MMA87B, MMA87C, MMA02
+from sao.intervening_variables.mma import MMA87A, MMA87C, MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
-from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
+from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 from sao.intervening_variables import Exponential
 from sao.problems.subproblem import Subproblem
-from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.approximations import Taylor1, SphericalTaylor2, NonSphericalTaylor2
 from sao.convergence_criteria import IterationCount
 
 """

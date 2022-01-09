@@ -1,6 +1,6 @@
 from sao.problems.problem import Problem
 import numpy as np
-from problems.utils import finite_difference
+from problems.util.fd import finite_difference
 
 
 class CantileverBeam(Problem):

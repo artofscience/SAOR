@@ -2,13 +2,14 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1
 from sao.problems import Subproblem
-from sao.intervening_variables import MMA, MMAp, MixedIntervening
+from sao.intervening_variables import MMAp, MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
 from sao.util import Plot
-from sao.solvers import SvanbergIP
+from sao.solvers.SolverIP_Svanberg import ipsolver
 from examples.util.plotter import Plot2, Plot3
-from problems._nd.VanderplaatsBeam import Vanderplaats
+from problems.n_dim.vdp_beam import Vanderplaats
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -32,16 +33,6 @@ def example_vanderplaats(N):
     # Instantiate a non-mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate the scaling strategy
     scaling = InitialResponseScaling(prob.m+1)
@@ -76,7 +67,7 @@ def example_vanderplaats(N):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = ipsolver(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
@@ -103,25 +94,10 @@ def example_vanderplaats_mixed(N):
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMAp(-2, prob.x_min, prob.x_max))
-    # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=np.arange(1, N + 1))
-    # mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=np.arange(1, N + 1))
-    # mix.set_intervening(ReciCubed(), var=np.arange(0, N), resp=[prob.m])
-    # mix.set_intervening(ReciCubed(), var=np.arange(N, prob.n), resp=[prob.m])
-    # mix.set_intervening(Linear(), var=np.arange(0, prob.n) , resp=np.arange(N+1, prob.m))
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), AdaptiveMoveLimit(move_limit=5.0)])
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate the scaling strategy
     scaling = InitialObjectiveScaling(prob.m + 1)
@@ -156,7 +132,7 @@ def example_vanderplaats_mixed(N):
             plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = ipsolver(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)

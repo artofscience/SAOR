@@ -2,12 +2,13 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1
 from sao.problems import Subproblem
-from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.intervening_variables import Linear, MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit
 from sao.util import Plot
-from sao.solvers import SvanbergIP
+from sao.solvers.SolverIP_Svanberg import ipsolver
 from examples.util.plotter import Plot2, Plot3
-from problems._nd.Square import Square
+from problems.n_dim.square import Square
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ np.set_printoptions(precision=4)
 
 
 def example_square(n):
-    logger.info("Solving Square.py using y=MMA and solver=SvanbergIP")
+    logger.info("Solving square.py using y=MMA and solver=SvanbergIP")
 
     # Instantiate problem
     prob = Square(n)
@@ -31,20 +32,6 @@ def example_square(n):
     subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1)])
 
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # converged = ObjectiveChange(prob)
-    # converged = Feasibility(prob)
-
-    # converged = ObjectiveChange(prob.f[0]) & Feasibility(prob.f[1:], slack=1e-3) | IterationCount(5)
-
-    # criterion = ObjectiveChange(prob.f[0])
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
@@ -72,10 +59,7 @@ def example_square(n):
             plotter2.plot_pair(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
-
-        # Assess convergence (give the correct keyword arguments for the criterion you chose)
-        # criterion(x_k=x_k, obj=f[0], constraints=f[1:], iter=itte, lam=lam, df=df)
+        x_k = ipsolver(subprob)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info('iter: {:^4d}  |  x: {:<20s}  |  obj: {:^9.3f}  |  constr: {:^6.3f}  |  criterion: {:^6.3f}  '
@@ -89,7 +73,7 @@ def example_square(n):
 
 
 def example_square_mixed(n):
-    logger.info("Solving Square.py using y=MixedMoveLimit and solver=SvanbergIP")
+    logger.info("Solving square.py using y=MixedMoveLimit and solver=SvanbergIP")
 
     # Instantiate problem
     prob = Square(n)
@@ -101,16 +85,6 @@ def example_square_mixed(n):
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.5)])
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = ObjectiveChange(prob.f)
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
@@ -138,7 +112,7 @@ def example_square_mixed(n):
             plotter3.plot_pair(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = ipsolver(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)

@@ -9,7 +9,7 @@ from sao.move_limits import Bounds, MoveLimitFraction
 from sao.util import Plot
 from sao.solvers.primal_dual_interior_point import pdip
 from examples.util.plotter import Plot2, Plot3
-from problems._1d.Polynomial_1D import Polynomial1D
+from problems.one_dim.polynomial_1d import Polynomial1D
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

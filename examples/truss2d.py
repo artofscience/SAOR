@@ -2,12 +2,13 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1, SphericalTaylor2
 from sao.problems import Subproblem
-from sao.intervening_variables import Linear, Exponential, MMA, MixedIntervening
+from sao.intervening_variables import Linear, Exponential, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit
 from sao.util import Plot
-from sao.solvers import SvanbergIP
+from sao.intervening_variables.mma import MMA02 as MMA
+from sao.solvers.SolverIP_Svanberg import ipsolver
 from examples.util.plotter import Plot2, Plot3
-from problems._2d.Li2015_Fig4 import Li2015Fig4
+from problems.two_dim.li2015_fig4 import Li2015Fig4
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -31,15 +32,6 @@ def example_truss2d():
     subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',
@@ -69,7 +61,7 @@ def example_truss2d():
             plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = ipsolver(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
@@ -100,15 +92,6 @@ def example_truss2d_mixed():
     subprob = Subproblem(approximation=SphericalTaylor2(mix))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',
@@ -138,7 +121,7 @@ def example_truss2d_mixed():
             plotter3.contour_plot(x_k, f, prob, subprob, itte)
 
         # Solve current subproblem
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = ipsolver(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you chose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
@@ -155,5 +138,5 @@ def example_truss2d_mixed():
 
 
 if __name__ == "__main__":
-    # example_truss2d()
+    example_truss2d()
     example_truss2d_mixed()

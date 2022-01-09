@@ -54,7 +54,6 @@ def optimize(problem, solver, approximation, converged, plotter=None, *args, **k
         subproblem.build(x_k, f, df, ddf)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subproblem)
         x_k,  = solver.subsolv(subproblem)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)

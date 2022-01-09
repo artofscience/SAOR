@@ -1,9 +1,9 @@
 from problems.svanberg1987 import CantileverBeam
 from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
 from sao.intervening_variables.mma import MMA87A, MMA02, MMA87C
-from sao.intervening_variables import Linear, ConLin, ReciCubed, Reciprocal, Exponential
+from sao.intervening_variables import Linear, Exponential
 from sao.intervening_variables.mixed_intervening import MixedIntervening
-from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
+from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 from sao.problems.subproblem import Subproblem
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.convergence_criteria import IterationCount

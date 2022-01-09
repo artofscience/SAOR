@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import logging
-from problems._nd.Square import Square
+from problems.n_dim.square import Square
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
 from sao.solvers.SolverIP_Svanberg import ipsolver
 from sao.solvers.cvxopt_wrapper import cvxopt_solver
