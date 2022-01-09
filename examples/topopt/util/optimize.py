@@ -1,7 +1,7 @@
 import numpy as np
-
 from sao.convergence_criteria import IterationCount
 from sao.solvers.primal_dual_interior_point import pdip
+from problems.topology_optimization.util.to_utils import PlotDesign
 
 
 def optimize(problem, sub_problem, x, itercount):
@@ -10,7 +10,7 @@ def optimize(problem, sub_problem, x, itercount):
     output = np.zeros((itercount - 1, 5), dtype=float)
     output2 = np.zeros((itercount - 1, 5), dtype=float)
     # setup for plotting design
-    plotter = utils.PlotDesign(problem, x)
+    plotter = PlotDesign(problem, x)
 
     f = [0, 0]
     xold = np.zeros_like(x)
