@@ -3,6 +3,8 @@ import numpy as np
 
 try:
     from cvxopt import solvers, matrix, spdiag
+
+
     def cvxopt_solver(problem, **kwargs):
         """
         This is a wrapper function that uses the ``cvxopt`` solver library found in the following link:
@@ -47,7 +49,7 @@ try:
 
         # Linear inequality constraints (problem bounds)
         G = matrix(np.append(np.eye(problem.n), -np.eye(problem.n), axis=0))
-        h = matrix(np.append(problem.x_max, -problem.x_min), (2*problem.n, 1))
+        h = matrix(np.append(problem.x_max, -problem.x_min), (2 * problem.n, 1))
 
         return solvers.cp(F, G, h)['x']
 except ImportError:
@@ -55,6 +57,3 @@ except ImportError:
         raise Exception(
             "Package cvxopt is not available in the current environment. "
             "Install cvxopt or install SAOR with feature flags cvxopt.")
-
-
-

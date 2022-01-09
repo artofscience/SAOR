@@ -1,4 +1,5 @@
 import numpy as np
+
 import sao
 
 """This file demonstrates different layouts for setting up
@@ -27,7 +28,7 @@ class Dummy(sao.problems.Problem):
         np.clip(self.x0, self.x_min, self.x_max, out=self.x0)
         self.n = n
         self.m = 1
-        self.f = np.zeros(self.m+1)
+        self.f = np.zeros(self.m + 1)
 
     def g(self, x):
         self.f = np.array([np.dot(x, x), 1 - np.sum(x)])

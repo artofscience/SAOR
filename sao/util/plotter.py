@@ -1,8 +1,9 @@
 import colorsys
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 import pathlib
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import MaxNLocator
 
 
 class Plot:
@@ -44,7 +45,7 @@ class Plot:
         """
         for idx, yi in enumerate(y_values):
             ax = self.fig[idx].gca()
-            self.lines[idx].set_xdata(np.append(self.lines[idx].get_xdata(), np.ones_like(yi)*self.iter))
+            self.lines[idx].set_xdata(np.append(self.lines[idx].get_xdata(), np.ones_like(yi) * self.iter))
             self.lines[idx].set_ydata(np.append(self.lines[idx].get_ydata(), yi))
             ax.relim()
             ax.autoscale_view()

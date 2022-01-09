@@ -1,4 +1,5 @@
 import numpy as np
+
 from .convergence_criterion import ConvergenceCriterion
 
 

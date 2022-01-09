@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
+import pytest
 
 from sao.convergence_criteria.criteria import Criterion
+from sao.convergence_criteria.criteria import Feasibility
 from sao.convergence_criteria.criteria import IterationCount
 from sao.convergence_criteria.criteria import ObjectiveChange
 from sao.convergence_criteria.criteria import VariableChange
-from sao.convergence_criteria.criteria import Feasibility
 
 
 class Counter(Criterion):
@@ -13,6 +13,7 @@ class Counter(Criterion):
 
     The criteria is satisfied once a number of calls are performed.
     """
+
     def __init__(self, target):
         super().__init__()
         self.count = 0
@@ -106,7 +107,7 @@ def test_feasibility_change():
     assert not criteria.done
 
     # Succeed when positive, but within slack variables
-    constraints *= np.array(criteria.slack)/2
+    constraints *= np.array(criteria.slack) / 2
     criteria()
     assert criteria.done
 

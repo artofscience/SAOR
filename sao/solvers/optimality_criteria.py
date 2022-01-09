@@ -1,4 +1,5 @@
 import numpy as np
+
 from sao.convergence_criteria import VariableChange
 
 """

@@ -1,7 +1,8 @@
-from sao.solvers.primal_dual_interior_point import pdip
-from sao.convergence_criteria import IterationCount
 import numpy as np
+
 from problems.topology_optimization import utils
+from sao.convergence_criteria import IterationCount
+from sao.solvers.primal_dual_interior_point import pdip
 
 
 def optimize(problem, sub_problem, x, itercount):
@@ -19,7 +20,6 @@ def optimize(problem, sub_problem, x, itercount):
     expected_approx = 1
 
     while not converged:
-
         plotter.plot(x, counter)
 
         fold = f[0]
@@ -62,7 +62,6 @@ def optimize(problem, sub_problem, x, itercount):
         output[counter, 4] = np.max(np.abs(change))  # max variable change
         output2[counter, 4] = np.dot(changeold, change) / \
                               np.dot(np.linalg.norm(changeold), np.linalg.norm(change))
-
 
         counter += 1
 

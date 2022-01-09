@@ -1,6 +1,5 @@
 import numpy as np
 
-from .intervening import Intervening
 from .exponential import Linear, Reciprocal
 from .split import PositiveNegative
 
@@ -18,6 +17,7 @@ class ConLin(PositiveNegative):
         y_i = x_i \\quad&\\text{if}\\quad dg_j/dx_i >= 0 \\\\
         y_i = \\frac{1}{x_i} \\quad&\\text{if}\\quad dg_j/dx_i < 0
     """
+
     def __init__(self):
         super().__init__(Linear(), Reciprocal())
 

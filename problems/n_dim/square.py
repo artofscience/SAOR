@@ -1,4 +1,5 @@
 import numpy as np
+
 from sao.problems.problem import Problem
 
 
@@ -10,6 +11,7 @@ class Square(Problem):
 
     Solution: all x = 1/n
     """
+
     def __init__(self, n):
         super().__init__()
         self.x_min = 1e-3 * np.ones(n)  # cuz a subproblem uses both, whereas a problem only has x_min
@@ -21,11 +23,11 @@ class Square(Problem):
         self.f = np.zeros(n)
 
     def g(self, x):
-        self.f = np.array([np.dot(x, x), 1-np.sum(x)])
+        self.f = np.array([np.dot(x, x), 1 - np.sum(x)])
         return self.f
 
     def dg(self, x):
-        return np.array([2*x, -np.ones_like(x)])
+        return np.array([2 * x, -np.ones_like(x)])
 
     def ddg(self, x):
-        return np.array([2*np.ones_like(x), np.zeros_like(x)])
+        return np.array([2 * np.ones_like(x), np.zeros_like(x)])

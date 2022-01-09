@@ -1,5 +1,6 @@
-import pytest
 import numpy as np
+import pytest
+
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.move_limits.mixed_move_limit import MixedMoveLimit
 

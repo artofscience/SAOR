@@ -1,6 +1,8 @@
-from ..topology_optimization import utils
 import numpy as np
 from scipy.sparse import coo_matrix
+
+from ..topology_optimization import utils
+
 
 class ComplianceMBB:
 
@@ -64,6 +66,7 @@ class ComplianceMBB:
 
         return dg
 
+
 class Flexure:
     def __init__(self, nx, ny, vf=0.5, fradius=2):
         self.eps = 1e-10
@@ -88,7 +91,8 @@ class Flexure:
         topy = self.dofs[1::self.mesh.ndofy]
 
         top = np.union1d(topx, topy)
-        bottom = np.union1d(self.dofs[self.mesh.ndofy-2::self.mesh.ndofy], self.dofs[self.mesh.ndofy-1::self.mesh.ndofy])
+        bottom = np.union1d(self.dofs[self.mesh.ndofy - 2::self.mesh.ndofy],
+                            self.dofs[self.mesh.ndofy - 1::self.mesh.ndofy])
         self.fixed = np.union1d(top, bottom)
         self.free = np.setdiff1d(self.dofs, self.fixed)
         self.f = np.zeros((self.mesh.ndof, 2), dtype=float)
@@ -97,7 +101,6 @@ class Flexure:
         self.u[topx, 0] = 10
         self.u[topy, 1] = 10
 
-
     def g(self, x):
         g = np.zeros(self.m + 1)
 
@@ -105,30 +108,34 @@ class Flexure:
 
         ym = self.eps + (xphys ** self.penal) * (1 - self.eps)
         sk = ((self.ke.flatten()[np.newaxis]).T * ym).flatten(order='F')
-        stiffness_matrix = coo_matrix((sk, (self.mesh.iK, self.mesh.jK)), shape=(self.mesh.ndof, self.mesh.ndof)).tocsc()
+        stiffness_matrix = coo_matrix((sk, (self.mesh.iK, self.mesh.jK)),
+                                      shape=(self.mesh.ndof, self.mesh.ndof)).tocsc()
 
-        self.u[self.free, :] = utils.linear_solve(stiffness_matrix[self.free, :][:, self.free], -stiffness_matrix[self.free, :][:, self.fixed] * self.u[self.fixed, :])
+        self.u[self.free, :] = utils.linear_solve(stiffness_matrix[self.free, :][:, self.free],
+                                                  -stiffness_matrix[self.free, :][:, self.fixed] * self.u[self.fixed,
+                                                                                                   :])
 
         # Objective and volume constraint
         for i in [0, 1]:
-            u = self.u[:,i]
-            self.ce[:,i] = (np.dot(u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
-                            u[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
+            u = self.u[:, i]
+            self.ce[:, i] = (np.dot(u[self.mesh.edofMat].reshape(self.mesh.n, 8), self.ke) *
+                             u[self.mesh.edofMat].reshape(self.mesh.n, 8)).sum(1)
 
-        g[0] = -np.sum(np.dot(self.u[:,0],stiffness_matrix * self.u[:,0]))
-        g[1] = np.sum(np.dot(self.u[:,1],stiffness_matrix * self.u[:,1])) - 1
+        g[0] = -np.sum(np.dot(self.u[:, 0], stiffness_matrix * self.u[:, 0]))
+        g[1] = np.sum(np.dot(self.u[:, 1], stiffness_matrix * self.u[:, 1])) - 1
         return g
 
     def dg(self, x):
         dg = np.zeros((2, self.mesh.n), dtype=float)
         xphys = self.filter.forward(x)
-        for i in [0,1]:
-            dg[i, :] = (1 - self.eps) * (self.penal * xphys ** (self.penal - 1)) * self.ce[:,i]
+        for i in [0, 1]:
+            dg[i, :] = (1 - self.eps) * (self.penal * xphys ** (self.penal - 1)) * self.ce[:, i]
         dg[0, :] *= -1
         dg[0, :] = self.filter.backward(dg[0, :])
         dg[1, :] = self.filter.backward(dg[1, :])
 
         return dg
+
 
 class SelfweightArch:
 
@@ -207,7 +214,7 @@ class SelfweightArch:
 
 class SelfweightMBB(SelfweightArch):
     def __init__(self, nelx, nely, load=0.0, gravity=10.0, volfrac=0.2, rmin=2, x0=0.5):
-        super().__init__(nelx,nely,load=load,gravity=gravity, volfrac=volfrac,rmin=rmin, x0=x0)
+        super().__init__(nelx, nely, load=load, gravity=gravity, volfrac=volfrac, rmin=rmin, x0=x0)
         self.fixed = np.union1d(self.dofs[0:self.mesh.ndofy:2],
-                                np.array([ self.mesh.ndof - 1]))
+                                np.array([self.mesh.ndof - 1]))
         self.free = np.setdiff1d(self.dofs, self.fixed)

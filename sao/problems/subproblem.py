@@ -1,8 +1,9 @@
-from sao.problems.problem import Problem
+import numpy as np
+
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.move_limit import Bounds
+from sao.problems.problem import Problem
 from sao.util.tools import parse_to_list
-import numpy as np
 
 
 class Subproblem(Problem):

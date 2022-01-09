@@ -1,16 +1,18 @@
-import numpy as np
 import logging
+
+import numpy as np
+
+from examples.util.plotter import Plot2, Plot3
+from problems.two_dim.polynomial_2d import Polynomial2D
 from sao.approximations import Taylor1, Taylor2
-from sao.problems import Subproblem
+from sao.convergence_criteria import VariableChange
 from sao.intervening_variables import MMAp, MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit
-from sao.convergence_criteria import VariableChange
-from sao.util import Plot
+from sao.problems import Subproblem
 from sao.solvers.SolverIP_Svanberg import ipsolver
 from sao.solvers.cvxopt_wrapper import cvxopt_solver
-from examples.util.plotter import Plot2, Plot3
-from problems.two_dim.polynomial_2d import Polynomial2D
+from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -44,11 +46,11 @@ def example_polynomial_2D():
     # x_k = prob.x0.copy()                # At optimum: 1 active constraint (initial design: upper right)
     # x_k = np.array([1.5, 1.6])          # At optimum: 1 active constraint (initial design: lower left)
     # x_k = np.array([1.5, 2.1])          # At optimum: 2 active constraints, i.e. minimum at intersection (upper left)
-    x_k = np.array([2, 1.5])            # no constraint active, i.e. internal minimum (lower right)
+    x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)
     itte = 0
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -102,7 +104,7 @@ def example_polynomial_2D_mixed():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -144,7 +146,6 @@ def example_polynomial_2D_cvxopt():
     subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1, dx=prob.x_max - prob.x_min)])
 
-
     # Initialize design and iteration counter
     x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)
     itte = 0
@@ -159,7 +160,7 @@ def example_polynomial_2D_cvxopt():
         plotter2 = Plot2(prob)
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -215,7 +216,7 @@ def example_polynomial_2D_scipy():
         plotter2 = Plot2(prob)
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)

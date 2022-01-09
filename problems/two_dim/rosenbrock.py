@@ -1,6 +1,7 @@
 ## IMPORTS
-from sao.problems.problem import Problem
 import numpy as np
+
+from sao.problems.problem import Problem
 
 
 ## CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization

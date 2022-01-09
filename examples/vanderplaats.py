@@ -1,15 +1,17 @@
-import numpy as np
 import logging
+
+import numpy as np
+
+from examples.util.plotter import Plot2, Plot3
+from problems.n_dim.vdp_beam import Vanderplaats
 from sao.approximations import Taylor1
-from sao.problems import Subproblem
 from sao.intervening_variables import MMAp, MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
+from sao.problems import Subproblem
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
-from sao.util import Plot
 from sao.solvers.SolverIP_Svanberg import ipsolver
-from examples.util.plotter import Plot2, Plot3
-from problems.n_dim.vdp_beam import Vanderplaats
+from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -35,7 +37,7 @@ def example_vanderplaats(N):
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
     # Instantiate the scaling strategy
-    scaling = InitialResponseScaling(prob.m+1)
+    scaling = InitialResponseScaling(prob.m + 1)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'stress_1', 'tip_disp', 'criterion', 'max_constr_violation'], path=".")
@@ -49,7 +51,7 @@ def example_vanderplaats(N):
     vis = None
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -114,7 +116,7 @@ def example_vanderplaats_mixed(N):
     vis = None
 
     # Optimization loop
-    while itte < 100:        # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)

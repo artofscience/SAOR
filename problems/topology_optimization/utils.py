@@ -1,9 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import colors
-from scipy.sparse import coo_matrix, diags
 import cvxopt
 import cvxopt.cholmod
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import colors
+from scipy.sparse import coo_matrix, diags
 
 
 class PlotDesign:
@@ -124,6 +124,7 @@ def assemble_M(x, mesh, free, rho=1.0, lx=1.0, ly=1.0, lz=1.0):
     xdiag = np.zeros(mesh.ndof)
     np.add.at(xdiag, mesh.edofMat.flatten(), sM)  # Assemble the diagonal
     return diags(xdiag[free])
+
 
 def element_matrix_stiffness():
     E = 1

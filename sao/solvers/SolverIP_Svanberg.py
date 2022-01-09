@@ -77,10 +77,10 @@ def ipsolver(problem, x0=None, epsimin=1e-6, max_inner_iter=20, max_lines_iter=2
             dellam = g_j_tilde_value[1:] - a * z - y + epsi / lam
 
             # Calculation of diagonal matrices: Dx, Dy, Dlam
-            diagx = d2psi_dx2 + xsi/(x - problem.x_min) + eta/(problem.x_max - x)
+            diagx = d2psi_dx2 + xsi / (x - problem.x_min) + eta / (problem.x_max - x)
             diagy = d + mu / y
-            diaglam = s / lam                           # - is missing
-            diaglamyi = diaglam + 1.0 / diagy           # what is that?
+            diaglam = s / lam  # - is missing
+            diaglamyi = diaglam + 1.0 / diagy  # what is that?
 
             # form reduced system of Eq(7.9)
             blam = dellam + dely / diagy - np.dot(dg_j_tilde_value[1:, :], (delx / diagx))
@@ -170,7 +170,6 @@ def ipsolver(problem, x0=None, epsimin=1e-6, max_inner_iter=20, max_lines_iter=2
 
 ## Calculates the residual of the relaxed KKT conditions
 def residual(x, y, z, lam, xsi, eta, mu, zet, s, epsi, a0, a, c, d, problem):
-
     # Calculating g_j_tilde_value, dg_j_tilde_value and dpsi_dx
     g_j_tilde_value = problem.g(x)
     dg_j_tilde_value = problem.dg(x)

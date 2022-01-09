@@ -1,8 +1,8 @@
-from sao.problems import Subproblem
 from sao.approximations import Taylor1
+from sao.convergence_criteria.criteria import VariableChange
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
-from sao.convergence_criteria.criteria import VariableChange
+from sao.problems import Subproblem
 from sao.solvers.primal_dual_interior_point import pdip
 
 

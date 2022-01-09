@@ -29,7 +29,7 @@ def scipy_solver(problem, **kwargs):
         Output: x
         """
 
-    x0 = kwargs.get('x0', 0.5*(problem.x_min + problem.x_max))
+    x0 = kwargs.get('x0', 0.5 * (problem.x_min + problem.x_max))
     bounds = optimize.Bounds(problem.x_min, problem.x_max)
     objective = lambda x: problem.g(x)[0]
     objective_der = lambda x: problem.dg(x)[0]

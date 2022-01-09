@@ -2,6 +2,7 @@
 import abc
 import math
 import operator
+
 import numpy as np
 
 
@@ -40,6 +41,7 @@ class Criterion(abc.ABC):
     >>> convergence = objective_change & feasibility & ~max_iter
 
     """
+
     def __init__(self):
         """On initialisation the criterion is set to False."""
         self.done = False
@@ -80,6 +82,7 @@ class Criteria(Criterion):
     This class simplifies chaining of various boolean operations with multiple
     (sub)classes from ``Criterion``.
     """
+
     def __init__(self, left, right, op):
         super().__init__()
         self.left, self.right = left, right
@@ -97,6 +100,7 @@ class Criteria(Criterion):
 
 class ObjectiveChange(Criterion):
     """Keeps track of the relative objective changes between iterations."""
+
     def __init__(self, objective, tolerance=1e-4, normalise=False):
         super().__init__()
         self.objective = objective
@@ -130,6 +134,7 @@ class VariableChange(Criterion):
     desired, the variable change can be scaled, for instance to normalise the
     change with respect to the maximum range of the design variables.
     """
+
     def __init__(self, variables, tolerance=1e-4, scaling=1.0):
         """Initialise the criteria with a tolerance and scaling"""
         super().__init__()
@@ -159,6 +164,7 @@ class VariableChangeNorm(Criterion):
     desired, the variable change can be scaled, for instance to normalise the
     change with respect to the maximum range of the design variables.
     """
+
     def __init__(self, variables, tolerance=1e-4, scaling=1.0):
         """Initialise the criteria with a tolerance and scaling"""
         super().__init__()
@@ -167,7 +173,6 @@ class VariableChangeNorm(Criterion):
         self.scaling = scaling
         self.previous = math.inf
         self.value = None
-
 
     def __call__(self):
         """Assert the norm of the variables' change is sufficiently small."""
@@ -184,6 +189,7 @@ class VariableChangeNorm(Criterion):
 
 class Feasibility(Criterion):
     """Enforces feasibility of all constraints with some "slack"."""
+
     def __init__(self, contraints, slack=1e-4):
         """Initialise the feasibility criteria with some allowed "slack".
 
@@ -221,6 +227,7 @@ class IterationCount(Criterion):
     >>> convergence = IterationCount(50):
     >>> while not convergence
     """
+
     def __init__(self, max_iteration=50):
         super().__init__()
         self.iteration = 0

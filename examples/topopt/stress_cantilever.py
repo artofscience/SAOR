@@ -1,15 +1,14 @@
 import matplotlib.pyplot as plt
 from matplotlib import colors
-from sao.problems import Subproblem
-from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
+
+from examples.topopt.util.optimize import optimize
+from problems.topology_optimization.stress import StressCantilever
+from sao.approximations import Taylor1
 from sao.intervening_variables import Linear, MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.intervening_variables.mma import MMA87A
-from sao.approximations import Taylor1
-
-from problems.topology_optimization.stress import StressCantilever
-from examples.topopt.util.optimize import optimize
-
+from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
+from sao.problems import Subproblem
 
 itercount = 50
 nelx = 50
@@ -20,7 +19,7 @@ nely = 100
 mma = Subproblem(Taylor1(MMA(sinit=0.2)), limits=[Bounds(0, 1)])
 mma.set_name("MMA_asyinit_0.2")
 
-mma_ml = Subproblem(Taylor1(MMA87A(t=1/3)), limits=[Bounds(0, 1)])
+mma_ml = Subproblem(Taylor1(MMA87A(t=1 / 3)), limits=[Bounds(0, 1)])
 mma_ml.set_name("MMA_asyinit_0.2_ML_0.3")
 
 lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.1)])

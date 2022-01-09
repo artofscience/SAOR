@@ -1,6 +1,8 @@
-from ..topology_optimization import utils
 import numpy as np
 from scipy.sparse.linalg import eigsh, splu, LinearOperator
+
+from ..topology_optimization import utils
+
 
 class EigenfrequencyClampedBeam:
 

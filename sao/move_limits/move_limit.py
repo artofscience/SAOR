@@ -1,5 +1,5 @@
-import numpy as np
 from sao.move_limits.bounds import Bounds
+
 
 class MoveLimit(Bounds):
     """
@@ -26,18 +26,18 @@ class MoveLimit(Bounds):
         self.x_max = x + self.max_dx
         return self
 
+
 class MoveLimitFraction(Bounds):
     """
     The move limit strategy by (Svanberg 1987) of the 'Traditional method', that is
     x_min = x/fraction
     x_max = x*fraction, with fraction = 2.0
     """
+
     def __init__(self, fraction=2):
         self.fraction = fraction
 
     def update(self, x, f=None, df=None, ddf=None):
-        self.x_min = x/self.fraction
-        self.x_max = x*self.fraction
+        self.x_min = x / self.fraction
+        self.x_max = x * self.fraction
         return self
-
-

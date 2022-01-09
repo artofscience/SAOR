@@ -1,6 +1,7 @@
-from sao.problems.problem import Problem
 import numpy as np
+
 from problems.util.fd import finite_difference
+from sao.problems.problem import Problem
 
 
 class CantileverBeam(Problem):
@@ -15,6 +16,7 @@ class CantileverBeam(Problem):
     8. The constraint is the tip displacement.
     9. The variable bounds are so small/large that they never become active.
     """
+
     def __init__(self):
         super().__init__()
         self.n = 5
@@ -29,21 +31,21 @@ class CantileverBeam(Problem):
         self.f_opt = 1.340
 
     def g(self, x):
-        g = np.zeros((self.m+1), dtype=float)
+        g = np.zeros((self.m + 1), dtype=float)
         g[0] = self.c1 * np.sum(x)
-        g[1] = np.dot(self.c2, 1/x**3) - 1
+        g[1] = np.dot(self.c2, 1 / x ** 3) - 1
         return g
 
     def dg(self, x):
-        dg = np.zeros((self.m+1, self.n), dtype=float)
+        dg = np.zeros((self.m + 1, self.n), dtype=float)
         dg[0][:] = self.c1
-        dg[1][:] = -3*self.c2/x**4
+        dg[1][:] = -3 * self.c2 / x ** 4
         return dg
 
     def ddg(self, x):
-        ddg = np.zeros((self.m+1, self.n), dtype=float)
+        ddg = np.zeros((self.m + 1, self.n), dtype=float)
         ddg[0][:] = 0.0
-        ddg[1][:] = 12*self.c2/x**5
+        ddg[1][:] = 12 * self.c2 / x ** 5
         return ddg
 
 
@@ -71,11 +73,11 @@ class EigthBarTruss(Problem):
         self.f_opt = 11.23
 
     def g(self, x):
-        g = np.zeros((self.m+1), dtype=float)
+        g = np.zeros((self.m + 1), dtype=float)
         return g
 
     def dg(self, x):
-        dg = np.zeros((self.m+1, self.n), dtype=float)
+        dg = np.zeros((self.m + 1, self.n), dtype=float)
         return dg
 
 
@@ -104,33 +106,33 @@ class TwoBarTruss(Problem):
         self.f_opt = 1.51
 
     def g(self, x):
-        g = np.zeros((self.m+1), dtype=float)
-        tmp1 = np.sqrt(1 + x[1]**2)
-        tmp2 = 8/x[0] + 1/(x[0]*x[1])
-        tmp3 = 8/x[0] - 1/(x[0]*x[1])
+        g = np.zeros((self.m + 1), dtype=float)
+        tmp1 = np.sqrt(1 + x[1] ** 2)
+        tmp2 = 8 / x[0] + 1 / (x[0] * x[1])
+        tmp3 = 8 / x[0] - 1 / (x[0] * x[1])
 
         # Weight of the structure w[x1, x2]
-        g[0] = x[0]*tmp1
+        g[0] = x[0] * tmp1
         # Stress of bar 1 sigma1[x1, x2]
-        g[1] = self.c2*tmp1*tmp2 - 1
+        g[1] = self.c2 * tmp1 * tmp2 - 1
         # Stress of bar 1 sigma1[x1, x2]
-        g[2] = self.c2*tmp1*tmp3 - 1
+        g[2] = self.c2 * tmp1 * tmp3 - 1
 
         return g
 
     def dg(self, x):
-        dg = np.zeros((self.m+1, self.n), dtype=float)
-        tmp1 = np.sqrt(1 + x[1]**2)
-        tmp2 = 8/x[0] + 1/(x[0]*x[1])
-        tmp3 = 8/x[0] - 1/(x[0]*x[1])
-        tmp4 = 2*x[1]
+        dg = np.zeros((self.m + 1, self.n), dtype=float)
+        tmp1 = np.sqrt(1 + x[1] ** 2)
+        tmp2 = 8 / x[0] + 1 / (x[0] * x[1])
+        tmp3 = 8 / x[0] - 1 / (x[0] * x[1])
+        tmp4 = 2 * x[1]
 
         dg[0][0] = tmp1
-        dg[0][1] = x[0]/(2*tmp1)*tmp4
-        dg[1][0] = -self.c2*tmp1*(8/x[0]**2 + 1/(x[0]**2*x[1]))
-        dg[1][1] = self.c2/(2*tmp1)*tmp4*tmp2 - self.c2*tmp1/(x[0]*x[1]**2)
-        dg[2][0] = -self.c2*tmp1*(8/x[0]**2 - 1/(x[0]**2*x[1]))
-        dg[2][1] = self.c2/(2*tmp1)*tmp4*tmp3 + self.c2*tmp1/(x[0]*x[1]**2)
+        dg[0][1] = x[0] / (2 * tmp1) * tmp4
+        dg[1][0] = -self.c2 * tmp1 * (8 / x[0] ** 2 + 1 / (x[0] ** 2 * x[1]))
+        dg[1][1] = self.c2 / (2 * tmp1) * tmp4 * tmp2 - self.c2 * tmp1 / (x[0] * x[1] ** 2)
+        dg[2][0] = -self.c2 * tmp1 * (8 / x[0] ** 2 - 1 / (x[0] ** 2 * x[1]))
+        dg[2][1] = self.c2 / (2 * tmp1) * tmp4 * tmp3 + self.c2 * tmp1 / (x[0] * x[1] ** 2)
 
         return dg
 
@@ -138,10 +140,7 @@ class TwoBarTruss(Problem):
 if __name__ == "__main__":
     dx = 1e-7
     problem = TwoBarTruss()
-    finite_difference(problem, problem.x0+1, dx)
+    finite_difference(problem, problem.x0 + 1, dx)
 
     problem = CantileverBeam()
     finite_difference(problem, problem.x0, dx)
-
-
-

@@ -1,10 +1,12 @@
-import pytest
-import numpy as np
 import logging
+
+import numpy as np
+import pytest
+
 from problems.n_dim.square import Square
-from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
 from sao.solvers.SolverIP_Svanberg import ipsolver
 from sao.solvers.cvxopt_wrapper import cvxopt_solver
+from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
 from sao.solvers.scipy_wrapper import scipy_solver
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -20,7 +22,6 @@ logger.addHandler(stream_handler)
 
 @pytest.mark.parametrize('n', [100])
 def test_square(n):
-
     # Test sao.solvers.interior_point.py
     logger.info("Solve x**2 using ipopt with x, y, z")
     problem_xyz = Square(n)

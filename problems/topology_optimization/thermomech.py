@@ -1,6 +1,7 @@
-from .mbbbeam import MBBBeam
 import numpy as np
-from scipy.sparse import coo_matrix, diags
+from scipy.sparse import coo_matrix
+
+from .mbbbeam import MBBBeam
 
 
 class Thermomech(MBBBeam):

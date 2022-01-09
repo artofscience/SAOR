@@ -1,11 +1,14 @@
-import numpy as np
 from abc import abstractmethod, ABC
 from array import array
+
+import numpy as np
+
 
 class PerformanceMeasure(ABC):
     """
     Performance measure.
     """
+
     def __init__(self):
         """On initialisation the name of the measure is set to Default"""
         self.name = "Default PM name"
@@ -30,10 +33,12 @@ class PerformanceMeasure(ABC):
     def measure(self):
         del self._measure
 
+
 class Objective(PerformanceMeasure):
     """
     Objective function value.
     """
+
     def __init__(self):
         super().__init__()
         self.name = "Objective"
@@ -43,10 +48,12 @@ class Objective(PerformanceMeasure):
     def set_measure(self, value):
         return value
 
+
 class Infeasibility(PerformanceMeasure):
     """
     Infeasibility.
     """
+
     def __init__(self):
         super().__init__()
         self.name = "Infeasibility"
@@ -56,10 +63,12 @@ class Infeasibility(PerformanceMeasure):
     def set_measure(self, value):
         return np.max([0.0, np.max(value)])
 
+
 class ObjectiveChange(PerformanceMeasure):
     """
     Absolute change of objective value.
     """
+
     def __init__(self):
         super().__init__()
         self.name = "Absolute objective change"
@@ -68,14 +77,16 @@ class ObjectiveChange(PerformanceMeasure):
         self.fold = float('nan')
 
     def set_measure(self, value):
-        a =  np.abs(value - self.fold)
+        a = np.abs(value - self.fold)
         self.fold = value
         return a
+
 
 class VariableChangeMax(PerformanceMeasure):
     """
     Maximum absolute variable change.
     """
+
     def __init__(self):
         super().__init__()
         self.name = "Maximum absolute variable change"
@@ -84,14 +95,16 @@ class VariableChangeMax(PerformanceMeasure):
         self.xold = float('nan')
 
     def set_measure(self, value):
-        a =  np.max(np.abs(value - self.xold))
+        a = np.max(np.abs(value - self.xold))
         self.xold = value
         return a
+
 
 class VariableChangeNorm(PerformanceMeasure):
     """
     2 Norm of absolute variable change.
     """
+
     def __init__(self):
         super().__init__()
         self.name = "2 Norm of absolute variable change"
@@ -100,9 +113,10 @@ class VariableChangeNorm(PerformanceMeasure):
         self.xold = float('nan')
 
     def set_measure(self, value):
-        a =  np.linalg.norm(np.abs(value - self.xold))
+        a = np.linalg.norm(np.abs(value - self.xold))
         self.xold = value
         return a
+
 
 class NonDiscreteness(PerformanceMeasure):
     """
@@ -110,6 +124,7 @@ class NonDiscreteness(PerformanceMeasure):
 
     Note: currently limited to x_min = 0.0 and x_max = 1.0
     """
+
     def __init__(self):
         super().__init__()
         self.name = "MND"
@@ -117,7 +132,8 @@ class NonDiscreteness(PerformanceMeasure):
         self.description = "Measure of non-discreteness"
 
     def set_measure(self, value):
-        return 4*np.linalg.norm(value*(1-value))
+        return 4 * np.linalg.norm(value * (1 - value))
+
 
 if __name__ == "__main__":
     f = Objective()

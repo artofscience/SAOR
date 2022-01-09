@@ -1,6 +1,8 @@
-from ..topology_optimization import utils
 import numpy as np
 from scipy.sparse import coo_matrix
+
+from ..topology_optimization import utils
+
 
 class MechanismClampedBeam:
     def __init__(self, nx, ny, vf=0.2, fradius=2, kin=100, kout=100):
@@ -23,8 +25,8 @@ class MechanismClampedBeam:
 
         self.dofs = np.arange(self.mesh.ndof)
         left = self.dofs[0:self.mesh.ndofy:2]
-        right = np.union1d(self.dofs[self.mesh.ndof - self.mesh.ndofy//2:self.mesh.ndof:2],
-                           self.dofs[self.mesh.ndof - self.mesh.ndofy//2 + 1:self.mesh.ndof:2])
+        right = np.union1d(self.dofs[self.mesh.ndof - self.mesh.ndofy // 2:self.mesh.ndof:2],
+                           self.dofs[self.mesh.ndof - self.mesh.ndofy // 2 + 1:self.mesh.ndof:2])
         self.fixed = np.union1d(left, right)
         self.fixed = np.union1d(left, right)
 
@@ -32,7 +34,7 @@ class MechanismClampedBeam:
         self.f = np.zeros((self.mesh.ndof, 2), dtype=float)
         self.u = np.zeros((self.mesh.ndof, 2), dtype=float)
 
-        self.din = self.mesh.ndofy-1
+        self.din = self.mesh.ndofy - 1
         self.dout = 1
 
         self.f[self.din, 0] = 1
@@ -54,7 +56,8 @@ class MechanismClampedBeam:
 
         ym = self.eps + (xphys.flatten() ** self.penal) * (1 - self.eps)
         sk = np.concatenate((((self.ke.flatten()[np.newaxis]).T * ym).flatten(order='F'), self.sstiff))
-        stiffness_matrix = coo_matrix((sk, (self.mesh.iK, self.mesh.jK)), shape=(self.mesh.ndof, self.mesh.ndof)).tocsc()
+        stiffness_matrix = coo_matrix((sk, (self.mesh.iK, self.mesh.jK)),
+                                      shape=(self.mesh.ndof, self.mesh.ndof)).tocsc()
 
         self.u[self.free, :] = utils.linear_solve(stiffness_matrix[self.free, :][:, self.free], self.f[self.free, :])
         u = self.u[:, 0]

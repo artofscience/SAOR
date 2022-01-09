@@ -7,12 +7,13 @@ class Polynomial2D:
     This a 2D non-convex problem with 4 local minima that is used to simulate Topology Optimization problems.
     It is used throughout the paper to show the influence of different aspects of SAO.
     """
+
     def __init__(self):
         self.n = 2
         self.m = 3
         self.x_min = np.array([0.1, 0.1])
         self.x_max = np.array([3.3, 3.3])
-        self.x0  = np.array([2, 2.1])
+        self.x0 = np.array([2, 2.1])
 
     def g(self, x):
         g_j = np.empty(self.m + 1)
@@ -30,7 +31,7 @@ class Polynomial2D:
         dg_j = np.empty((self.m + 1, self.n))
         dg_j[0, 0] = 4 * x[0] ** 3 - 20.4 * x[0] ** 2 + 29.6 * x[0] - 10.6
         dg_j[0, 1] = 4 * x[1] ** 3 - 21.0 * x[1] ** 2 + 32.0 * x[1] - 13.0
-        dg_j[1, 0] = 3 * x[0]**2 - 10.2 * x[0] + 8.67
+        dg_j[1, 0] = 3 * x[0] ** 2 - 10.2 * x[0] + 8.67
         dg_j[1, 1] = 3 * x[1] ** 2 - 7.8 * x[1] + 5.07
         # dg_j[2, 0] = -5.184 * x[0] ** 2 + 14.688 * x[0] - 10.404
         # dg_j[2, 1] = -0.375 * x[1] ** 2 + 1.35 * x[1] - 1.215

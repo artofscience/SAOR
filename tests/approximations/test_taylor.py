@@ -1,6 +1,8 @@
-import pytest
-import numpy as np
 import logging
+
+import numpy as np
+import pytest
+
 from problems.n_dim.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import ConLin
@@ -20,7 +22,6 @@ logger.addHandler(stream_handler)
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_taylor1(n, h):
-
     logger.info("Testing 1st-order Taylor expansion with y=x")
     prob = Square(n)
     g = prob.g(prob.x0)
@@ -36,7 +37,7 @@ def test_taylor1(n, h):
 
     # Check validity of Taylor1 expansion at X^(k) + h
     dx = np.ones_like(prob.x0) * h
-    assert taylor1.g(prob.x0 + dx) == pytest.approx(g + dg@dx, rel=1e-4)
+    assert taylor1.g(prob.x0 + dx) == pytest.approx(g + dg @ dx, rel=1e-4)
     assert taylor1.dg(prob.x0 + h) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
     assert taylor1.ddg(prob.x0 + h) == pytest.approx(0, abs=1e-4)
 
@@ -59,15 +60,14 @@ def test_taylor2(n, h):
 
     # Check validity of Taylor2 expansion at X^(k) + h
     dx = np.ones_like(prob.x0) * h
-    assert taylor2.g(prob.x0 + dx) == pytest.approx(g + dg @ dx + 0.5 * ddg @ (dx**2), rel=1e-4)
+    assert taylor2.g(prob.x0 + dx) == pytest.approx(g + dg @ dx + 0.5 * ddg @ (dx ** 2), rel=1e-4)
     assert taylor2.dg(prob.x0 + dx) == pytest.approx(dg + prob.ddg(prob.x0) * h, rel=1e-4)
-    assert taylor2.ddg(prob.x0 + dx) == pytest.approx(ddg * np.ones_like(prob.x0)**2, rel=1e-4)
+    assert taylor2.ddg(prob.x0 + dx) == pytest.approx(ddg * np.ones_like(prob.x0) ** 2, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
 @pytest.mark.parametrize('h', [0.1, 0.5])
 def test_taylor1_intervening(n, h):
-
     logger.info("Testing 1st-order Taylor expansion with y=ConLin")
     prob = Square(n)
     g = prob.g(prob.x0)
@@ -88,6 +88,7 @@ def test_taylor1_intervening(n, h):
     # assert taylor1.g(inter.y(prob.x0 + h).T) == pytest.approx(prob.g(prob.x0) + np.diag(dfdy.dot(delta_y)), rel=1e-4)
     # assert taylor1.dg(inter.y(prob.x0 + h).T, inter.dydx(prob.x0 + h)) == pytest.approx(dfdy * inter.dydx(prob.x0 + h), rel=1e-4)
     # assert taylor1.ddg(inter.y(prob.x0 + h).T, inter.dydx(prob.x0 + h), inter.ddyddx(prob.x0 + h)) == pytest.approx(dfdy * inter.ddyddx(prob.x0 + h), rel=1e-4)
+
 
 ''' # TODO: ALL THESE TESTS!
 @pytest.mark.parametrize('n', [10])

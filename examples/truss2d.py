@@ -1,14 +1,16 @@
-import numpy as np
 import logging
-from sao.approximations import Taylor1, SphericalTaylor2
-from sao.problems import Subproblem
-from sao.intervening_variables import Linear, Exponential, MixedIntervening
-from sao.move_limits import Bounds, MoveLimit
-from sao.util import Plot
-from sao.intervening_variables.mma import MMA02 as MMA
-from sao.solvers.SolverIP_Svanberg import ipsolver
+
+import numpy as np
+
 from examples.util.plotter import Plot2, Plot3
 from problems.two_dim.li2015_fig4 import Li2015Fig4
+from sao.approximations import Taylor1, SphericalTaylor2
+from sao.intervening_variables import Linear, Exponential, MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
+from sao.move_limits import Bounds, MoveLimit
+from sao.problems import Subproblem
+from sao.solvers.SolverIP_Svanberg import ipsolver
+from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -32,7 +34,6 @@ def example_truss2d():
     subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
-
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',
                     'max_constr_violation'], path=".")
@@ -45,7 +46,7 @@ def example_truss2d():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -92,7 +93,6 @@ def example_truss2d_mixed():
     subprob = Subproblem(approximation=SphericalTaylor2(mix))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
 
-
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint_1', 'constraint_2', 'criterion',
                     'max_constr_violation'], path=".")
@@ -105,7 +105,7 @@ def example_truss2d_mixed():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)

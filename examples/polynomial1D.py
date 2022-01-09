@@ -1,15 +1,17 @@
-import numpy as np
 import logging
-from sao.approximations import SphericalTaylor2, NonSphericalTaylor2
-from sao.problems.subproblem import Subproblem
-from sao.intervening_variables.exponential import Linear
-from sao.intervening_variables.mma import MMA02
-from sao.intervening_variables.mixed_intervening import MixedIntervening
-from sao.move_limits import Bounds, MoveLimitFraction
-from sao.util import Plot
-from sao.solvers.primal_dual_interior_point import pdip
+
+import numpy as np
+
 from examples.util.plotter import Plot2, Plot3
 from problems.one_dim.polynomial_1d import Polynomial1D
+from sao.approximations import SphericalTaylor2, NonSphericalTaylor2
+from sao.intervening_variables.exponential import Linear
+from sao.intervening_variables.mixed_intervening import MixedIntervening
+from sao.intervening_variables.mma import MMA02
+from sao.move_limits import Bounds, MoveLimitFraction
+from sao.problems.subproblem import Subproblem
+from sao.solvers.primal_dual_interior_point import pdip
+from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -30,7 +32,7 @@ def example_polynomial_1D():
     problem = Polynomial1D()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitFraction(fraction=2)
-    intvar = Linear()     # MMA02(x_min=problem.x_min, x_max=problem.x_max)
+    intvar = Linear()  # MMA02(x_min=problem.x_min, x_max=problem.x_max)
     subproblem = Subproblem(SphericalTaylor2(intvar), limits=[bounds, movelimit])
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
@@ -44,7 +46,7 @@ def example_polynomial_1D():
     x_k = problem.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = problem.g(x_k)
@@ -79,7 +81,7 @@ def example_polynomial_1D_mixed():
     problem = Polynomial1D()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitFraction(fraction=2)
-    intvar = MixedIntervening(problem.n, problem.m+1)  # MMA02(x_min=problem.x_min, x_max=problem.x_max)
+    intvar = MixedIntervening(problem.n, problem.m + 1)  # MMA02(x_min=problem.x_min, x_max=problem.x_max)
     intvar.set_intervening(MMA02(x_min=problem.x_min, x_max=problem.x_max), resp=0)
     subproblem = Subproblem(NonSphericalTaylor2(intvar), limits=[bounds, movelimit])
 
@@ -94,7 +96,7 @@ def example_polynomial_1D_mixed():
     x_k = problem.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = problem.g(x_k)

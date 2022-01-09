@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Rectangle
 
 
@@ -59,7 +59,6 @@ class Plot2:
 
             # Sweep design variable x_curr[i, 1], while keeping all others ejual to the approx.x_k
             for k in range(0, self.x.shape[1]):
-
                 # Update current point x_curr
                 x_curr[i] = self.x[i, k].copy()
 
@@ -224,9 +223,9 @@ class Plot2:
             # Plot in Approx Figure the optimal point found by the solver at the last iteration
             plt.figure(self.fig_idx['fig_approx'])
             opt_point = plt.scatter(x_k[0], x_k[1],
-                                      label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
-                                            ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
-                                      marker='o', edgecolors='yellow', color='k', s=100)
+                                    label='$\mathbf{X}$' + '$^{}$'.format({self.iter_contour}) +
+                                          ' = {d}$^T$'.format(d=np.around(x_k[:], decimals=4)),
+                                    marker='o', edgecolors='yellow', color='k', s=100)
             plt.legend()
             plt.show(block=False)  # Use keyword 'block' to override blocking behaviour of debugger
 

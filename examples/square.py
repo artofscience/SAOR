@@ -1,14 +1,16 @@
-import numpy as np
 import logging
+
+import numpy as np
+
+from examples.util.plotter import Plot2, Plot3
+from problems.n_dim.square import Square
 from sao.approximations import Taylor1
-from sao.problems import Subproblem
 from sao.intervening_variables import Linear, MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit
-from sao.util import Plot
+from sao.problems import Subproblem
 from sao.solvers.SolverIP_Svanberg import ipsolver
-from examples.util.plotter import Plot2, Plot3
-from problems.n_dim.square import Square
+from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -32,7 +34,6 @@ def example_square(n):
     subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1)])
 
-
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
     plotter2_flag = True
@@ -44,7 +45,7 @@ def example_square(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not converged:
+    while itte < 100:  # not converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -97,7 +98,7 @@ def example_square_mixed(n):
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -131,4 +132,3 @@ def example_square_mixed(n):
 if __name__ == "__main__":
     example_square(2)
     example_square_mixed(2)
-

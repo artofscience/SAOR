@@ -1,12 +1,12 @@
 from problems.svanberg1987 import TwoBarTruss
-from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
-from sao.intervening_variables.mma import MMA87A, MMA87C, MMA02
-from sao.intervening_variables.mixed_intervening import MixedIntervening
-from sao.solvers.primal_dual_interior_point import pdip, Pdipx
-from sao.intervening_variables import Exponential
-from sao.problems.subproblem import Subproblem
 from sao.approximations import Taylor1, SphericalTaylor2, NonSphericalTaylor2
 from sao.convergence_criteria import IterationCount
+from sao.intervening_variables import Exponential
+from sao.intervening_variables.mixed_intervening import MixedIntervening
+from sao.intervening_variables.mma import MMA87A, MMA87C, MMA02
+from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
+from sao.problems.subproblem import Subproblem
+from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 
 """
 This example compares different SAO schemes for solving the Svanberg 1987 Two Bar Truss problem.
@@ -16,6 +16,8 @@ For a "fair" comparison, we use the convergence criteria as used in the paper.
 """
 We start with the scheme as presented in the paper.
 """
+
+
 def original():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
@@ -31,6 +33,8 @@ def original():
 """
 Now let's see what our "default" MMA does
 """
+
+
 def default_mma():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
@@ -42,6 +46,8 @@ def default_mma():
 """
 What about MMA with an Adaptive Move Limit strategy?
 """
+
+
 def mma_aml():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
@@ -53,6 +59,8 @@ def mma_aml():
 """
 Let's check out LP + AML
 """
+
+
 def lp_aml():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
@@ -64,11 +72,13 @@ def lp_aml():
 """
 Let's check a mixed scheme.
 """
+
+
 def mixed_lp_mma():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    intvar = MixedIntervening(problem.n, problem.m+1)
-    intvar.set_intervening(MMA87A(t=3/4), var=1)
+    intvar = MixedIntervening(problem.n, problem.m + 1)
+    intvar.set_intervening(MMA87A(t=3 / 4), var=1)
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
@@ -76,16 +86,20 @@ def mixed_lp_mma():
 """
 Let's check a mixed scheme.
 """
+
+
 def mma2():
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    subproblem = Subproblem(Taylor1(MMA87A(t=3/4)), limits=[bounds])
+    subproblem = Subproblem(Taylor1(MMA87A(t=3 / 4)), limits=[bounds])
     optimizer(problem, subproblem, IterationCount(10))
 
 
 """
 Let's check the SphericalTaylor2 class.
 """
+
+
 def spherical_taylor2(p=1):
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
@@ -96,6 +110,8 @@ def spherical_taylor2(p=1):
 """
 Let's check the SphericalTaylor2 class.
 """
+
+
 def nonspherical_taylor2(p=1):
     problem = TwoBarTruss()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
@@ -109,8 +125,8 @@ def optimizer(problem, subproblem, converged):
         f = problem.g(x)
         df = problem.dg(x)
         infeasibility = max(0.0, f[1], f[2])
-        print("{}: {:.3f} {:.3f}".format(converged.iteration-1, f[0], infeasibility))
-        if (infeasibility < 0.001) and (f[0] < 1.001*1.51):
+        print("{}: {:.3f} {:.3f}".format(converged.iteration - 1, f[0], infeasibility))
+        if (infeasibility < 0.001) and (f[0] < 1.001 * 1.51):
             print("The optimum solution found")
             break
         subproblem.build(x, f, df)
@@ -127,4 +143,3 @@ if __name__ == "__main__":
     mma2()
     spherical_taylor2(-1)
     nonspherical_taylor2(-1)
-

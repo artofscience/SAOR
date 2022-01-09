@@ -1,7 +1,8 @@
 ## IMPORTS
-from sao.problems.problem import Problem
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
+from sao.problems.problem import Problem
 
 
 ## CLASS: This is the Vanderplaats cantilever beam by Dirk (scaled objective as: g_0' = self.scale * g_0)
@@ -45,8 +46,8 @@ class Vanderplaats(Problem):
         g = np.zeros((self.m + 1), dtype=float)
 
         for i in range(self.N):
-            b = x_k[i]                  # get width
-            h = x_k[self.N + i]         # get height
+            b = x_k[i]  # get width
+            h = x_k[self.N + i]  # get height
 
             # Weight objective
             g[0] = g[0] + self.S * b * h * self.scale
@@ -66,7 +67,7 @@ class Vanderplaats(Problem):
 
             # Left displacement
             y = (self.P * self.S ** 2) / (2 * self.E * I) * (
-                        self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
+                    self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
 
             # Right displacement
             ya = (self.P * self.S) / (self.E * I) * (self.L - (i + 1) * self.S + self.S / 2) + ya
@@ -81,8 +82,8 @@ class Vanderplaats(Problem):
         ya = 0.
         dg = np.zeros((self.m + 1, self.n), dtype=float)
         for i in range(self.N):
-            b = x_k[i]              # get width
-            h = x_k[self.N + i]     # get height
+            b = x_k[i]  # get width
+            h = x_k[self.N + i]  # get height
 
             # Derivatives of objective
             dg[0, i] = self.S * h * self.scale
@@ -107,7 +108,7 @@ class Vanderplaats(Problem):
 
             # Left displacement
             y = (self.P * self.S ** 2) / (2 * self.E * I) * (
-                        self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
+                    self.L - (i + 1) * self.S + 2 * self.S / 3) + ya * self.S + y
 
             # Right displacement
             ya = (self.P * self.S) / (self.E * I) * (self.L - (i + 1) * self.S + self.S / 2) + ya

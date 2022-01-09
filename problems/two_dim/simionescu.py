@@ -1,6 +1,7 @@
 ## IMPORTS
-from sao.problems.problem import Problem
 import numpy as np
+
+from sao.problems.problem import Problem
 
 
 ## CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
@@ -28,14 +29,16 @@ class Simionescu(Problem):
     def dg(self, x_k):
         dg_j = np.empty((self.m + 1, self.n))
 
-        dg_j[0, 0] = 0.1*x_k[1] - 0.125
+        dg_j[0, 0] = 0.1 * x_k[1] - 0.125
 
-        dg_j[0, 1] = 0.1*x_k[0] - 0.125
+        dg_j[0, 1] = 0.1 * x_k[0] - 0.125
 
         dg_j[1, 0] = 2.0 * x_k[0] - 2.5 + 3.2 * (0.2 * np.cos(8 * np.arctan((x_k[0] - 1.25) / (x_k[1] - 1.25))) + 1.0) * \
-                     np.sin(8 * np.arctan((x_k[0] - 1.25) / (x_k[1] - 1.25))) / ((x_k[1] - 1.25) * (1.0 * (0.8 * x_k[0] - 1) ** 2 / (0.8 * x_k[1] - 1) ** 2 + 1))
+                     np.sin(8 * np.arctan((x_k[0] - 1.25) / (x_k[1] - 1.25))) / (
+                             (x_k[1] - 1.25) * (1.0 * (0.8 * x_k[0] - 1) ** 2 / (0.8 * x_k[1] - 1) ** 2 + 1))
 
-        dg_j[1, 1] = 2.0 * x_k[1] - 2.048 * (x_k[0] - 1.25) * (0.2 * np.cos(8 * np.arctan((x_k[0] - 1.25) / (x_k[1] - 1.25))) + 1.0) * \
+        dg_j[1, 1] = 2.0 * x_k[1] - 2.048 * (x_k[0] - 1.25) * (
+                0.2 * np.cos(8 * np.arctan((x_k[0] - 1.25) / (x_k[1] - 1.25))) + 1.0) * \
                      np.sin(8 * np.arctan((x_k[0] - 1.25) / (x_k[1] - 1.25))) / \
                      ((0.8 * x_k[1] - 1) ** 2 * (1.0 * (0.8 * x_k[0] - 1) ** 2 / (0.8 * x_k[1] - 1) ** 2 + 1)) - 2.5
 

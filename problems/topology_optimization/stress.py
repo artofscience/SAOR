@@ -1,7 +1,7 @@
+import numpy as np
 
 from ..topology_optimization import utils
-import numpy as np
-from scipy.sparse import coo_matrix
+
 
 class StressCantilever:
 

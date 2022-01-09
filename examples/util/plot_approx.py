@@ -1,9 +1,10 @@
-import numpy as np
 import logging
-from problems.Polynomial_1D import Polynomial1D
-import sao
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import numpy as np
+from problems.Polynomial_1D import Polynomial1D
+
+import sao
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -46,7 +47,6 @@ class PlotApprox:
 
             # Sweep design variable x_curr[i, 1], while keeping all others ejual to the approx.x_k
             for k in range(0, self.x.shape[1]):
-
                 # Update current point x_curr
                 x_curr[i] = self.x[i, k].copy()
 

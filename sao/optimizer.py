@@ -1,5 +1,7 @@
-import numpy as np
 import logging
+
+import numpy as np
+
 import sao
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
@@ -54,7 +56,7 @@ def optimize(problem, solver, approximation, converged, plotter=None, *args, **k
         subproblem.build(x_k, f, df, ddf)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k,  = solver.subsolv(subproblem)
+        x_k, = solver.subsolv(subproblem)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
