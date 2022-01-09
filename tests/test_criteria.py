@@ -2,8 +2,7 @@ import numpy as np
 import pytest
 
 from sao.convergence_criteria.criteria import Criterion
-from sao.convergence_criteria.criteria import Feasibility
-from sao.convergence_criteria.criteria import IterationCount
+from sao.convergence_criteria import IterationCount, Feasibility
 from sao.convergence_criteria.criteria import ObjectiveChange
 from sao.convergence_criteria.criteria import VariableChange
 

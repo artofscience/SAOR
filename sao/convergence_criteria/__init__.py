@@ -1,4 +1,3 @@
-from .criteria import Feasibility
-from .criteria import IterationCount
+from .fixed import IterationCount, Feasibility
 from .criteria import ObjectiveChange
 from .criteria import VariableChange

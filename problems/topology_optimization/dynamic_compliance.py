@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.sparse.linalg import eigsh, splu, LinearOperator, spsolve
+
 from sao.problems import Problem
 
 

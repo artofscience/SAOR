@@ -1,4 +1,5 @@
 import numpy as np
+
 from sao.problems.problem import Problem
 
 

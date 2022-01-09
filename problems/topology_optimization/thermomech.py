@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.sparse import coo_matrix
-import util.to_utils as utils
+
 from sao.problems import Problem
 
 

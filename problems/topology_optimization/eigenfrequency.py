@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.sparse.linalg import eigsh, splu, LinearOperator
+
 import util.to_utils as utils
 from sao.problems.problem import Problem
 
