@@ -6,8 +6,8 @@ from sao.intervening_variables import Linear, MMA, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit
 from sao.util import Plot
 from sao.solvers import SvanbergIP
-from util.plotter import Plot2, Plot3
-from Problems._nd.Square import Square
+from examples.util.plotter import Plot2, Plot3
+from problems._nd.Square import Square
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

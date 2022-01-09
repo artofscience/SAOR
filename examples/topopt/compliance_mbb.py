@@ -1,8 +1,8 @@
 import numpy as np
 from matplotlib import colors
 
-from Problems.topology_optimization import utils
-from Problems.topology_optimization.compliance import ComplianceMBB
+from problems.topology_optimization import utils
+from problems.topology_optimization.compliance import ComplianceMBB
 import matplotlib.pyplot as plt
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit

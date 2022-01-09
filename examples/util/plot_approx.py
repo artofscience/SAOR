@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from Problems.Polynomial_1D import Polynomial1D
+from problems.Polynomial_1D import Polynomial1D
 import sao
 import matplotlib.pyplot as plt
 

@@ -1,4 +1,4 @@
-from Problems.svanberg1987 import TwoBarTruss
+from problems.svanberg1987 import TwoBarTruss
 from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
 from sao.intervening_variables.exponential import Linear
 from sao.intervening_variables.mma import MMA87A,MMA87B, MMA87C, MMA02

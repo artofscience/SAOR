@@ -2,13 +2,13 @@ import numpy as np
 import logging
 from sao.approximations import Taylor1, Taylor2
 from sao.problems import Subproblem
-from sao.intervening_variables import Linear, MMA, MMAp, MixedIntervening
+from sao.intervening_variables import MMA, MMAp, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit
 from sao.convergence_criteria import VariableChange
 from sao.util import Plot
 from sao.solvers import SvanbergIP, CVXOPT, SCIPY
-from util.plotter import Plot2, Plot3
-from Problems._2d.Polynomial_2D import Polynomial2D
+from examples.util.plotter import Plot2, Plot3
+from problems._2d.Polynomial_2D import Polynomial2D
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 import pytest
 import logging
 import numpy as np
-from Problems._nd.Square import Square
+from problems._nd.Square import Square
 from sao.intervening_variables import Linear, Reciprocal, MixedIntervening, Exponential
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.intervening_variables.mixed_intervening import fill_set_when_emtpy

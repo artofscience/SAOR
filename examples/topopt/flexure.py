@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import colors
 
 
-from Problems.topology_optimization import utils
+from problems.topology_optimization import utils
 import matplotlib.pyplot as plt
 
 from sao.problems import Subproblem
@@ -10,7 +10,7 @@ from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
 from sao.intervening_variables import Linear, MMA, MixedIntervening
 from sao.approximations import Taylor1
 
-from Problems.topology_optimization.compliance import Flexure
+from problems.topology_optimization.compliance import Flexure
 
 from examples.topopt.optimize import optimize
 

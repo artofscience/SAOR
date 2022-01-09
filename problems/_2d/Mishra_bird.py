@@ -3,7 +3,7 @@ from sao.problems.problem import Problem
 import numpy as np
 
 
-## CLASS: see ReferenceFiles/Problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
+## CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class MishraBird(Problem):
 
     def __init__(self):

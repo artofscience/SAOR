@@ -1,6 +1,6 @@
 
 import sys
-from Problems.topology_optimization.mbbbeam import MBBBeam
+from problems.topology_optimization.mbbbeam import MBBBeam
 import numpy as np
 from scipy.sparse.linalg import eigsh, splu, LinearOperator, spsolve
 import matplotlib.pyplot as plt

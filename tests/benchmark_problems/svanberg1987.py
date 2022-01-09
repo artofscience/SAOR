@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from Problems.svanberg1987 import CantileverBeam, TwoBarTruss
+from problems.svanberg1987 import CantileverBeam, TwoBarTruss
 from sao.move_limits.move_limit import Bounds, MoveLimitFraction
 from sao.approximations.taylor import Taylor1
 from sao.problems.subproblem import Subproblem

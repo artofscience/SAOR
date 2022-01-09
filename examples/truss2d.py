@@ -6,8 +6,8 @@ from sao.intervening_variables import Linear, Exponential, MMA, MixedIntervening
 from sao.move_limits import Bounds, MoveLimit
 from sao.util import Plot
 from sao.solvers import SvanbergIP
-from util.plotter import Plot2, Plot3
-from Problems._2d.Li2015_Fig4 import Li2015Fig4
+from examples.util.plotter import Plot2, Plot3
+from problems._2d.Li2015_Fig4 import Li2015Fig4
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)

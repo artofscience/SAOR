@@ -6,7 +6,7 @@ from sao.solvers.primal_dual_interior_point import pdip
 from sao.convergence_criteria import IterationCount
 import numpy as np
 
-from Problems.topology_optimization import utils
+from problems.topology_optimization import utils
 
 def optimize(problem, sub_problem, x, itercount):
     converged = IterationCount(itercount)

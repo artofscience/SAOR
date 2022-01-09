@@ -1,15 +1,15 @@
 import numpy as np
 import logging
-from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.approximations import SphericalTaylor2, NonSphericalTaylor2
 from sao.problems.subproblem import Subproblem
 from sao.intervening_variables.exponential import Linear
 from sao.intervening_variables.mma import MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
-from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
+from sao.move_limits import Bounds, MoveLimitFraction
 from sao.util import Plot
-from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxyz
-from util.plotter import Plot2, Plot3
-from Problems._1d.Polynomial_1D import Polynomial1D
+from sao.solvers.primal_dual_interior_point import pdip
+from examples.util.plotter import Plot2, Plot3
+from problems._1d.Polynomial_1D import Polynomial1D
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
