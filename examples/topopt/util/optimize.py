@@ -1,6 +1,5 @@
 import numpy as np
 
-from problems.topology_optimization import utils
 from sao.convergence_criteria import IterationCount
 from sao.solvers.primal_dual_interior_point import pdip
 

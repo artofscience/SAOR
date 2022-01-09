@@ -1,8 +1,8 @@
-## IMPORTS
 import numpy as np
+from sao.problems import Problem
 
 
-class Polynomial1D:
+class Polynomial1D(Problem):
     """
     This class is a 1D problem with a polynomial objective function and a polynomial constraint that is used to validate
     multi-point Taylor-like expansions. Both functions have a convex and a concave part. Moreover, the objective has 2
@@ -10,6 +10,7 @@ class Polynomial1D:
     """
 
     def __init__(self):
+        super().__init__()
         self.n = 1
         self.m = 1
         self.x_min = np.array([-2.])
@@ -33,3 +34,10 @@ class Polynomial1D:
         ddg_j[0, 0] = -4 + 7.2 * x[0] + 12 * x[0] ** 2
         ddg_j[1, 0] = -6 * (x[0] - 0.5)
         return ddg_j
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = Polynomial1D()
+    finite_difference(problem, problem.x0, 1e-7)

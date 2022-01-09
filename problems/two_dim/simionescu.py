@@ -1,10 +1,8 @@
-## IMPORTS
 import numpy as np
-
 from sao.problems.problem import Problem
 
 
-## CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
+# CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class Simionescu(Problem):
 
     def __init__(self):
@@ -43,3 +41,10 @@ class Simionescu(Problem):
                      ((0.8 * x_k[1] - 1) ** 2 * (1.0 * (0.8 * x_k[0] - 1) ** 2 / (0.8 * x_k[1] - 1) ** 2 + 1)) - 2.5
 
         return dg_j
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = Simionescu()
+    finite_difference(problem, problem.x0, 1e-7)

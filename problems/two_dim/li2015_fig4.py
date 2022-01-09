@@ -1,10 +1,8 @@
-## IMPORTS
 import numpy as np
-
 from sao.problems.problem import Problem
 
 
-## CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
+# CLASS: This is the Fig. 4 of https://www.sciencedirect.com/science/article/abs/pii/S004579491500022X
 class Li2015Fig4(Problem):
 
     def __init__(self):
@@ -54,3 +52,10 @@ class Li2015Fig4(Problem):
                       2 * self.c2 / (x_k[0] * x_k[1] * np.sqrt(x_k[1] ** 2 + 1.0)) - \
                       2 * self.c2 * np.sqrt(x_k[1] ** 2 + 1.0) / (x_k[0] * x_k[1] ** 3)
         return ddg_j
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = Li2015Fig4()
+    finite_difference(problem, problem.x0, 1e-7)

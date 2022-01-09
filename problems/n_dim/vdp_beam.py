@@ -1,12 +1,10 @@
-## IMPORTS
 import matplotlib.pyplot as plt
 import numpy as np
-
 from sao.problems.problem import Problem
 
 
-## CLASS: This is the Vanderplaats cantilever beam by Dirk (scaled objective as: g_0' = self.scale * g_0)
-class Vanderplaats(Problem):
+# CLASS: This is the VanderplaatsBeam cantilever beam by Dirk (scaled objective as: g_0' = self.scale * g_0)
+class VanderplaatsBeam(Problem):
 
     def __init__(self, N):
         super().__init__()
@@ -181,3 +179,10 @@ class Vanderplaats(Problem):
             fig.canvas.draw()
             fig.savefig('vds.png')
             return vis
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = VanderplaatsBeam(2)
+    finite_difference(problem, problem.x0, 1e-7)

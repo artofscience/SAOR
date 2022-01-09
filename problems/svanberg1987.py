@@ -1,6 +1,4 @@
 import numpy as np
-
-from problems.util.fd import finite_difference
 from sao.problems.problem import Problem
 
 
@@ -138,6 +136,7 @@ class TwoBarTruss(Problem):
 
 
 if __name__ == "__main__":
+    from problems.util.fd import finite_difference
     dx = 1e-7
     problem = TwoBarTruss()
     finite_difference(problem, problem.x0 + 1, dx)

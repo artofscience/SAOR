@@ -1,4 +1,3 @@
-## IMPORTS
 import math
 
 import numpy as np
@@ -6,7 +5,7 @@ import numpy as np
 from sao.problems.problem import Problem
 
 
-## CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
+# CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class Townsend(Problem):
 
     def __init__(self):
@@ -76,3 +75,10 @@ class Townsend(Problem):
                       np.sqrt(0.81 * (0.444444444444444 * x_k[0] - 1) ** 2 + (0.4 * x_k[1] - 1) ** 2)) - 5.0
 
         return dg_j
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = Townsend()
+    finite_difference(problem, problem.x0, 1e-7)

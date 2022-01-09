@@ -1,6 +1,6 @@
 import numpy as np
 
-from sao.move_limits import MoveLimit
+from sao.move_limits.move_limit import MoveLimit
 
 
 class AdaptiveMoveLimit(MoveLimit):

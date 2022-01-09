@@ -1,5 +1,4 @@
 import numpy as np
-
 from sao.problems.problem import Problem
 
 
@@ -17,7 +16,6 @@ class Square(Problem):
         self.x_min = 1e-3 * np.ones(n)  # cuz a subproblem uses both, whereas a problem only has x_min
         self.x_max = np.ones(n)  # cuz a subproblem uses both, whereas a problem only has x_max
         self.x0 = np.linspace(0.8, 0.9, n)
-        # self.x0 = np.random.rand(self.alpha, self.beta, n)
         self.n = n
         self.m = 1
         self.f = np.zeros(n)
@@ -31,3 +29,10 @@ class Square(Problem):
 
     def ddg(self, x):
         return np.array([2 * np.ones_like(x), np.zeros_like(x)])
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = Square(4)
+    finite_difference(problem, problem.x0, 1e-7)

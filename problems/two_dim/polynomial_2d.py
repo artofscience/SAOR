@@ -1,14 +1,15 @@
-## IMPORTS
 import numpy as np
+from sao.problems import Problem
 
 
-class Polynomial2D:
+class Polynomial2D(Problem):
     """
     This a 2D non-convex problem with 4 local minima that is used to simulate Topology Optimization problems.
     It is used throughout the paper to show the influence of different aspects of SAO.
     """
 
     def __init__(self):
+        super().__init__()
         self.n = 2
         self.m = 3
         self.x_min = np.array([0.1, 0.1])
@@ -54,3 +55,10 @@ class Polynomial2D:
         ddg_j[3, 0] = 0.75 * x[0] - 1.35
         ddg_j[3, 1] = -6 * x[1] + 8.4
         return ddg_j
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = Polynomial2D()
+    finite_difference(problem, problem.x0, 1e-7)

@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.sparse import coo_matrix
+import util.to_utils as utils
+from sao.problems import Problem
 
-from .mbbbeam import MBBBeam
 
-
-class Thermomech(MBBBeam):
+class ThermoMechClamped(Problem):
     def __init__(self, nelx, nely, volfrac, penal, rmin, load=0.0, gravity=0.0):
         super().__init__(nelx, nely, volfrac, penal, rmin)
         self.name = 'Self-weight'
@@ -103,17 +103,7 @@ class Thermomech(MBBBeam):
 
 
 if __name__ == "__main__":
-    prob = Thermomech(10, 5, 0.3, 3, 2, 1, 1)
-    x = np.random.rand(prob.n) * 1.0
-    g0 = prob.g(x)
-    dg_an = prob.dg(x)
+    from problems.util.fd import finite_difference
 
-    dx = 1e-3
-    dg_fd = np.zeros_like(dg_an)
-    for i in range(prob.n):
-        x0 = x[i]
-        x[i] += dx
-        gp = prob.g(x)
-        x[i] = x0
-        dg_fd[:, i] = (gp - g0) / dx
-        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i] / dg_fd[:, i] - 1.0}")
+    problem = ThermoMechClamped(4, 4)
+    finite_difference(problem, problem.x0, dx=1e-7)

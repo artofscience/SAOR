@@ -1,15 +1,17 @@
 import numpy as np
+import util.to_utils as utils
+from sao.problems import Problem
 
-from ..topology_optimization import utils
 
-
-class StressCantilever:
+class StressCantilever(Problem):
 
     def __init__(self, nx, ny, vf=0.2, fradius=3, max_stress=0.1):
+        super().__init__()
         self.eps = 1e-10
         self.mesh = utils.Mesh(nx, ny)
         self.factor = None
         self.m = 1
+        self.n = self.mesh.n
         self.fradius = fradius
 
         self.max_stress = max_stress
@@ -111,3 +113,10 @@ class StressCantilever:
         dg[1, :] = self.filter.backward(dg[1, :])
 
         return dg
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = StressCantilever(4, 4)
+    finite_difference(problem, problem.x0, dx=1e-7)

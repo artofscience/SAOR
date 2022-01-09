@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from examples.util.plotter import Plot2, Plot3
-from problems.n_dim.vdp_beam import Vanderplaats
+from problems.n_dim.vdp_beam import VanderplaatsBeam
 from sao.approximations import Taylor1
 from sao.intervening_variables import MMAp, MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
@@ -26,10 +26,10 @@ np.set_printoptions(precision=4)
 
 
 def example_vanderplaats(N):
-    logger.info("Solving Vanderplaats using y=MMA and solver=Ipopt Svanberg")
+    logger.info("Solving VanderplaatsBeam using y=MMA and solver=Ipopt Svanberg")
 
     # Instantiate problem
-    prob = Vanderplaats(N)
+    prob = VanderplaatsBeam(N)
     assert prob.n == 2 * N
 
     # Instantiate a non-mixed approximation scheme
@@ -88,10 +88,10 @@ def example_vanderplaats(N):
 
 
 def example_vanderplaats_mixed(N):
-    logger.info("Solving Vanderplaats using y=MixedMoveLimit and solver=Ipopt Svanberg")
+    logger.info("Solving VanderplaatsBeam using y=MixedMoveLimit and solver=Ipopt Svanberg")
 
     # Instantiate problem
-    prob = Vanderplaats(N)
+    prob = VanderplaatsBeam(N)
     assert prob.n == 2 * N
 
     # Instantiate a mixed intervening variable

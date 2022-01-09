@@ -1,16 +1,18 @@
 import numpy as np
 from scipy.sparse import coo_matrix
+import util.to_utils as utils
+from sao.problems import Problem
 
-from ..topology_optimization import utils
 
-
-class MechanismClampedBeam:
+class MechanismClampedBeam(Problem):
     def __init__(self, nx, ny, vf=0.2, fradius=2, kin=100, kout=100):
+        super().__init__()
         self.eps = 1e-10
         self.mesh = utils.Mesh(nx, ny)
         self.factor = None
         self.m = 1
         self.fradius = fradius
+        self.n = self.mesh.n
 
         self.penal = 3
         self.vf = vf
@@ -80,3 +82,10 @@ class MechanismClampedBeam:
         dg[1, :] = self.filter.backward(dg[1, :])
 
         return dg
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = MechanismClampedBeam(4, 4)
+    finite_difference(problem, problem.x0, dx=1e-7)

@@ -2,6 +2,7 @@ import cvxopt
 import cvxopt.cholmod
 import matplotlib.pyplot as plt
 import numpy as np
+from cvxopt import cholmod
 from matplotlib import colors
 from scipy.sparse import coo_matrix, diags
 
@@ -108,6 +109,17 @@ def linear_solve(K, f):
     B = cvxopt.matrix(f)
     cvxopt.cholmod.linsolve(K, B)
     return np.array(B)
+
+
+class CholmodLinearSolver:
+    def __init__(self):
+        self.inv = None
+
+    def linear_solve(self, K, f):
+        if self.inv is None:
+            self.inv = cholmod.analyze(K, ordering_method='best')
+            self.inv.cholesky_inplace(K)
+        return self.inv(f)
 
 
 def assemble_K(x, mesh, fixed):

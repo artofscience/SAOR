@@ -1,10 +1,8 @@
-## IMPORTS
 import numpy as np
-
 from sao.problems.problem import Problem
 
 
-## CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
+# CLASS: see reference_files/problems.pdf by https://en.wikipedia.org/wiki/Test_functions_for_optimization
 class MishraBird(Problem):
 
     def __init__(self):
@@ -42,3 +40,10 @@ class MishraBird(Problem):
         dg_j[1, 1] = 2.0 * x_k[1] - 3.0
 
         return dg_j
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    problem = MishraBird()
+    finite_difference(problem, problem.x0, 1e-7)

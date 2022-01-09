@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from problems.topology_optimization.mbbbeam import MBBBeam
 from scipy.sparse.linalg import eigsh, splu, LinearOperator, spsolve
+from sao.problems import Problem
 
 
-class DynamicCompliance(MBBBeam):
+class DynamicComplianceMBB(Problem):
     def __init__(self, nelx, nely, volfrac=0.6, penal=3, rmin=2, rho=1e-10, compute_eigenvalues=False,
                  objective_scale=100.0, omega=1000.0, plot_frf=False):
-        super().__init__(nelx, nely, volfrac, penal, rmin)
+        super().__init__()
         self.unitL = 10.0 / nelx
 
         # Solution and RHS vectors
@@ -157,18 +157,7 @@ class DynamicCompliance(MBBBeam):
 
 
 if __name__ == "__main__":
-    n = 10
-    prob = DynamicCompliance(5 * n, n)
-    x = np.random.rand(prob.n) * 1.0
-    g0 = prob.g(x)
-    dg_an = prob.dg(x)
+    from problems.util.fd import finite_difference
 
-    dx = 1e-4
-    dg_fd = np.zeros_like(dg_an)
-    for i in range(prob.n):
-        x0 = x[i]
-        x[i] += dx
-        gp = prob.g(x)
-        x[i] = x0
-        dg_fd[:, i] = (gp - g0) / dx
-        print(f"an: {dg_an[:, i]}, fd: {dg_fd[:, i]}, diff = {dg_an[:, i] / dg_fd[:, i] - 1.0}")
+    problem = DynamicComplianceMBB(4, 4)
+    finite_difference(problem, problem.x0, dx=1e-7)

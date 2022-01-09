@@ -1,19 +1,21 @@
 import numpy as np
 from scipy.sparse import coo_matrix
+import util.to_utils as utils
+from sao.problems.problem import Problem
 
-from ..topology_optimization import utils
 
-
-class ComplianceMBB:
+class ComplianceMBB(Problem):
 
     def __repr__(self):
         return f'{self.__class__.__name__}( n: {self.mesh.nelx}x{self.mesh.nely}, v: {self.vf}, r: {self.fradius} )'
 
     def __init__(self, nx, ny, vf=0.2, fradius=2):
+        super().__init__()
         self.eps = 1e-10
         self.mesh = utils.Mesh(nx, ny)
         self.factor = None
         self.m = 1
+        self.n = self.mesh.n
         self.fradius = fradius
 
         self.penal = 3
@@ -67,13 +69,15 @@ class ComplianceMBB:
         return dg
 
 
-class Flexure:
+class Flexure(Problem):
     def __init__(self, nx, ny, vf=0.5, fradius=2):
+        super().__init__()
         self.eps = 1e-10
         self.mesh = utils.Mesh(nx, ny)
         self.factor = None
         self.m = 1
         self.fradius = fradius
+        self.n = self.mesh.n
 
         self.penal = 2
         self.vf = vf
@@ -137,13 +141,15 @@ class Flexure:
         return dg
 
 
-class SelfweightArch:
+class SelfweightArch(Problem):
 
     def __init__(self, nelx, nely, load=0.0, gravity=10.0, volfrac=0.2, rmin=3, x0=0.5):
+        super().__init__()
         self.name = 'self-weight'
         self.Eps = 1e-10
         self.mesh = utils.Mesh(nelx, nely)
         self.factor = None
+        self.n = self.mesh.n
 
         self.penal = 3
         self.volfrac = volfrac
@@ -218,3 +224,20 @@ class SelfweightMBB(SelfweightArch):
         self.fixed = np.union1d(self.dofs[0:self.mesh.ndofy:2],
                                 np.array([self.mesh.ndof - 1]))
         self.free = np.setdiff1d(self.dofs, self.fixed)
+
+
+if __name__ == "__main__":
+    from problems.util.fd import finite_difference
+
+    dx = 1e-7
+    problem = ComplianceMBB(4, 4)
+    finite_difference(problem, problem.x0, dx)
+
+    problem = Flexure(4, 4)
+    finite_difference(problem, problem.x0, dx)
+
+    problem = SelfweightArch(4, 4)
+    finite_difference(problem, problem.x0, dx)
+
+    problem = SelfweightMBB(4, 4)
+    finite_difference(problem, problem.x0, dx)
