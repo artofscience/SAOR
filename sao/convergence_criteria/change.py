@@ -1,4 +1,6 @@
 from sao.convergence_criteria.criteria import Criterion
+import math
+import numpy as np
 
 
 class ObjectiveChange(Criterion):
