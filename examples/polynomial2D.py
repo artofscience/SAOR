@@ -6,13 +6,14 @@ from examples.util.plotter import Plot2, Plot3
 from problems.two_dim.polynomial_2d import Polynomial2D
 from sao.approximations import Taylor1, Taylor2
 from sao.convergence_criteria import VariableChange
-from sao.intervening_variables import MMAp, MixedIntervening
+from sao.intervening_variables import MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit
 from sao.problems import Subproblem
 from sao.solvers.pdip_svanberg import ipsolver
 from sao.solvers.wrappers.cvxopt import cvxopt_solver
-from sao.util import Plot
+from sao.solvers.wrappers.scipy import scipy_solver
+from examples.util.plotter_basic import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -87,7 +88,7 @@ def example_polynomial_2D_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.x_min, prob.x_max))
-    mix.set_intervening(MMAp(-2, prob.x_min, prob.x_max), var=[0], resp=[1])
+    mix.set_intervening(MMA(prob.x_min, prob.x_max), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
@@ -203,9 +204,6 @@ def example_polynomial_2D_scipy():
     x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)
     itte = 0
 
-    # Instantiate solver
-    solver = SCIPY(prob.n, prob.m, x0=x_k)
-
     # Instantiate convergence criterion
     criterion = VariableChange(x_k)
 
@@ -232,7 +230,7 @@ def example_polynomial_2D_scipy():
             plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k = solver.subsolv(subprob)
+        x_k = scipy_solver(subprob)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
