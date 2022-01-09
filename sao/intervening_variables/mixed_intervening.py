@@ -1,5 +1,6 @@
-from sao.intervening_variables import Intervening, Linear
 import numpy as np
+
+from sao.intervening_variables import Intervening, Linear
 
 
 def fill_set_when_emtpy(s, n):
@@ -119,20 +120,26 @@ class MixedIntervening(Intervening):
 
     def y(self, x):
         """Evaluates the mapping y = f(x)."""
+
         def y_of_x(cls, x):
             return cls.y(x)
+
         return self.evaluate_for_each_response(x, y_of_x)
 
     def dydx(self, x):
         """Evaluates the first derivative of the mapping at x."""
+
         def dy_of_x(cls, x):
             return cls.dydx(x)
+
         return self.evaluate_for_each_response(x, dy_of_x)
 
     def ddyddx(self, x):
         """Evaluates the second derivatives of the mapping at x."""
+
         def ddy_of_x(cls, x):
             return cls.ddyddx(x)
+
         return self.evaluate_for_each_response(x, ddy_of_x)
 
     def update(self, *args, **kwargs):

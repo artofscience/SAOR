@@ -12,7 +12,7 @@ class Intervening(ABC):
 
     For details on the formulation, in specific regarding the first and
     second derivatives of the mapping and their inverses, see the reference
-    material at: `ReferenceFiles/TaylorExpansion.pdf`.
+    material at: `reference_files/TaylorExpansion.pdf`.
     """
 
     @abstractmethod
@@ -34,7 +34,7 @@ class Intervening(ABC):
         """Evaluates the first derivative of the inverse mapping at x.
 
         For details refer to the reference material provided at:
-        `ReferenceFiles/TaylorExpansion.pdf`
+        `reference_files/TaylorExpansion.pdf`
         `https://www.physicsforums.com/threads/is-the-derivative-equal-to-one-over-the-derivative-of-the-inverse.63886/`
         """
         return 1 / self.dydx(x)

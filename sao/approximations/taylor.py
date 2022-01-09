@@ -1,7 +1,8 @@
-from .approximation import Approximation
+import numpy as np
+
 from sao.intervening_variables import Linear
 from sao.util.tools import parse_to_list
-import numpy as np
+from .approximation import Approximation
 
 
 class Taylor1(Approximation):
@@ -35,7 +36,7 @@ class Taylor1(Approximation):
         for intv in self.interv:
             intv.update(x, f, df, ddf)
         self.g0 = f.copy()
-        self.dgdy = [df/intv.dydx(x) for intv in self.interv]
+        self.dgdy = [df / intv.dydx(x) for intv in self.interv]
         self.y0 = [intv.y(x) for intv in self.interv]
 
         # Gather all zero order terms in self.g0 (to be computed only once per design iteration)
@@ -155,7 +156,7 @@ class Taylor2(Taylor1):
 
         # Assemble -ddg-
         for ddgddy, dgdy0, y, dy, ddy in zip(self.ddgddy, self.dgdy0, y_of_x, dy_of_x, ddy_of_x):
-            out += dgdy0 * ddy + ddgddy*dy**2 + ddgddy*y*ddy
+            out += dgdy0 * ddy + ddgddy * dy ** 2 + ddgddy * y * ddy
         return out
 
 
@@ -165,12 +166,12 @@ class SphericalTaylor2(Taylor2):
     https://doi.org/10.1007/s00158-006-0070-6. It adjusts the 2nd-order diagonal information in the
     incomplete 2nd-order Taylor expansion to fit the previous point.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.x, self.xold1 = None, None
         self.f, self.fold1 = None, None
         self.yold1 = None
-
 
     def update(self, x, f, df, ddf=None):
         """
@@ -185,7 +186,7 @@ class SphericalTaylor2(Taylor2):
         self.fold1 = self.f
         self.f = f
         self.xold1 = self.x
-        self.x = x.copy()       # keep .copy(), otherwise previous value won't be stored
+        self.x = x.copy()  # keep .copy(), otherwise previous value won't be stored
         Taylor1.update(self, x, f, df, ddf)
         assert ddf is None, "SphericalTaylor2 generates its own curvature; if 2nd-order info is known, use Taylor2"
 
@@ -194,7 +195,7 @@ class SphericalTaylor2(Taylor2):
             self.yold1 = [intv.y(self.xold1) for intv in self.interv]
             self.set_curvature()
         else:
-            self.ddgddy = [df*intv.ddxddy(x) for intv in self.interv]
+            self.ddgddy = [df * intv.ddxddy(x) for intv in self.interv]
 
         # Add zero order terms of 2nd-order Taylor expansion to self.g0
         for ddgddy, y0 in zip(self.ddgddy, self.y0):
@@ -225,6 +226,7 @@ class NonSphericalTaylor2(SphericalTaylor2):
     https://doi.org/10.1007/s00158-006-0070-6. It adjusts the 2nd-order diagonal information in the
     incomplete 2nd-order Taylor expansion to fit the previous point gradient.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.df, self.dfold1 = None, None
@@ -239,7 +241,7 @@ class NonSphericalTaylor2(SphericalTaylor2):
         self.dfold1 = self.df
         self.df = df
         self.xold1 = self.x
-        self.x = x.copy()           # keep .copy(), otherwise previous value won't be stored
+        self.x = x.copy()  # keep .copy(), otherwise previous value won't be stored
         Taylor1.update(self, x, f, df, ddf)
         assert ddf is None, "NonSphericalTaylor2 generates its own curvature; if 2nd-order info is known, use Taylor2"
 

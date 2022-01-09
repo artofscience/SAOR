@@ -1,18 +1,13 @@
-import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib import colors
 
-from Problems.topology_optimization import utils
-import matplotlib.pyplot as plt
-from sao.problems import Subproblem
-from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
-from sao.intervening_variables import Linear, MMA, MixedIntervening
+from examples.topopt.util.optimize import optimize
+from problems.topology_optimization.compliance import SelfweightArch
 from sao.approximations import Taylor1
-
-
-from Problems.topology_optimization.compliance import SelfweightArch
-
-
-from examples.topopt.optimize import optimize
+from sao.intervening_variables import Linear, MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
+from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
+from sao.problems import Subproblem
 
 itercount = 50
 x0 = 0.2
@@ -31,7 +26,7 @@ mma_ml.set_name("MMA_asyinit_0.2_ML_0.3")
 lin_aml = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), AdaptiveMoveLimit(0.5)])
 lin_aml.set_name("LIN_AML_0.3")
 
-lin = Subproblem(Taylor1(Linear()), limits=[Bounds(0,1), MoveLimit(0.1)])
+lin = Subproblem(Taylor1(Linear()), limits=[Bounds(0, 1), MoveLimit(0.1)])
 lin.set_name("LIN_0.5")
 
 mix_int = MixedIntervening(nelx * nely, 2, default=Linear())

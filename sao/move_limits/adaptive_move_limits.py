@@ -1,5 +1,6 @@
 import numpy as np
-from sao.move_limits import MoveLimit
+from sao.move_limits.move_limit import MoveLimit
+
 
 class AdaptiveMoveLimit(MoveLimit):
     """
@@ -12,6 +13,7 @@ class AdaptiveMoveLimit(MoveLimit):
     `max_move = factor * move_limit`,
     where the factor is updated according to any detected oscillations
     """
+
     def __init__(self,
                  move_limit=0.1,
                  dx=1.0,
