@@ -10,7 +10,7 @@ from sao.intervening_variables.mma import MMA02 as MMA
 from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
 from sao.problems import Subproblem
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
-from sao.solvers.SolverIP_Svanberg import ipsolver
+from sao.solvers.pdip_svanberg import ipsolver
 from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer

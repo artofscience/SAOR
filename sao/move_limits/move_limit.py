@@ -35,6 +35,7 @@ class MoveLimitFraction(Bounds):
     """
 
     def __init__(self, fraction=2):
+        super().__init__()
         self.fraction = fraction
 
     def update(self, x, f=None, df=None, ddf=None):

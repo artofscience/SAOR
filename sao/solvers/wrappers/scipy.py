@@ -1,4 +1,3 @@
-## Imports
 from scipy import optimize
 
 """

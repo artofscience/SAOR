@@ -49,7 +49,7 @@ To use the "Method of Moving Asymptotes" (Svanberg 1987), setup is simply:
 
 def mma_wrapper(n):
     problem = Dummy(n)
-    x, f = sao.solvers.method_of_moving_asymptotes.mma(problem, x0=problem.x0, stop_tol=1e-2)
+    x, f = sao.solvers.wrappers.mma(problem, x0=problem.x0, stop_tol=1e-2)
     print("Final design : ", f, x, "\n")
 
 

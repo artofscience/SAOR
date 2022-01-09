@@ -1,13 +1,10 @@
-from .conlin import ConLin
-from .exponential import Linear, Exponential
-from .exponential import Reciprocal, ReciSquared, ReciCubed
-from .fitted import ReciFit
+from .split import ConLin
+from .exponential import Linear, Exponential, Reciprocal, ReciSquared, ReciCubed
 from .intervening import Intervening
 from .mixed_intervening import MixedIntervening
-from .mma import MMAp
+from .mma import MMA02, MMA87A, MMA87B, MMA87C
 
 __all__ = [
-    'Linear', 'ConLin', 'Exponential', 'Reciprocal', 'ReciSquared',
-
-    'ReciCubed', 'ReciFit', 'MMAp', 'MixedIntervening'
+    'Linear', 'Exponential', 'Reciprocal', 'ReciSquared',
+    'ReciCubed', 'MMA02', 'MMA87A', 'MMA87B', 'MMA87C', 'MixedIntervening'
 ]

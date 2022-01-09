@@ -1,9 +1,7 @@
-## Imports
 import numpy as np
 
 try:
     from cvxopt import solvers, matrix, spdiag
-
 
     def cvxopt_solver(problem, **kwargs):
         """

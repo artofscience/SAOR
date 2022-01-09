@@ -5,5 +5,7 @@ from sao import approximations, \
     problems, \
     convergence_criteria, \
     solvers, \
-    util, \
-    optimizer
+    util
+
+__all__ = ['approximations', 'intervening_variables', 'scaling_strategies', 'move_limits', 'problems',
+           'convergence_criteria', 'solvers', 'util']
