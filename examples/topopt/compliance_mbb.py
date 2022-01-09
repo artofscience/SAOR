@@ -1,7 +1,4 @@
-import numpy as np
 from matplotlib import colors
-
-from problems.topology_optimization import utils
 from problems.topology_optimization.compliance import ComplianceMBB
 import matplotlib.pyplot as plt
 from sao.problems import Subproblem
@@ -9,10 +6,7 @@ from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
 from sao.intervening_variables import Linear, MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.approximations import Taylor1
-from sao.solvers.primal_dual_interior_point import pdip
-from sao.convergence_criteria import IterationCount
-
-from examples.topopt.optimize import optimize
+from examples.topopt.util.optimize import optimize
 
 itercount = 30
 x0 = 0.5

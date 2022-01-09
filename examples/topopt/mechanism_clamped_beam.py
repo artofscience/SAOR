@@ -1,18 +1,12 @@
-import numpy as np
 from matplotlib import colors
-from scipy.sparse import coo_matrix
-
-from problems.topology_optimization import utils
 import matplotlib.pyplot as plt
-
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
-from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.intervening_variables import Linear, MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
 from sao.approximations import Taylor1
-
 from problems.topology_optimization.mechanism import MechanismClampedBeam
-
-from examples.topopt.optimize import optimize
+from examples.topopt.util.optimize import optimize
 
 itercount = 30
 x0 = 0.25

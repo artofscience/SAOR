@@ -1,15 +1,12 @@
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
-
-
-from problems.topology_optimization import utils
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
-from sao.intervening_variables import Linear, MMA, MixedIntervening
+from sao.intervening_variables import Linear, MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
 from sao.approximations import Taylor1
 from problems.topology_optimization.eigenfrequency import EigenfrequencyClampedBeam
-from examples.topopt.optimize import optimize
+from examples.topopt.util.optimize import optimize
 
 itercount = 50
 x0 = 0.4

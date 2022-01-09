@@ -1,7 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
-from problems.topology_optimization import utils
 from sao.problems import Subproblem
 from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
 from sao.intervening_variables import Linear, MixedIntervening
@@ -10,7 +8,7 @@ from sao.intervening_variables.mma import MMA87A
 from sao.approximations import Taylor1
 
 from problems.topology_optimization.stress import StressCantilever
-from examples.topopt.optimize import optimize
+from examples.topopt.util.optimize import optimize
 
 
 itercount = 50

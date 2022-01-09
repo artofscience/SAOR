@@ -1,12 +1,8 @@
-from sao.problems import Subproblem
-from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
-from sao.intervening_variables import Linear, MixedIntervening
-from sao.approximations import Taylor1
 from sao.solvers.primal_dual_interior_point import pdip
 from sao.convergence_criteria import IterationCount
 import numpy as np
-
 from problems.topology_optimization import utils
+
 
 def optimize(problem, sub_problem, x, itercount):
     converged = IterationCount(itercount)
