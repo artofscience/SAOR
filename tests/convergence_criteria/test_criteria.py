@@ -3,8 +3,8 @@ import pytest
 
 from sao.convergence_criteria.criteria import Criterion
 from sao.convergence_criteria import IterationCount, Feasibility
-from sao.convergence_criteria.criteria import ObjectiveChange
-from sao.convergence_criteria.criteria import VariableChange
+from sao.convergence_criteria.change import ObjectiveChange
+from sao.convergence_criteria.change import VariableChange
 
 
 class Counter(Criterion):

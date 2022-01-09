@@ -1,7 +1,6 @@
 """Abstract implementation for convergence criteria."""
 import abc
 import operator
-from change import ObjectiveChange
 
 
 class Criterion(abc.ABC):

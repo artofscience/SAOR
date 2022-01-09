@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import Linear, Reciprocal
+from .exponential import Linear, Reciprocal
 from .intervening import Intervening
 
 

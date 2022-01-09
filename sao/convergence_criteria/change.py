@@ -1,3 +1,6 @@
+from sao.convergence_criteria.criteria import Criterion
+
+
 class ObjectiveChange(Criterion):
     """Keeps track of the relative objective changes between iterations."""
 
