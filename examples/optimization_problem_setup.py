@@ -1,4 +1,5 @@
 import numpy as np
+
 import sao
 
 """This file demonstrates different layouts for setting up
@@ -27,7 +28,7 @@ class Dummy(sao.problems.Problem):
         np.clip(self.x0, self.x_min, self.x_max, out=self.x0)
         self.n = n
         self.m = 1
-        self.f = np.zeros(self.m+1)
+        self.f = np.zeros(self.m + 1)
 
     def g(self, x):
         self.f = np.array([np.dot(x, x), 1 - np.sum(x)])
@@ -48,7 +49,7 @@ To use the "Method of Moving Asymptotes" (Svanberg 1987), setup is simply:
 
 def mma_wrapper(n):
     problem = Dummy(n)
-    x, f = sao.solvers.method_of_moving_asymptotes.mma(problem, x0=problem.x0, stop_tol=1e-2)
+    x, f = sao.solvers.wrappers.mma(problem, x0=problem.x0, stop_tol=1e-2)
     print("Final design : ", f, x, "\n")
 
 
@@ -60,7 +61,7 @@ An example of such a loop is as follows:
 
 def mma_loop(n):
     problem = Dummy(n)
-    int_var = sao.intervening_variables.MMA()
+    int_var = sao.intervening_variables.mma.MMA02()
     approx = sao.approximations.Taylor1(int_var)
     sub_problem = sao.problems.Subproblem(approx)
     x = problem.x0
@@ -73,7 +74,7 @@ def mma_loop(n):
         df = problem.dg(x)
         print(counter, ":  ", f[0], x)
         sub_problem.build(x, f, df)
-        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
+        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)[0]
     fout = problem.g(x)[0]  # Calculate the performance of the final design
     print("Final design : ", fout, x, "\n")
 
@@ -83,21 +84,19 @@ For other users, it might be more convenient to use the wrapper function `optimi
 An example of such a case can be found below:
 """
 
-
-def main_optimizer(n):
-
-    # Instantiate problem, solver, approximation and convergence criterion
-    problem = Dummy(n)
-    int_var = sao.intervening_variables.MMA()
-    approximation = sao.approximations.Taylor1(int_var)
-    solver = sao.solvers.primal_dual_interior_point.pdip
-    x = np.array([2, 1.5])
-    converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
-    plotter = sao.util.Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")    # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
-
-    # Call the wrapper function that conducts the optimization loop
-    sao.optimizer.optimize(problem, solver, approximation, converged, plotter=plotter, x0=x)       # TODO: This `converged` here is a bit non-intuitive imo
-
+# def main_optimizer(n):
+#
+#     # Instantiate problem, solver, approximation and convergence criterion
+#     problem = Dummy(n)
+#     int_var = sao.intervening_variables.mma.MMA02()
+#     approximation = sao.approximations.Taylor1(int_var)
+#     solver = sao.solvers.primal_dual_interior_point.pdip
+#     converged = sao.convergence_criteria.IterationCount(10)
+#     plotter = sao.util.Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")    # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
+#
+#     # Call the wrapper function that conducts the optimization loop
+#     sao.optimizer.optimize(problem, solver, approximation, converged, plotter=plotter, x0=problem.x0)       # TODO: This `converged` here is a bit non-intuitive imo
+#
 
 """
 Advanced users might prefer a type of approximation depend on some convergence property.
@@ -111,7 +110,7 @@ def adaptive_approximation(n):
     problem = Dummy(n)
     lim = sao.move_limits.MoveLimit(0.3)
     approx1 = sao.approximations.Taylor1(sao.intervening_variables.Linear())
-    approx2 = sao.approximations.Taylor1(sao.intervening_variables.MMA())
+    approx2 = sao.approximations.Taylor1(sao.intervening_variables.mma.MMA02())
     x = problem.x0
     converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
 
@@ -123,7 +122,7 @@ def adaptive_approximation(n):
         print(counter, ":  ", f[0], x)
         sub_problem = sao.problems.Subproblem(approx1 if counter < 4 else approx2, lim)
         sub_problem.build(x, f, df)
-        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
+        x[:] = sao.solvers.primal_dual_interior_point.pdip(sub_problem)[0]
     fout = problem.g(x)[0]
     print("Final design : ", fout, x, "\n")
 
@@ -134,37 +133,35 @@ In the following example we demonstrate how to adapt the loop to
 only allow designs that improve the objective:
 """
 
-
-def conditional_acceptance(n):
-    problem = Dummy(n)
-    approx = sao.approximations.Taylor1(sao.intervening_variables.Linear())
-    lim = sao.move_limits.MoveLimit()
-    lim.max_dx = 0.3
-    sub_problem = sao.problems.Subproblem(approx, lim)
-    x = problem.x0
-    converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
-
-    counter = 0
-    while not converged:
-        counter += 1
-        f = problem.g(x)
-        df = problem.dg(x)
-        print(counter, ":  ", "g0 ", f[0], "var ", x)
-        f2 = f[0] + 1
-        while f2 > f[0]:
-            print(lim.max_dx)
-            sub_problem.build(x, f, df)
-            x_temp = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
-            f2 = problem.g(x_temp)[0]
-            lim.max_dx *= 0.5
-        x[:] = x_temp
-        lim.max_dx = 0.3
-    print("Final design: ", x, "\n")
+# def conditional_acceptance(n):
+#     problem = Dummy(n)
+#     approx = sao.approximations.Taylor1(sao.intervening_variables.Linear())
+#     lim = sao.move_limits.MoveLimit()
+#     lim.max_dx = 0.3
+#     sub_problem = sao.problems.Subproblem(approx, lim)
+#     x = problem.x0
+#     converged = sao.convergence_criteria.VariableChange(x, tolerance=1e-2)
+#
+#     counter = 0
+#     while not converged:
+#         counter += 1
+#         f = problem.g(x)
+#         df = problem.dg(x)
+#         print(counter, ":  ", "g0 ", f[0], "var ", x)
+#         f2 = f[0] + 1
+#         # while f2 > f[0]:
+#         #     print(lim.max_dx)
+#         #     sub_problem.build(x, f, df)
+#         #     x_temp = sao.solvers.primal_dual_interior_point.pdip(sub_problem)
+#         #     f2 = problem.g(x_temp)[0]
+#         #     lim.max_dx *= 0.5
+#         x[:] = x_temp
+#         lim.max_dx = 0.3
+#     print("Final design: ", x, "\n")
 
 
 if __name__ == "__main__":
     mma_wrapper(4)
     mma_loop(4)
-    main_optimizer(4)
     adaptive_approximation(4)
-    conditional_acceptance(4)
+    # conditional_acceptance(4)

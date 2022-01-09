@@ -1,18 +1,13 @@
-import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib import colors
 
-from Problems.topology_optimization import utils
-from Problems.topology_optimization.compliance import ComplianceMBB
-import matplotlib.pyplot as plt
-from sao.problems import Subproblem
-from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
+from examples.topopt.util.optimize import optimize
+from problems.topology_optimization.compliance import ComplianceMBB
+from sao.approximations import Taylor1
 from sao.intervening_variables import Linear, MixedIntervening
 from sao.intervening_variables.mma import MMA02 as MMA
-from sao.approximations import Taylor1
-from sao.solvers.primal_dual_interior_point import pdip
-from sao.convergence_criteria import IterationCount
-
-from examples.topopt.optimize import optimize
+from sao.move_limits import AdaptiveMoveLimit, Bounds, MoveLimit
+from sao.problems import Subproblem
 
 itercount = 30
 x0 = 0.5
@@ -80,5 +75,3 @@ axs[4, 1].set_ylabel(
     r'$\frac{\Delta \mathbf{x}^{(k)} \cdot \Delta \mathbf{x}^{(k-1)}}{\left\|\Delta \mathbf{x}^{(k)} \right\| \cdot \left\|\Delta \mathbf{x}^{(k-1)}\right\|}$')
 
 plt.show(block=True)
-
-

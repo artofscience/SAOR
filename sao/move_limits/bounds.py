@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Bounds:
     """
     The simplest move limit strategy that always clips the global bounds of
