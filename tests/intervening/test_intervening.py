@@ -1,10 +1,13 @@
-import pytest
 import logging
+
 import numpy as np
-from Problems._nd.Square import Square
+import pytest
+
+from problems.n_dim.square import Square
 from sao.intervening_variables import Linear, Reciprocal, MixedIntervening, Exponential
-from sao.intervening_variables.mma import MMA02 as MMA
 from sao.intervening_variables.mixed_intervening import fill_set_when_emtpy
+from sao.intervening_variables.mma import MMA02 as MMA
+
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -73,11 +76,11 @@ def test_add_per_response(n):
     rec = Reciprocal()
 
     assert lin.y(prob.x0) == pytest.approx(mix.y(prob.x0)[0], rel=1e-4)
-    assert lin.y(prob.x0)+rec.y(prob.x0) == pytest.approx(mix.y(prob.x0)[1], rel=1e-4)
+    assert lin.y(prob.x0) + rec.y(prob.x0) == pytest.approx(mix.y(prob.x0)[1], rel=1e-4)
     assert lin.dydx(prob.x0) == pytest.approx(mix.dydx(prob.x0)[0], rel=1e-4)
-    assert lin.dydx(prob.x0)+rec.dydx(prob.x0) == pytest.approx(mix.dydx(prob.x0)[1], rel=1e-4)
+    assert lin.dydx(prob.x0) + rec.dydx(prob.x0) == pytest.approx(mix.dydx(prob.x0)[1], rel=1e-4)
     assert lin.ddyddx(prob.x0) == pytest.approx(mix.ddyddx(prob.x0)[0], rel=1e-4)
-    assert lin.ddyddx(prob.x0)+rec.ddyddx(prob.x0) == pytest.approx(mix.ddyddx(prob.x0)[1], rel=1e-4)
+    assert lin.ddyddx(prob.x0) + rec.ddyddx(prob.x0) == pytest.approx(mix.ddyddx(prob.x0)[1], rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -171,17 +174,17 @@ def test_add_per_variable_and_response(n):
     int11 = Exponential(2)
 
     assert int00.y(prob.x0)[:2] == pytest.approx(mix.y(prob.x0)[0, :2], rel=1e-4)
-    assert int00.y(prob.x0)[2:]+int01.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[0, 2:], rel=1e-4)
-    assert int00.y(prob.x0)[:2]+int10.y(prob.x0)[:2] == pytest.approx(mix.y(prob.x0)[1, :2], rel=1e-4)
-    assert int00.y(prob.x0)[2:]+int11.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[1, 2:], rel=1e-4)
+    assert int00.y(prob.x0)[2:] + int01.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[0, 2:], rel=1e-4)
+    assert int00.y(prob.x0)[:2] + int10.y(prob.x0)[:2] == pytest.approx(mix.y(prob.x0)[1, :2], rel=1e-4)
+    assert int00.y(prob.x0)[2:] + int11.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[1, 2:], rel=1e-4)
     assert int00.dydx(prob.x0)[:2] == pytest.approx(mix.dydx(prob.x0)[0, :2], rel=1e-4)
-    assert int00.dydx(prob.x0)[2:]+int01.dydx(prob.x0)[2:] == pytest.approx(mix.dydx(prob.x0)[0, 2:], rel=1e-4)
-    assert int00.dydx(prob.x0)[:2]+int10.dydx(prob.x0)[:2] == pytest.approx(mix.dydx(prob.x0)[1, :2], rel=1e-4)
-    assert int00.dydx(prob.x0)[2:]+int11.dydx(prob.x0)[2:] == pytest.approx(mix.dydx(prob.x0)[1, 2:], rel=1e-4)
+    assert int00.dydx(prob.x0)[2:] + int01.dydx(prob.x0)[2:] == pytest.approx(mix.dydx(prob.x0)[0, 2:], rel=1e-4)
+    assert int00.dydx(prob.x0)[:2] + int10.dydx(prob.x0)[:2] == pytest.approx(mix.dydx(prob.x0)[1, :2], rel=1e-4)
+    assert int00.dydx(prob.x0)[2:] + int11.dydx(prob.x0)[2:] == pytest.approx(mix.dydx(prob.x0)[1, 2:], rel=1e-4)
     assert int00.ddyddx(prob.x0)[:2] == pytest.approx(mix.ddyddx(prob.x0)[0, :2], rel=1e-4)
-    assert int00.ddyddx(prob.x0)[2:]+int01.ddyddx(prob.x0)[2:] == pytest.approx(mix.ddyddx(prob.x0)[0, 2:], rel=1e-4)
-    assert int00.ddyddx(prob.x0)[:2]+int10.ddyddx(prob.x0)[:2] == pytest.approx(mix.ddyddx(prob.x0)[1, :2], rel=1e-4)
-    assert int00.ddyddx(prob.x0)[2:]+int11.ddyddx(prob.x0)[2:] == pytest.approx(mix.ddyddx(prob.x0)[1, 2:], rel=1e-4)
+    assert int00.ddyddx(prob.x0)[2:] + int01.ddyddx(prob.x0)[2:] == pytest.approx(mix.ddyddx(prob.x0)[0, 2:], rel=1e-4)
+    assert int00.ddyddx(prob.x0)[:2] + int10.ddyddx(prob.x0)[:2] == pytest.approx(mix.ddyddx(prob.x0)[1, :2], rel=1e-4)
+    assert int00.ddyddx(prob.x0)[2:] + int11.ddyddx(prob.x0)[2:] == pytest.approx(mix.ddyddx(prob.x0)[1, 2:], rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -206,20 +209,32 @@ def test_add_per_variable_and_response_multiple_overlap(n):
     intA0.update(prob.x0, g, dg, ddg)
     mix.update(prob.x0, g, dg, ddg)
 
-    assert intAA.y(prob.x0)[:2]+int0A.y(prob.x0)[:2]+intA0.y(prob.x0)[0, :2] == pytest.approx(mix.y(prob.x0)[0, :2], rel=1e-4)
-    assert intAA.y(prob.x0)[2:]+int0A.y(prob.x0)[2:]+intA1.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[0, 2:], rel=1e-4)
-    assert intAA.y(prob.x0)[:2]+int1A.y(prob.x0)[:2]+intA0.y(prob.x0)[1, :2] == pytest.approx(mix.y(prob.x0)[1, :2], rel=1e-4)
-    assert intAA.y(prob.x0)[2:]+int1A.y(prob.x0)[2:]+intA1.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[1, 2:], rel=1e-4)
-    
-    assert intAA.dydx(prob.x0)[:2]+int0A.dydx(prob.x0)[:2]+intA0.dydx(prob.x0)[0, :2] == pytest.approx(mix.dydx(prob.x0)[0, :2], rel=1e-4)
-    assert intAA.dydx(prob.x0)[2:]+int0A.dydx(prob.x0)[2:]+intA1.dydx(prob.x0)[2:] == pytest.approx(mix.dydx(prob.x0)[0, 2:], rel=1e-4)
-    assert intAA.dydx(prob.x0)[:2]+int1A.dydx(prob.x0)[:2]+intA0.dydx(prob.x0)[1, :2] == pytest.approx(mix.dydx(prob.x0)[1, :2], rel=1e-4)
-    assert intAA.dydx(prob.x0)[2:]+int1A.dydx(prob.x0)[2:]+intA1.dydx(prob.x0)[2:] == pytest.approx(mix.dydx(prob.x0)[1, 2:], rel=1e-4)
+    assert intAA.y(prob.x0)[:2] + int0A.y(prob.x0)[:2] + intA0.y(prob.x0)[0, :2] == pytest.approx(mix.y(prob.x0)[0, :2],
+                                                                                                  rel=1e-4)
+    assert intAA.y(prob.x0)[2:] + int0A.y(prob.x0)[2:] + intA1.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[0, 2:],
+                                                                                               rel=1e-4)
+    assert intAA.y(prob.x0)[:2] + int1A.y(prob.x0)[:2] + intA0.y(prob.x0)[1, :2] == pytest.approx(mix.y(prob.x0)[1, :2],
+                                                                                                  rel=1e-4)
+    assert intAA.y(prob.x0)[2:] + int1A.y(prob.x0)[2:] + intA1.y(prob.x0)[2:] == pytest.approx(mix.y(prob.x0)[1, 2:],
+                                                                                               rel=1e-4)
 
-    assert intAA.ddyddx(prob.x0)[:2]+int0A.ddyddx(prob.x0)[:2]+intA0.ddyddx(prob.x0)[0, :2] == pytest.approx(mix.ddyddx(prob.x0)[0, :2], rel=1e-4)
-    assert intAA.ddyddx(prob.x0)[2:]+int0A.ddyddx(prob.x0)[2:]+intA1.ddyddx(prob.x0)[2:] == pytest.approx(mix.ddyddx(prob.x0)[0, 2:], rel=1e-4)
-    assert intAA.ddyddx(prob.x0)[:2]+int1A.ddyddx(prob.x0)[:2]+intA0.ddyddx(prob.x0)[1, :2] == pytest.approx(mix.ddyddx(prob.x0)[1, :2], rel=1e-4)
-    assert intAA.ddyddx(prob.x0)[2:]+int1A.ddyddx(prob.x0)[2:]+intA1.ddyddx(prob.x0)[2:] == pytest.approx(mix.ddyddx(prob.x0)[1, 2:], rel=1e-4)
+    assert intAA.dydx(prob.x0)[:2] + int0A.dydx(prob.x0)[:2] + intA0.dydx(prob.x0)[0, :2] == pytest.approx(
+        mix.dydx(prob.x0)[0, :2], rel=1e-4)
+    assert intAA.dydx(prob.x0)[2:] + int0A.dydx(prob.x0)[2:] + intA1.dydx(prob.x0)[2:] == pytest.approx(
+        mix.dydx(prob.x0)[0, 2:], rel=1e-4)
+    assert intAA.dydx(prob.x0)[:2] + int1A.dydx(prob.x0)[:2] + intA0.dydx(prob.x0)[1, :2] == pytest.approx(
+        mix.dydx(prob.x0)[1, :2], rel=1e-4)
+    assert intAA.dydx(prob.x0)[2:] + int1A.dydx(prob.x0)[2:] + intA1.dydx(prob.x0)[2:] == pytest.approx(
+        mix.dydx(prob.x0)[1, 2:], rel=1e-4)
+
+    assert intAA.ddyddx(prob.x0)[:2] + int0A.ddyddx(prob.x0)[:2] + intA0.ddyddx(prob.x0)[0, :2] == pytest.approx(
+        mix.ddyddx(prob.x0)[0, :2], rel=1e-4)
+    assert intAA.ddyddx(prob.x0)[2:] + int0A.ddyddx(prob.x0)[2:] + intA1.ddyddx(prob.x0)[2:] == pytest.approx(
+        mix.ddyddx(prob.x0)[0, 2:], rel=1e-4)
+    assert intAA.ddyddx(prob.x0)[:2] + int1A.ddyddx(prob.x0)[:2] + intA0.ddyddx(prob.x0)[1, :2] == pytest.approx(
+        mix.ddyddx(prob.x0)[1, :2], rel=1e-4)
+    assert intAA.ddyddx(prob.x0)[2:] + int1A.ddyddx(prob.x0)[2:] + intA1.ddyddx(prob.x0)[2:] == pytest.approx(
+        mix.ddyddx(prob.x0)[1, 2:], rel=1e-4)
 
 
 if __name__ == "__main__":
@@ -231,5 +246,3 @@ if __name__ == "__main__":
     test_different_per_variable_and_response(4)
     test_add_per_variable_and_response(4)
     test_add_per_variable_and_response_multiple_overlap(4)
-
-

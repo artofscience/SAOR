@@ -29,15 +29,15 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-        'sphinx.ext.autodoc',
-        'sphinx.ext.napoleon',
-        ]
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+]
 
 autodoc_default_options = {
-        'members': True,
-        'member-order': 'bysource',
-        'undoc-members': True,
-        'exclude-members': '__weakref__',
+    'members': True,
+    'member-order': 'bysource',
+    'undoc-members': True,
+    'exclude-members': '__weakref__',
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -115,7 +115,7 @@ html_sidebars = {
     ]
 }
 
-#html_logo = "_static/logo.png"
+# html_logo = "_static/logo.png"
 
 # document constructors
 autoclass_content = 'both'
@@ -125,7 +125,6 @@ add_module_names = False
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'SAOdoc'
-
 
 # -- Options for LaTeX output ---------------------------------------------
 

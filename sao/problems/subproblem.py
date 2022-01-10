@@ -1,8 +1,9 @@
-from sao.problems.problem import Problem
+import numpy as np
+
 from sao.approximations.taylor import Taylor1
 from sao.move_limits.move_limit import Bounds
+from sao.problems.problem import Problem
 from sao.util.tools import parse_to_list
-import numpy as np
 
 
 class Subproblem(Problem):
@@ -61,7 +62,7 @@ class Subproblem(Problem):
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
     Q = d^2g_j/dy_ji^2 = d^2g_j/dx_i^2 * (dx_i/dy_ji)^2 + dg_j/dx_i * d^2x_i/dy_ji^2 [(m+1) x n]
-    y = [(m+1) x n] or [n], depending on the intervening variables used (see ReferenceFiles/TaylorExpansion.pdf)
+    y = [(m+1) x n] or [n], depending on the intervening variables used (see reference_files/TaylorExpansion.pdf)
     x = [n]
 
           |   resp [1, 2, 3]  |     resp [4, 5]
