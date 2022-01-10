@@ -96,49 +96,6 @@ class Intervening(Approximation, ABC):
         return -self.ddg(x) / self.dg(x) ** 3
 
 
-# class Subproblem(Problem):
-#     def __init__(self, approximation=[], limits=Bounds(xmin=0, xmax=1)):
-#         super().__init__()
-#         self.approx = approximation
-#         self.lims = None
-#         self.set_limits(limits)
-#
-#     def set_limits(self, *limits):
-#         self.lims = parse_to_list(*limits)
-#
-#     def add_limits(self, *limits):
-#         self.lims.extend(parse_to_list(*limits))
-#
-#     def build(self, x, f, df, ddf=None):
-#         self.n, self.m = len(x), len(f) - 1
-#
-#         # Update the approximation
-#         self.approx.update(x, f, df, ddf)
-#
-#         # Update the local problem bounds
-#         self.x_min = np.full_like(x, -np.inf)
-#         self.x_max = np.full_like(x, +np.inf)
-#
-#         # Enforce restriction on the possible step size within the subproblem.
-#         # The step is restricted by the chosen move limit strategy as well as
-#         # the feasible range of the intervening variables. First the move
-#         # limits are applied to constraint the step size.
-#         for ml in self.lims:
-#             ml.update(x, f, df, ddf)
-#             ml.clip(self.x_min)
-#             ml.clip(self.x_max)
-#
-#         # Additional constraint on the step size by the feasible range of the
-#         # intervening variables. This prevents the subsolver to make an update
-#         # that causes the intervening variable to reach unreachable values,
-#         # e.g. cross the lower/upper bounds in the MMA asymptotes.
-#         self.approx.clip(self.x_min)
-#         self.approx.clip(self.x_max)
-#
-#         assert np.isfinite(self.x_min).all() and np.isfinite(self.x_max).all(), \
-#             "The bounds must be finite. Use at least one move-limit or bound."
-
-
 class Exponential(Intervening):
     """A generic exponential intervening variable y = x^p.
 
