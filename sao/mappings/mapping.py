@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 import numpy as np
 from sao.move_limits.bounds import Bounds
 from sao.mappings.taylor import Taylor1
@@ -6,12 +6,11 @@ from sao.util.tools import parse_to_list
 
 
 class Mapping(ABC):
+    __metaclass__ = ABCMeta
 
-    def __init__(self):
-        self.name = "Default name"
-
-    def set_name(self, name):
-        self.name = name
+    @property
+    def name(self):
+        return self.__class__.name
 
     @abstractmethod
     def g(self, x, out=None):
@@ -52,37 +51,25 @@ class Mapping(ABC):
         return self.g(x, g_out), self.dg(x, dg_out), self.ddg(x, ddg_out)
 
 
-class Problem(Mapping):
+class Problem(ABC, Mapping):
     """
     This is the abstract implementation of a problem.
     """
+    __metaclass__ = ABCMeta
 
     def __init__(self):
         super().__init__()
-        self.name = 'Default'
         self.x_min, self.x_max = None, None
         self.x0 = None
         self.n, self.m = None, None
 
-    @abstractmethod
-    def g(self, x, out=None):
-        ...
 
-    @abstractmethod
-    def dg(self, x, out=None):
-        ...
-
-    @abstractmethod
-    def ddg(self, x, out=None):
-        ...
-
-
-class Subproblem(Problem):
+class Subproblem(ABC, Problem):
     def __init__(self, approximation=Taylor1(), limits=Bounds(xmin=0, xmax=1)):
         super().__init__()
         self.approx = approximation
+        self.lims = None
         self.set_limits(limits)
-        self.lims = parse_to_list(limits)
 
     def set_limits(self, *limits):
         self.lims = parse_to_list(*limits)
@@ -119,20 +106,12 @@ class Subproblem(Problem):
         assert np.isfinite(self.x_min).all() and np.isfinite(self.x_max).all(), \
             "The bounds must be finite. Use at least one move-limit or bound."
 
-    def g(self, x, out=None):
-        return self.approx.g(x)
 
-    def dg(self, x, out=None):
-        return self.approx.dg(x)
-
-    def ddg(self, x, out=None):
-        return self.approx.ddg(x)
-
-
-class Approximation(Mapping):
+class Approximation(ABC, Mapping):
     '''
     Approximation is a function mapping f: R^n -> R
     '''
+    __metaclass__ = ABCMeta
 
     @abstractmethod
     def update(self, x, f, df, ddf=None):
@@ -142,21 +121,9 @@ class Approximation(Mapping):
         :param x: Current design
         :param f: A vector of size [m+1] that holds the response values at the current design -x-
         :param df: A matrix of size [m+1, n] that holds the sensitivity values at the current design -x-
-        :param kwargs: Optionally get the 2nd-order sensitivity array
+        :param ddf: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
-        return self
-
-    @abstractmethod
-    def g(self, x, out=None):
-        ...
-
-    @abstractmethod
-    def dg(self, x, out=None):
-        ...
-
-    @abstractmethod
-    def ddg(self, x, out=None):
         ...
 
     @abstractmethod
