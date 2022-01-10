@@ -1,17 +1,15 @@
 import logging
-
 import numpy as np
 
+from examples.util.plotter_basic import Plot
 from examples.util.plotter import Plot2, Plot3
 from problems.one_dim.polynomial_1d import Polynomial1D
-from sao.approximations import SphericalTaylor2, NonSphericalTaylor2
-from sao.intervening_variables.exponential import Linear
+from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
+from sao.intervening_variables import Linear, ConLin, MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
-from sao.intervening_variables.mma import MMA02
 from sao.move_limits import Bounds, MoveLimitFraction
 from sao.problems.subproblem import Subproblem
 from sao.solvers.primal_dual_interior_point import pdip
-from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -32,7 +30,7 @@ def example_polynomial_1D():
     problem = Polynomial1D()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitFraction(fraction=2)
-    intvar = Linear()  # MMA02(x_min=problem.x_min, x_max=problem.x_max)
+    intvar = MMA02(x_min=problem.x_min, x_max=problem.x_max)
     subproblem = Subproblem(SphericalTaylor2(intvar), limits=[bounds, movelimit])
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
