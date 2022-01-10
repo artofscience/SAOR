@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from problems.svanberg1987 import CantileverBeam, TwoBarTruss
 from sao.approximations.taylor import Taylor1
@@ -9,6 +10,8 @@ from sao.convergence_criteria import IterationCount
 from sao.solvers.dual.conlin import sub_con
 from sao.solvers.dual.mma import sub_mma
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx, Pdipxy, Pdipxyz
+from sao.move_limits.move_limit import MoveLimitFraction
+from sao.move_limits.bounds import Bounds
 
 
 @pytest.mark.parametrize('pdiptype', [Pdipx, Pdipxy, Pdipxyz])

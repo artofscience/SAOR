@@ -1,7 +1,9 @@
 import numpy as np
 from scipy.optimize import minimize
 from sao.approximations.taylor import Taylor1
-from sao.intervening_variables import MMAp, MixedIntervening
+from sao.intervening_variables import MixedIntervening
+from sao.intervening_variables.mma import MMAp
+
 
 def sub_mma(prob, x, y):
     """
