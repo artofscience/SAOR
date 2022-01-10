@@ -30,7 +30,7 @@ def example_polynomial_1D():
     problem = Polynomial1D()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitFraction(fraction=2)
-    intvar = MMA02(x_min=problem.x_min, x_max=problem.x_max)
+    intvar = ConLin()    # MMA02(x_min=problem.x_min, x_max=problem.x_max)
     subproblem = Subproblem(SphericalTaylor2(intvar), limits=[bounds, movelimit])
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
