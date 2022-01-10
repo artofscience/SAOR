@@ -147,7 +147,7 @@ class Exponential(Intervening):
     does not support ``p = 0`` to avoid a zero devision in the derivatives.
     """
 
-    def __init__(self, p, xlim=1e-10):
+    def __init__(self, mapping=None, p=1, xlim=1e-10):
         """
         Initialise the exponential intervening variable with a power.
         :param p: The power
@@ -156,27 +156,40 @@ class Exponential(Intervening):
         assert p != 0, f"Invalid power x^{p}, will result in zero division."
         self.p = p
         self.xlim = xlim
+        self.map = mapping
 
     def update(self, x, f, df, ddf=None):
-        pass
+        if self.map is not None:
+            self.map.update(x, f, df, ddf)
 
     def g(self, x):
-        return x ** self.p
+        if self.map is not None:
+            return self.map.g(x) ** self.p
+        else:
+            return x ** self.p
 
     def dg(self, x):
-        return self.p * x ** (self.p - 1)
+        if self.map is not None:
+            return self.p * x ** (self.p - 1) * self.map.dg(x)
+        else:
+            return self.p * x ** (self.p - 1)
 
     def ddg(self, x):
-        return self.p * (self.p - 1) * x ** (self.p - 2)
+        if self.map is not None:
+            return self.p * (self.p - 1) * x ** (self.p - 2) * self.map.ddg(x)
+        else:
+            return self.p * (self.p - 1) * x ** (self.p - 2)
 
     def clip(self, x):
+        if self.map is not None:
+            x = self.map.clip(x)
         if self.p < 0:
             return np.maximum(x, self.xlim, out=x)
         return x
 
 
 class Taylor1(Approximation):
-    def __init__(self, mapping=Exponential(1)):
+    def __init__(self, mapping=Exponential(p=1)):
         """Initialize the approximation, with optional intervening variable object."""
         self.map = mapping
         self.g0 = None
