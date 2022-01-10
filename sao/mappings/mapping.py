@@ -127,13 +127,13 @@ class Exponential(Intervening):
 
     def dg(self, x):
         if self.map is not None:
-            return self.p * x ** (self.p - 1) * self.map.dg(x)
+            return self.p * self.map.g(x) ** (self.p - 1) * self.map.dg(x)
         else:
             return self.p * x ** (self.p - 1)
 
     def ddg(self, x):
         if self.map is not None:
-            return self.p * (self.p - 1) * x ** (self.p - 2) * self.map.ddg(x)
+            return self.p * (self.p - 1) * self.map.g(x) ** (self.p - 2) * self.map.ddg(x)
         else:
             return self.p * (self.p - 1) * x ** (self.p - 2)
 
