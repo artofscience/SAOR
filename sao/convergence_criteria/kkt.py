@@ -1,14 +1,14 @@
 import numpy as np
-from .convergence_criterion import ConvergenceCriterion
+from .criteria import Criterion
 
 
-class KKT(ConvergenceCriterion):
+class KKT(Criterion):
     """
     The KKT conditions as a convergence criterion.
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__()
         self.xmin = kwargs.get('x_min', None)
         self.xmax = kwargs.get('x_max', None)
         self.value = None  # For logging/plotting purposes

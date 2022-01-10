@@ -1,14 +1,19 @@
-import numpy as np
 import logging
+
+import numpy as np
+
+from examples.util.plotter import Plot2, Plot3
+from problems.two_dim.polynomial_2d import Polynomial2D
 from sao.approximations import Taylor1, Taylor2
-from sao.problems import Subproblem
-from sao.intervening_variables import Linear, MMA, MMAp, MixedIntervening
-from sao.move_limits import Bounds, MoveLimit
 from sao.convergence_criteria import VariableChange
-from sao.util import Plot
-from sao.solvers import SvanbergIP, CVXOPT, SCIPY
-from util.plotter import Plot2, Plot3
-from Problems._2d.Polynomial_2D import Polynomial2D
+from sao.intervening_variables import MixedIntervening
+from sao.intervening_variables.mma import MMA02 as MMA
+from sao.move_limits import Bounds, MoveLimit
+from sao.problems import Subproblem
+from sao.solvers.pdip_svanberg import ipsolver
+from sao.solvers.wrappers.cvxopt import cvxopt_solver
+from sao.solvers.wrappers.scipy import scipy_solver
+from examples.util.plotter_basic import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -29,23 +34,8 @@ def example_polynomial_2D():
     prob = Polynomial2D()
 
     # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMAp(-1, prob.x_min, prob.x_max)))
-    # mixed_ml = MixedMoveLimit(prob.n, default=Bounds(prob.x_min, prob.x_max))
-    # mixed_ml.add_move_limit(MoveLimit(move_limit=0.1, dx=prob.x_max-prob.x_min))
-    # mixed_ml.add_move_limit(AdaptiveMoveLimit(move_limit=0.1, dx=prob.x_max[0]-prob.x_min[0]), var=[0])
-    # subprob.set_limits([mixed_ml])
-    # mix.set_move_limit(Bounds(0.0, 0.0), var=[2])
+    subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1, dx=prob.x_max - prob.x_min)])
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path="../../../../Desktop")
@@ -57,11 +47,11 @@ def example_polynomial_2D():
     # x_k = prob.x0.copy()                # At optimum: 1 active constraint (initial design: upper right)
     # x_k = np.array([1.5, 1.6])          # At optimum: 1 active constraint (initial design: lower left)
     # x_k = np.array([1.5, 2.1])          # At optimum: 2 active constraints, i.e. minimum at intersection (upper left)
-    x_k = np.array([2, 1.5])            # no constraint active, i.e. internal minimum (lower right)
+    x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)
     itte = 0
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -73,15 +63,12 @@ def example_polynomial_2D():
 
         # Plot current approximation
         if plotter2_flag:
-            # plotter2.plot_pair(x_k, f, prob, subprob, itte)
             plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = ipsolver(subprob)[:]
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
-
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
             'iter: {:^4d}  |  x: {:<10s}  |  obj: {:^9.3f}  |  criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
@@ -101,21 +88,11 @@ def example_polynomial_2D_mixed():
 
     # Instantiate a mixed intervening variable
     mix = MixedIntervening(prob.n, prob.m + 1, default=MMA(prob.x_min, prob.x_max))
-    mix.set_intervening(MMAp(-2, prob.x_min, prob.x_max), var=[0], resp=[1])
+    mix.set_intervening(MMA(prob.x_min, prob.x_max), var=[0], resp=[1])
 
     # Instantiate a mixed approximation scheme
     subprob = Subproblem(approximation=Taylor1(mix))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.2)])
-
-    # Instantiate solver
-    solver = SvanbergIP(prob.n, prob.m)
-
-    # Instantiate convergence criterion
-    # criterion = KKT(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = ObjectiveChange()
-    # criterion = VariableChange(x_min=prob.x_min, x_max=prob.x_max)
-    # criterion = Feasibility()
-    # criterion = Alltogether(x_min=prob.x_min, x_max=prob.x_max)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'constraint', 'criterion', 'max_constr_violation'], path=".")
@@ -128,7 +105,7 @@ def example_polynomial_2D_mixed():
     x_k = prob.x0.copy()
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
         f = prob.g(x_k)
@@ -144,7 +121,7 @@ def example_polynomial_2D_mixed():
             plotter3.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k, y, z, lam, xsi, eta, mu, zet, s = solver.subsolv(subprob)
+        x_k = ipsolver(subprob)
 
         # Assess convergence (give the correct keyword arguments for the criterion you choose)
         # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
@@ -170,9 +147,6 @@ def example_polynomial_2D_cvxopt():
     subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
     subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=0.1, dx=prob.x_max - prob.x_min)])
 
-    # Instantiate solver
-    solver = CVXOPT(prob.n, prob.m)
-
     # Initialize design and iteration counter
     x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)
     itte = 0
@@ -187,7 +161,7 @@ def example_polynomial_2D_cvxopt():
         plotter2 = Plot2(prob)
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -203,7 +177,7 @@ def example_polynomial_2D_cvxopt():
             plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k = np.array(solver.subsolv(subprob)).flatten()
+        x_k = cvxopt_solver(subprob)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
@@ -230,9 +204,6 @@ def example_polynomial_2D_scipy():
     x_k = np.array([2, 1.5])  # no constraint active, i.e. internal minimum (lower right)
     itte = 0
 
-    # Instantiate solver
-    solver = SCIPY(prob.n, prob.m, x0=x_k)
-
     # Instantiate convergence criterion
     criterion = VariableChange(x_k)
 
@@ -243,7 +214,7 @@ def example_polynomial_2D_scipy():
         plotter2 = Plot2(prob)
 
     # Optimization loop
-    while itte < 100:       # not criterion.converged:
+    while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k)), ddg(X^(k))
         f = prob.g(x_k)
@@ -259,7 +230,7 @@ def example_polynomial_2D_scipy():
             plotter2.contour_plot(x_k, f, prob, subprob, itte)
 
         # Call solver (x_k, g and dg are within approx instance)
-        x_k = solver.subsolv(subprob)
+        x_k = scipy_solver(subprob)
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
         logger.info(
@@ -274,6 +245,5 @@ def example_polynomial_2D_scipy():
 
 if __name__ == "__main__":
     example_polynomial_2D()
-    # example_polynomial_2D_mixed()
-    # example_polynomial_2D_cvxopt()
-
+    example_polynomial_2D_mixed()
+    example_polynomial_2D_cvxopt()

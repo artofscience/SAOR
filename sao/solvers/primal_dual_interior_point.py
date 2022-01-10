@@ -1,6 +1,7 @@
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, fields
+
 import numpy as np
 from scipy.sparse import diags
 
@@ -273,11 +274,11 @@ class Pdipxyz(Pdipxy):
     def get_newton_direction(self, epsi):
         a, b, g, dg, ddg = self.get_point()
 
-            # delta_lambda
-        delta_lambda = g[1:] - self.w.y + epsi / self.w.lam  - self.a*self.w.z
+        # delta_lambda
+        delta_lambda = g[1:] - self.w.y + epsi / self.w.lam - self.a * self.w.z
         delta_x = dg[0] + self.w.lam.dot(dg[1:]) - epsi / a + epsi / b
         delta_y = self.c - self.w.lam - epsi / self.w.y
-        delta_z = self.a0 - np.dot(self.w.lam,self.a) - epsi/self.w.z
+        delta_z = self.a0 - np.dot(self.w.lam, self.a) - epsi / self.w.z
 
         diag_lambda = self.w.s / self.w.lam  # s./lam
         diag_x = ddg[0] + self.w.lam.dot(ddg[1:]) + self.w.xsi / a + self.w.eta / b
@@ -287,14 +288,14 @@ class Pdipxyz(Pdipxy):
         delta_lambday = delta_lambda + delta_y / diag_y
 
         dxdx = delta_x / diag_x
-        zzeta = self.w.z/self.w.zeta
-        Blam = delta_lambday - dxdx.dot(dg[1:].transpose()) + zzeta*self.a*delta_z
-        Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1 / diag_x, dg[1:]) + zzeta*self.a*self.a.T
+        zzeta = self.w.z / self.w.zeta
+        Blam = delta_lambday - dxdx.dot(dg[1:].transpose()) + zzeta * self.a * delta_z
+        Alam = diags(diag_lambday) + np.einsum("ki,i,ji->kj", dg[1:], 1 / diag_x, dg[1:]) + zzeta * self.a * self.a.T
 
         # solve for dlam
         self.dw.lam[:] = np.linalg.solve(Alam, Blam)
         self.dw.x = -dxdx - (self.dw.lam.dot(dg[1:])) / diag_x
-        self.dw.z = zzeta*(np.dot(self.a,self.dw.lam) - delta_z)
+        self.dw.z = zzeta * (np.dot(self.a, self.dw.lam) - delta_z)
 
         # get dxsi[dx], deta[dx] and ds[dlam]
         self.dw.xsi = -self.w.xsi + epsi / a - (self.w.xsi * self.dw.x) / a
@@ -302,7 +303,7 @@ class Pdipxyz(Pdipxy):
         self.dw.s = -self.w.s + epsi / self.w.lam - (self.w.s * self.dw.lam) / self.w.lam
         self.dw.y = (self.dw.lam - delta_y) / diag_y
         self.dw.mu = -self.w.mu + epsi / self.w.y - (self.w.mu * self.dw.y) / self.w.y
-        self.dw.zeta = -1/zzeta*self.dw.z - self.w.zeta + epsi/self.w.z
+        self.dw.zeta = -1 / zzeta * self.dw.z - self.w.zeta + epsi / self.w.z
 
 
 def pdip(problem, x0=None, variables=Pdipxyz, epsimin=1e-9, max_outer_iter=100,

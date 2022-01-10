@@ -1,12 +1,13 @@
-import pytest
-import numpy as np
 import logging
-from Problems._nd.Square import Square
+
+import numpy as np
+import pytest
+
+from problems.n_dim.square import Square
 from sao.approximations.taylor import Taylor1, Taylor2
 from sao.intervening_variables import ConLin, Reciprocal
 from sao.intervening_variables.mma import MMA02 as MMA
 from sao.problems.subproblem import Subproblem
-
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -32,7 +33,8 @@ def test_lin_taylor1(n, h):
     assert subprob.dg(prob.x0) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
 
     # Check validity of approximate responses (and sensitivities) at X^(k) + h
-    assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + np.dot(prob.dg(prob.x0), h*np.ones_like(prob.x0)), rel=1e-4)
+    assert subprob.g(prob.x0 + h) == pytest.approx(
+        prob.g(prob.x0) + np.dot(prob.dg(prob.x0), h * np.ones_like(prob.x0)), rel=1e-4)
     assert subprob.dg(prob.x0 + h) == pytest.approx(prob.dg(prob.x0), rel=1e-4)
     assert subprob.ddg(prob.x0 + h) == pytest.approx(0, abs=1e-4)
 
@@ -51,10 +53,11 @@ def test_lin_taylor2(n, h):
     assert subprob.ddg(prob.x0) == pytest.approx(prob.ddg(prob.x0), rel=1e-4)
 
     # Check validity of approximate responses (and sensitivities) at X^(k) + h
-    assert subprob.g(prob.x0 + h) == pytest.approx(prob.g(prob.x0) + np.dot(prob.dg(prob.x0), h*np.ones_like(prob.x0)) +
-                                                  0.5 * np.dot(prob.ddg(prob.x0), h**2*np.ones_like(prob.x0)), rel=1e-4)
+    assert subprob.g(prob.x0 + h) == pytest.approx(
+        prob.g(prob.x0) + np.dot(prob.dg(prob.x0), h * np.ones_like(prob.x0)) +
+        0.5 * np.dot(prob.ddg(prob.x0), h ** 2 * np.ones_like(prob.x0)), rel=1e-4)
     assert subprob.dg(prob.x0 + h) == pytest.approx(prob.dg(prob.x0) + prob.ddg(prob.x0) * h, rel=1e-4)
-    assert subprob.ddg(prob.x0 + h) == pytest.approx(prob.ddg(prob.x0) * np.ones_like(prob.x0)**2, rel=1e-4)
+    assert subprob.ddg(prob.x0 + h) == pytest.approx(prob.ddg(prob.x0) * np.ones_like(prob.x0) ** 2, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -66,7 +69,7 @@ def test_rec_taylor1(n, h):
     subprob.build(prob.x0, prob.g(prob.x0), prob.dg(prob.x0))
     inter = Reciprocal()
     inter.update(prob.x0, prob.dg(prob.x0), prob.dg(prob.x0))
-    dfdy = prob.dg(prob.x0) * (-(prob.x0**2))
+    dfdy = prob.dg(prob.x0) * (-(prob.x0 ** 2))
 
     # Check validity of approximate responses (and sensitivities) at expansion point X^(k)
     assert subprob.g(prob.x0) == pytest.approx(prob.g(prob.x0), rel=1e-4)

@@ -1,5 +1,6 @@
-from .intervening import Intervening
 import numpy as np
+
+from .intervening import Intervening
 
 
 class Exponential(Intervening):
@@ -37,23 +38,27 @@ class Exponential(Intervening):
 
 class Linear(Exponential):
     """A linear intervening variable: ``y = x``."""
+
     def __init__(self):
         super().__init__(1)
 
 
 class Reciprocal(Exponential):
     """A reciprocal intervening variable: ``y = 1/x``."""
+
     def __init__(self):
         super().__init__(-1)
 
 
 class ReciSquared(Exponential):
     """A squared reciprocal intervening variable: ``y = 1/x^2``."""
+
     def __init__(self):
         super().__init__(-2)
 
 
 class ReciCubed(Exponential):
     """A cubic reciprocal intervening variable: ``y = 1/x^3``."""
+
     def __init__(self):
         super().__init__(-3)
