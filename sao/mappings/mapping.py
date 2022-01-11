@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-class Mapping(ABC):
+class Base(ABC):
 
     @property
     def name(self):
@@ -24,7 +24,7 @@ class Mapping(ABC):
         ...
 
 
-class Problem(Mapping, ABC):
+class Problem(Base, ABC):
     """
     This is the abstract implementation of a problem.
     """
@@ -37,7 +37,7 @@ class Problem(Mapping, ABC):
         self.f_opt = None  # optimal objective value
 
 
-class EmptyMap(Mapping, ABC):
+class EmptyMap(Base, ABC):
     def g(self, x):
         return x
 
@@ -51,10 +51,10 @@ class EmptyMap(Mapping, ABC):
         pass
 
     def clip(self, x):
-        return x
+        pass
 
 
-class Approximation(EmptyMap, ABC):
+class Mapping(Base, ABC):
     '''
     Approximation is a function mapping f: R^n -> R
     '''
@@ -75,33 +75,17 @@ class Approximation(EmptyMap, ABC):
         self.map.update(x, f, df, ddf=None)
         self._update(x, f, df, ddf=None)
 
-    def clip(self, x):
-        x = self.map.clip(x)
-        return self._clip(x)
+    def g(self, x):
+        '''Chain rule'''
+        return self._g(self.map.g(x))
 
-    def _update(self, x, f, df, ddf=None):
-        pass
+    def dg(self, x):
+        '''Chain rule first derivative'''
+        return self._dg(self.map.g(x)) * self.map.dg(x)
 
-    def _clip(self, x):
-        return x
-
-
-class Intervening(Approximation, ABC):
-    """Abstract base class for the intervening variable mapping.
-
-    This class provides a change of variables from y = f(x), transforming the
-    variables x to y using a given transformation function f. Any child class
-    should provide the functionality to compute the mapping y = f(x), as well
-    as the first and second derivatives. Additionally, the inverse mapping
-    should be provided, reversing the transformation.
-
-    For details on the formulation, in specific regarding the first and
-    second derivatives of the mapping and their inverses, see the reference
-    material at: `reference_files/TaylorExpansion.pdf`.
-    """
-
-    def __init__(self, mapping=EmptyMap()):
-        super().__init__(mapping)
+    def ddg(self, x):
+        '''Chain rule second derivative'''
+        return self._ddg(x) * self.map.dg(x) ** 2 + self._dg(x) * self.map.ddg(x)
 
     @abstractmethod
     def _g(self, x):
@@ -115,20 +99,18 @@ class Intervening(Approximation, ABC):
     def _ddg(self, x):
         ...
 
-    def g(self, x):
-        '''Chain rule'''
-        return self._g(self.map.g(x))
+    def clip(self, x):
+        x = self.map.clip(x)
+        return self._clip(x)
 
-    def dg(self, x):
-        '''Chain rule first derivative'''
-        return self._dg(self.map.g(x)) * self.map.dg(x)
+    def _update(self, x, f, df, ddf=None):
+        pass
 
-    def ddg(self, x):
-        '''Chain rule second derivative'''
-        return self._ddg(x) * self.map.dg(x) ** 2 + self._dg(x) * self.map.ddg(x)
+    def _clip(self, x):
+        return x
 
 
-class Exponential(Intervening):
+class Exponential(Mapping):
     """A generic exponential intervening variable y = x^p.
 
     The general case for an exponential intervening varaibles that can take
@@ -162,7 +144,7 @@ class Exponential(Intervening):
         return x
 
 
-class Taylor1(Approximation):
+class Taylor1(Mapping):
     def __init__(self, mapping=EmptyMap()):
         super().__init__(mapping)
         """Initialize the approximation, with optional intervening variable object."""
@@ -180,15 +162,14 @@ class Taylor1(Approximation):
         self.dgdy0 = df / self.map.dg(x)
         self.g0 = (f / self.nvar)[:, np.newaxis] - self.dgdy0 * self.map.g(x)
 
-    def g(self, x):
+    def _g(self, x):
         """Evaluates the approximation at design point `x`."""
         return self.g0 + self.dgdy0 * self.map.g(x)
 
-    def dg(self, x):
+    def _dg(self, x):
         """Evaluates the approximation's gradient at design point `x`."""
         return self.dgdy0 * self.map.dg(x)
 
-    def ddg(self, x):
+    def _ddg(self, x):
         """Evaluates the approximation's second derivative at design point `x`."""
         return self.dgdy0 * self.map.ddg(x)
-
