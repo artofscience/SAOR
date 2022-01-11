@@ -23,12 +23,6 @@ class Mapping(ABC):
         """Approximate 2nd-order sensitivity array."""
         ...
 
-    def g_and_dg(self, x):
-        return self.g(x), self.dg(x)
-
-    def g_and_dg_and_ddg(self, x):
-        return self.g(x), self.dg(x), self.ddg(x)
-
 
 class Problem(Mapping, ABC):
     """
@@ -39,6 +33,8 @@ class Problem(Mapping, ABC):
         self.x_min, self.x_max = None, None
         self.x0 = None
         self.n, self.m = None, None
+        self.x_opt = None  # optimal design variable values
+        self.f_opt = None  # optimal objective value
 
 
 class EmptyMap(Mapping, ABC):
@@ -167,7 +163,7 @@ class Exponential(Intervening):
 
 
 class Taylor1(Approximation):
-    def __init__(self, mapping=Exponential(p=1)):
+    def __init__(self, mapping=EmptyMap()):
         super().__init__(mapping)
         """Initialize the approximation, with optional intervening variable object."""
         self.map = mapping
