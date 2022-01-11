@@ -34,20 +34,25 @@ class Problem(ABC):
         ...
 
 
-class EmptyMap(ABC):
-    def g(self, x):
+class EmptyMap:
+    @staticmethod
+    def g(x):
         return x
 
-    def dg(self, x):
+    @staticmethod
+    def dg(x):
         return np.ones_like(x)
 
-    def ddg(self, x):
+    @staticmethod
+    def ddg(x):
         return np.zeros_like(x)
 
-    def update(self, x, f, df, ddf=None):
+    @staticmethod
+    def update(x, f, df, ddf=None):
         pass
 
-    def clip(self, x):
+    @staticmethod
+    def clip(x):
         pass
 
 
