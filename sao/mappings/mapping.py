@@ -2,7 +2,17 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-class Base(ABC):
+class Problem(ABC):
+    """
+    This is the abstract implementation of a problem.
+    """
+
+    def __init__(self):
+        self.x_min, self.x_max = None, None
+        self.x0 = None
+        self.n, self.m = None, None
+        self.x_opt = None  # optimal design variable values
+        self.f_opt = None  # optimal objective value
 
     @property
     def name(self):
@@ -24,20 +34,7 @@ class Base(ABC):
         ...
 
 
-class Problem(Base, ABC):
-    """
-    This is the abstract implementation of a problem.
-    """
-
-    def __init__(self):
-        self.x_min, self.x_max = None, None
-        self.x0 = None
-        self.n, self.m = None, None
-        self.x_opt = None  # optimal design variable values
-        self.f_opt = None  # optimal objective value
-
-
-class EmptyMap(Base, ABC):
+class EmptyMap(ABC):
     def g(self, x):
         return x
 
@@ -54,13 +51,19 @@ class EmptyMap(Base, ABC):
         pass
 
 
-class Mapping(Base, ABC):
+class Mapping(ABC):
     '''
-    Approximation is a function mapping f: R^n -> R
+    Approximation is a function mapping f: R^n -> R^n
     '''
 
-    def __init__(self, mapping=EmptyMap()):
+    @property
+    def name(self):
+        return self.__class__.name
+
+    def __init__(self, mapping=None):
         self.map = mapping
+        if self.map is None:
+            self.map = EmptyMap()
 
     def update(self, x, f, df, ddf=None):
         """
