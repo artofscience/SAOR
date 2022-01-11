@@ -58,10 +58,6 @@ class Mapping(ABC):
         return np.zeros_like(x)
 
 
-class Empty(Mapping):
-    ...
-
-
 class Exponential(Mapping):
     """A generic exponential intervening variable y = x^p.
 
