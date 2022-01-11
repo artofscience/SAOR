@@ -4,6 +4,7 @@ import numpy as np
 from examples.util.plotter_basic import Plot
 from examples.util.plotter import Plot2, Plot3
 from problems.one_dim.polynomial_1d import Polynomial1D
+
 from sao.approximations import Taylor1, Taylor2, SphericalTaylor2, NonSphericalTaylor2
 from sao.intervening_variables import Linear, ConLin, MMA02
 from sao.intervening_variables.mixed_intervening import MixedIntervening
@@ -24,9 +25,9 @@ np.set_printoptions(precision=4)
 
 
 def example_polynomial_1D():
-    logger.info("Solving test_poly using y=MMA and solver=Ipopt Svanberg")
+    logger.info("Solving test_poly using y=MMA and solver=pdip")
 
-    # Instantiate problem
+    # Instantiate problem, intervening variables, approximation, and subproblem
     problem = Polynomial1D()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitFraction(fraction=2)
@@ -73,13 +74,13 @@ def example_polynomial_1D():
 
 
 def example_polynomial_1D_mixed():
-    logger.info("Solving test_poly using y=MixedMoveLimit and Ipopt Svanberg")
+    logger.info("Solving test_poly using y=MixedMoveLimit and solver=pdip")
 
-    # Instantiate problem
+    # Instantiate problem, intervening variables, approximation, and subproblem
     problem = Polynomial1D()
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimitFraction(fraction=2)
-    intvar = MixedIntervening(problem.n, problem.m + 1)  # MMA02(x_min=problem.x_min, x_max=problem.x_max)
+    intvar = MixedIntervening(problem.n, problem.m + 1)
     intvar.set_intervening(MMA02(x_min=problem.x_min, x_max=problem.x_max), resp=0)
     subproblem = Subproblem(NonSphericalTaylor2(intvar), limits=[bounds, movelimit])
 

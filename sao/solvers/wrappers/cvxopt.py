@@ -49,7 +49,7 @@ try:
         G = matrix(np.append(np.eye(problem.n), -np.eye(problem.n), axis=0))
         h = matrix(np.append(problem.x_max, -problem.x_min), (2 * problem.n, 1))
 
-        return solvers.cp(F, G, h)['x']
+        return np.array(solvers.cp(F, G, h)['x']).flatten()
 except ImportError:
     def cvxopt_solver(problem, **kwargs):
         raise Exception(
