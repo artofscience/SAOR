@@ -63,7 +63,6 @@ class Exponential(Mapping):
 class Taylor1(Mapping):
     def __init__(self, mapping=Linear()):
         super().__init__(mapping)
-        """Initialize the approximation, with optional intervening variable object."""
         self.map = mapping
         self.g0, self.dgdy0 = None, None
         self.nresp, self.nvar = -1, -1
