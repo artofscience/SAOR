@@ -2,28 +2,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-class EmptyMap:
-    @staticmethod
-    def g(x):
-        return x
-
-    @staticmethod
-    def dg(x):
-        return np.ones_like(x)
-
-    @staticmethod
-    def ddg(x):
-        return np.zeros_like(x)
-
-    @staticmethod
-    def update(x, f, df, ddf=None):
-        pass
-
-    @staticmethod
-    def clip(x):
-        pass
-
-
 class Mapping(ABC):
     '''
     Approximation is a function mapping f: R^n -> R^n
@@ -36,7 +14,7 @@ class Mapping(ABC):
     def __init__(self, mapping=None):
         self.map = mapping
         if self.map is None:
-            self.map = EmptyMap()
+            self.map = Empty()
 
     def update(self, x, f, df, ddf=None):
         """
@@ -48,8 +26,11 @@ class Mapping(ABC):
         :param ddf: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
-        self.map.update(x, f, df, ddf=None)
-        self._update(x, f, df, ddf=None)
+        self.map.update(x, f, df, ddf)
+        self._update(x, f, df, ddf)
+
+    def clip(self, x):
+        return self._clip(self.map.clip(x))
 
     def g(self, x):
         '''Chain rule'''
@@ -63,26 +44,41 @@ class Mapping(ABC):
         '''Chain rule second derivative'''
         return self._ddg(x) * self.map.dg(x) ** 2 + self._dg(x) * self.map.ddg(x)
 
-    @abstractmethod
-    def _g(self, x):
-        ...
-
-    @abstractmethod
-    def _dg(self, x):
-        ...
-
-    @abstractmethod
-    def _ddg(self, x):
-        ...
-
-    def clip(self, x):
-        return self._clip(self.map.clip(x))
-
     def _update(self, x, f, df, ddf=None):
         pass
 
     def _clip(self, x):
         return x
+
+    def _g(self, x):
+        return x
+
+    def _dg(self, x):
+        return np.ones_like(x)
+
+    def _ddg(self, x):
+        return np.zeros_like(x)
+
+
+class Empty(Mapping):
+
+    def __init__(self):
+        pass
+
+    def update(self, x, f, df, ddf=None):
+        pass
+
+    def clip(self, x):
+        return x
+
+    def g(self, x):
+        return x
+
+    def dg(self, x):
+        return np.ones_like(x)
+
+    def ddg(self, x):
+        return np.zeros_like(x)
 
 
 class Exponential(Mapping):
@@ -93,7 +89,7 @@ class Exponential(Mapping):
     does not support ``p = 0`` to avoid a zero devision in the derivatives.
     """
 
-    def __init__(self, mapping=EmptyMap(), p=1, xlim=1e-10):
+    def __init__(self, mapping=Empty(), p=1, xlim=1e-10):
         super().__init__(mapping)
         """
         Initialise the exponential intervening variable with a power.
@@ -120,7 +116,7 @@ class Exponential(Mapping):
 
 
 class Taylor1(Mapping):
-    def __init__(self, mapping=EmptyMap()):
+    def __init__(self, mapping=Empty()):
         super().__init__(mapping)
         """Initialize the approximation, with optional intervening variable object."""
         self.map = mapping
@@ -128,7 +124,7 @@ class Taylor1(Mapping):
         self.dgdy0 = None
         self.nresp, self.nvar = -1, -1
 
-    def update(self, x, f, df, ddf=None):
+    def _update(self, x, f, df, ddf=None):
         """Update the approximation with new information."""
         self.nresp, self.nvar = df.shape
         assert len(x) == self.nvar, "Mismatch in number of design variables."
