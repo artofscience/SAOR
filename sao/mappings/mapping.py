@@ -2,38 +2,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-class Problem(ABC):
-    """
-    This is the abstract implementation of a problem.
-    """
-
-    def __init__(self):
-        self.x_min, self.x_max = None, None
-        self.x0 = None
-        self.n, self.m = None, None
-        self.x_opt = None  # optimal design variable values
-        self.f_opt = None  # optimal objective value
-
-    @property
-    def name(self):
-        return self.__class__.name
-
-    @abstractmethod
-    def g(self, x):
-        """Evaluate response function."""
-        ...
-
-    @abstractmethod
-    def dg(self, x):
-        """Approximate sensitivity array."""
-        ...
-
-    @abstractmethod
-    def ddg(self, x):
-        """Approximate 2nd-order sensitivity array."""
-        ...
-
-
 class EmptyMap:
     @staticmethod
     def g(x):
@@ -108,8 +76,7 @@ class Mapping(ABC):
         ...
 
     def clip(self, x):
-        x = self.map.clip(x)
-        return self._clip(x)
+        return self._clip(self.map.clip(x))
 
     def _update(self, x, f, df, ddf=None):
         pass
