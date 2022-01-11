@@ -12,9 +12,7 @@ class Mapping(ABC):
         return self.__class__.name
 
     def __init__(self, mapping=None):
-        self.map = mapping
-        if self.map is None:
-            self.map = Empty()
+        self.map = mapping if mapping is not None else self
 
     def update(self, x, f, df, ddf=None):
         """
@@ -61,24 +59,7 @@ class Mapping(ABC):
 
 
 class Empty(Mapping):
-
-    def __init__(self):
-        pass
-
-    def update(self, x, f, df, ddf=None):
-        pass
-
-    def clip(self, x):
-        return x
-
-    def g(self, x):
-        return x
-
-    def dg(self, x):
-        return np.ones_like(x)
-
-    def ddg(self, x):
-        return np.zeros_like(x)
+    ...
 
 
 class Exponential(Mapping):
