@@ -10,7 +10,7 @@ class Mapping(ABC):
 
     @abstractmethod
     def g(self, x):
-        """Approximate response function."""
+        """Evaluate response function."""
         ...
 
     @abstractmethod
