@@ -82,5 +82,3 @@ def test_ta_exp_exp(dx=1, tol=1e-4):
 if __name__ == "__main__":
     test_exp_exp()
     test_ta()
-    test_ta_exp()
-    test_ta_exp_exp()
