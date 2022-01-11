@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from sao.move_limits.bounds import Bounds
-from sao.util.tools import parse_to_list
 
 
 class Mapping(ABC):
@@ -43,12 +41,31 @@ class Problem(Mapping, ABC):
         self.n, self.m = None, None
 
 
-class Approximation(Mapping):
+class EmptyMap(Mapping, ABC):
+    def g(self, x):
+        return x
+
+    def dg(self, x):
+        return np.ones_like(x)
+
+    def ddg(self, x):
+        return np.zeros_like(x)
+
+    def update(self, x, f, df, ddf=None):
+        pass
+
+    def clip(self, x):
+        return x
+
+
+class Approximation(EmptyMap, ABC):
     '''
     Approximation is a function mapping f: R^n -> R
     '''
 
-    @abstractmethod
+    def __init__(self, mapping=EmptyMap()):
+        self.map = mapping
+
     def update(self, x, f, df, ddf=None):
         """
         This method updates the approximation instance.
@@ -59,9 +76,17 @@ class Approximation(Mapping):
         :param ddf: Optionally get the 2nd-order sensitivity array
         :return: self: For method cascading
         """
-        ...
+        self.map.update(x, f, df, ddf=None)
+        self._update(x, f, df, ddf=None)
 
     def clip(self, x):
+        x = self.map.clip(x)
+        return self._clip(x)
+
+    def _update(self, x, f, df, ddf=None):
+        pass
+
+    def _clip(self, x):
         return x
 
 
@@ -79,21 +104,32 @@ class Intervening(Approximation, ABC):
     material at: `reference_files/TaylorExpansion.pdf`.
     """
 
-    def dx(self, x):
-        """Evaluates the first derivative of the inverse mapping at x.
+    def __init__(self, mapping=EmptyMap()):
+        super().__init__(mapping)
 
-        For details refer to the reference material provided at:
-        `reference_files/TaylorExpansion.pdf`
-        `https://www.physicsforums.com/threads/is-the-derivative-equal-to-one-over-the-derivative-of-the-inverse.63886/`
-        """
-        return 1 / self.dg(x)
+    @abstractmethod
+    def _g(self, x):
+        ...
 
-    def ddxddy(self, x):
-        """Evaluates the second derivative of the inverse mapping at x.
-        For details refer to the reference material provided at:
-        `http://www.math-principles.com/2014/03/second-derivative-problems-reciprocal.html`
-        """
-        return -self.ddg(x) / self.dg(x) ** 3
+    @abstractmethod
+    def _dg(self, x):
+        ...
+
+    @abstractmethod
+    def _ddg(self, x):
+        ...
+
+    def g(self, x):
+        '''Chain rule'''
+        return self._g(self.map.g(x))
+
+    def dg(self, x):
+        '''Chain rule first derivative'''
+        return self._dg(self.map.g(x)) * self.map.dg(x)
+
+    def ddg(self, x):
+        '''Chain rule second derivative'''
+        return self._ddg(x) * self.map.dg(x) ** 2 + self._dg(x) * self.map.ddg(x)
 
 
 class Exponential(Intervening):
@@ -104,7 +140,8 @@ class Exponential(Intervening):
     does not support ``p = 0`` to avoid a zero devision in the derivatives.
     """
 
-    def __init__(self, mapping=None, p=1, xlim=1e-10):
+    def __init__(self, mapping=EmptyMap(), p=1, xlim=1e-10):
+        super().__init__(mapping)
         """
         Initialise the exponential intervening variable with a power.
         :param p: The power
@@ -113,33 +150,17 @@ class Exponential(Intervening):
         assert p != 0, f"Invalid power x^{p}, will result in zero division."
         self.p = p
         self.xlim = xlim
-        self.map = mapping
 
-    def update(self, x, f, df, ddf=None):
-        if self.map is not None:
-            self.map.update(x, f, df, ddf)
+    def _g(self, x):
+        return x ** self.p
 
-    def g(self, x):
-        if self.map is not None:
-            return self.map.g(x) ** self.p
-        else:
-            return x ** self.p
+    def _dg(self, x):
+        return self.p * x ** (self.p - 1)
 
-    def dg(self, x):
-        if self.map is not None:
-            return self.p * self.map.g(x) ** (self.p - 1) * self.map.dg(x)
-        else:
-            return self.p * x ** (self.p - 1)
+    def _ddg(self, x):
+        return self.p * (self.p - 1) * x ** (self.p - 2)
 
-    def ddg(self, x):
-        if self.map is not None:
-            return self.p * (self.p - 1) * self.map.g(x) ** (self.p - 2) * self.map.ddg(x)
-        else:
-            return self.p * (self.p - 1) * x ** (self.p - 2)
-
-    def clip(self, x):
-        if self.map is not None:
-            x = self.map.clip(x)
+    def _clip(self, x):
         if self.p < 0:
             return np.maximum(x, self.xlim, out=x)
         return x
@@ -147,6 +168,7 @@ class Exponential(Intervening):
 
 class Taylor1(Approximation):
     def __init__(self, mapping=Exponential(p=1)):
+        super().__init__(mapping)
         """Initialize the approximation, with optional intervening variable object."""
         self.map = mapping
         self.g0 = None
@@ -174,6 +196,3 @@ class Taylor1(Approximation):
         """Evaluates the approximation's second derivative at design point `x`."""
         return self.dgdy0 * self.map.ddg(x)
 
-    def clip(self, x):
-        """Clips any vector `x` within the feasible bounds of any intervening variables."""
-        return self.map.clip(x)

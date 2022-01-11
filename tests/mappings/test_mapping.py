@@ -11,6 +11,8 @@ def test_exp_exp(dx=1, tol=1e-4):
     x = prob.x0
     mapping = Exp(Exp(p=-1), p=-1)
     assert mapping.g(x) == pytest.approx(x, tol)
+    assert mapping.dg(x) == pytest.approx(1, tol)
+    assert mapping.ddg(x) == pytest.approx(0, tol)
 
     y = x + dx
     assert mapping.g(y) == pytest.approx(y, tol)
