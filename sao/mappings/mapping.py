@@ -20,7 +20,8 @@ class Mapping(ABC):
 
     def dg(self, x): return self._dg(self.map.g(x)) * self.map.dg(x)
 
-    def ddg(self, x): return self._ddg(x) * self.map.dg(x) ** 2 + self._dg(x) * self.map.ddg(x)
+    def ddg(self, x): return self._ddg(self.map.g(x)) * (self.map.dg(x)) ** 2 + \
+                             self._dg(self.map.g(x)) * self.map.ddg(x)
 
     def _update(self, x, f, df, ddf=None): pass
 
