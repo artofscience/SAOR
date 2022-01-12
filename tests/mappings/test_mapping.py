@@ -2,7 +2,6 @@ from problems.n_dim.square import Square
 from sao.mappings.mapping import Taylor1 as Ta
 from sao.mappings.mapping import Linear
 from sao.mappings.mapping import Exponential as Exp
-from sao.problems import Problem
 from sao import intervening_variables, approximations
 import numpy as np
 import pytest
@@ -129,9 +128,9 @@ def test_ta_rec(dx=1, tol=1e-4):
     new.update(x, f, df)
 
     # NOT WORKING
-    # assert np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
-    # assert new.dg(x) == pytest.approx(old.dg(x), tol)
-    # assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
+    assert np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert new.dg(x) == pytest.approx(old.dg(x), tol)
+    assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
 
 if __name__ == "__main__":

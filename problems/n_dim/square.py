@@ -16,7 +16,7 @@ class Square(Problem):
         super().__init__()
         self.x_min = 1e-3 * np.ones(n)  # cuz a subproblem uses both, whereas a problem only has x_min
         self.x_max = np.ones(n)  # cuz a subproblem uses both, whereas a problem only has x_max
-        self.x0 = np.linspace(1.0, 2.0, n)
+        self.x0 = np.linspace(0.8, 0.9, n)
         self.n = n
         self.m = 1
         self.f = np.zeros(n)

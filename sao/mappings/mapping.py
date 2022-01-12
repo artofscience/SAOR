@@ -76,6 +76,15 @@ class Taylor1(Mapping):
         self.dgdy0 = df / self.map.dg(x)
         self.g0 = (f / self.nvar)[:, np.newaxis] - self.dgdy0 * self.map.g(x)
 
+    def g(self, x):
+        return self._g(x)
+
+    def dg(self, x):
+        return self._dg(x)
+
+    def ddg(self, x):
+        return self._ddg(x)
+
     def _g(self, x): return self.g0 + self.dgdy0 * self.map.g(x)
 
     def _dg(self, x): return self.dgdy0 * self.map.dg(x)
