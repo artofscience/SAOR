@@ -83,17 +83,35 @@ class Taylor2(Mapping):
     def __init__(self, mapping=Linear()):
         super().__init__(mapping)
         self.g0, self.dg0, self.ddg0 = None, None, None
-        self.ddg0 = None
-        self.dg0 = None
         self.c = 0.0
 
     def _update(self, x, f, df, ddf=None):
         y0 = self.map.g(x)
         dy0 = self.map.dg(x)
         self.c = f
-        self.ddg0 = -ddf * self.map.ddg(x) / dy0 ** 3
+        self.ddg0 = ddf / dy0 ** 2 - df * self.map.ddg(x) / dy0 ** 3
         self.dg0 = df / dy0
         self.g0 = -self.dg0 * y0 + 0.5 * self.ddg0 * y0 ** 2
+        self.tmp = self.dg0 - y0 * self.ddg0
+
+    def _g(self, x): return self.g0 + self.tmp * x + 0.5 * self.ddg0 * x ** 2
+
+    def _dg(self, x): return self.tmp + self.ddg0 * x
+
+    def _ddg(self, x): return self.ddg0
+
+
+class Taylor2A(Taylor1):
+    def __init__(self, mapping=Linear()):
+        super().__init__(mapping)
+        self.ddg0 = None
+
+    def _update(self, x, f, df, ddf=None):
+        super()._update(x, f, df)
+        y0 = self.map.g(x)
+        dy0 = self.map.dg(x)
+        self.ddg0 = ddf / dy0 ** 2 - df * self.map.ddg(x) / dy0 ** 3
+        self.g0 += 0.5 * self.ddg0 * y0 ** 2
         self.tmp = self.dg0 - y0 * self.ddg0
 
     def _g(self, x): return self.g0 + self.tmp * x + 0.5 * self.ddg0 * x ** 2

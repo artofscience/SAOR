@@ -121,11 +121,11 @@ def test_ta_rec(dx=1, tol=1e-4):
     df = prob.dg(x)
 
     # Oldskool aka old
-    old = approximations.Taylor1(intervening_variables.Exponential(p=2))
+    old = approximations.Taylor1(intervening_variables.Exponential(p=-1))
     old.update(x, f, df)
 
     # Newskool aka new
-    new = Ta(Exp(p=2))
+    new = Ta(Exp(p=-1))
     new.update(x, f, df)
 
     assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
@@ -177,6 +177,35 @@ def test_ta2(dx=1, tol=1e-4):
 
     assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
+    assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
+
+    y = x + dx
+    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert new.dg(y) == pytest.approx(old.dg(y), tol)
+    assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
+
+
+def test_ta2_rec(dx=1, tol=1e-4):
+    prob = Square(4)
+    x = prob.x0
+    f = prob.g(x)
+    df = prob.dg(x)
+    ddf = prob.ddg(x)
+
+    old = approximations.Taylor2(intervening_variables.Exponential(p=-1))
+    old.update(x, f, df, ddf)
+
+    new = Ta2(Exp(p=-1))
+    new.update(x, f, df, ddf)
+
+    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert new.dg(x) == pytest.approx(old.dg(x), tol)
+    assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
+
+    y = x + dx
+    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert new.dg(y) == pytest.approx(old.dg(y), tol)
+    assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
 
 if __name__ == "__main__":
@@ -192,3 +221,4 @@ if __name__ == "__main__":
     test_ta_rec()
     test_ta_ta_rec()
     test_ta2()
+    test_ta2_rec()
