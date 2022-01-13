@@ -64,29 +64,40 @@ class Exponential(Mapping):
 class Taylor1(Mapping):
     def __init__(self, mapping=Linear()):
         super().__init__(mapping)
-        self.map = mapping
-        self.g0, self.dgdy0 = None, None
-        self.nresp, self.nvar = -1, -1
+        self.g0, self.dg0 = None, None
+        self.c = 0.0
 
     def _update(self, x, f, df, ddf=None):
-        self.nresp, self.nvar = df.shape
-        assert len(x) == self.nvar, "Mismatch in number of design variables."
-        assert len(f) == self.nresp, "Mismatch in number of responses."
-        self.map.update(x, f, df, ddf)
-        self.dgdy0 = df / self.map.dg(x)
-        self.g0 = (f / self.nvar)[:, np.newaxis] - self.dgdy0 * self.map.g(x)
+        self.c = f
+        self.dg0 = df / self.map.dg(x)
+        self.g0 = -self.dg0 * self.map.g(x)
 
-    def g(self, x):
-        return self._g(x)
+    def _g(self, x): return self.g0 + self.dg0 * x
 
-    def dg(self, x):
-        return self._dg(x)
+    def _dg(self, x): return self.dg0
 
-    def ddg(self, x):
-        return self._ddg(x)
+    def _ddg(self, x): return np.zeros_like(x)
 
-    def _g(self, x): return self.g0 + self.dgdy0 * self.map.g(x)
 
-    def _dg(self, x): return self.dgdy0 * self.map.dg(x)
+class Taylor2(Mapping):
+    def __init__(self, mapping=Linear()):
+        super().__init__(mapping)
+        self.g0, self.dg0, self.ddg0 = None, None, None
+        self.ddg0 = None
+        self.dg0 = None
+        self.c = 0.0
 
-    def _ddg(self, x): return self.dgdy0 * self.map.ddg(x)
+    def _update(self, x, f, df, ddf=None):
+        y0 = self.map.g(x)
+        dy0 = self.map.dg(x)
+        self.c = f
+        self.ddg0 = -ddf * self.map.ddg(x) / dy0 ** 3
+        self.dg0 = df / dy0
+        self.g0 = -self.dg0 * y0 + 0.5 * self.ddg0 * y0 ** 2
+        self.tmp = self.dg0 - y0 * self.ddg0
+
+    def _g(self, x): return self.g0 + self.tmp * x + 0.5 * self.ddg0 * x ** 2
+
+    def _dg(self, x): return self.tmp + self.ddg0 * x
+
+    def _ddg(self, x): return self.ddg0

@@ -1,5 +1,6 @@
 from problems.n_dim.square import Square
 from sao.mappings.mapping import Taylor1 as Ta
+from sao.mappings.mapping import Taylor2 as Ta2
 from sao.mappings.mapping import Linear
 from sao.mappings.mapping import Exponential as Exp
 from sao import intervening_variables, approximations
@@ -79,12 +80,12 @@ def test_ta(dx=1, tol=1e-4):
     new = Ta()
     new.update(x, f, df)
 
-    assert np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -103,12 +104,12 @@ def test_ta_lin(dx=1, tol=1e-4):
     new = Ta(Exp(p=1))
     new.update(x, f, df)
 
-    assert np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -127,12 +128,12 @@ def test_ta_rec(dx=1, tol=1e-4):
     new = Ta(Exp(p=2))
     new.update(x, f, df)
 
-    assert np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -151,14 +152,31 @@ def test_ta_ta_rec(dx=1, tol=1e-4):
     new = Ta(Ta(Exp(p=2)))
     new.update(x, f, df)
 
-    assert np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
+
+
+def test_ta2(dx=1, tol=1e-4):
+    prob = Square(4)
+    x = prob.x0
+    f = prob.g(x)
+    df = prob.dg(x)
+    ddf = prob.ddg(x)
+
+    old = approximations.Taylor2()
+    old.update(x, f, df, ddf)
+
+    new = Ta2()
+    new.update(x, f, df, ddf)
+
+    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert new.dg(x) == pytest.approx(old.dg(x), tol)
 
 
 if __name__ == "__main__":
@@ -173,3 +191,4 @@ if __name__ == "__main__":
     test_ta_lin()
     test_ta_rec()
     test_ta_ta_rec()
+    test_ta2()
