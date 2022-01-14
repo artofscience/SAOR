@@ -12,7 +12,10 @@ class Mapping(ABC):
 
     def update(self, x0, dg0, ddg0=None):
         self.map.update(x0, dg0, ddg0)
-        self._update(x0, dg0, ddg0)
+        self._update(self.map.g(x0),
+                     dg0 / self.map.dg(x0),
+                     -ddg0 * self.map.ddg(x0) / self.map.dg(x0) ** 3
+                     if ddg0 is not None else None)
 
     def clip(self, x): return self._clip(self.map.clip(x))
 
@@ -67,8 +70,8 @@ class Taylor1(Mapping):
         self.g0, self.dg0 = None, None
 
     def _update(self, x0, dg0, ddg0=None):
-        self.dg0 = dg0 / self.map.dg(x0)
-        self.g0 = -self.dg0 * self.map.g(x0)
+        self.g0 = -dg0 * x0
+        self.dg0 = dg0
 
     def _g(self, x): return self.g0 + self.dg0 * x
 
@@ -77,21 +80,19 @@ class Taylor1(Mapping):
     def _ddg(self, x): return np.zeros_like(x)
 
 
-class Taylor2(Mapping):
+class Taylor2(Taylor1):
     def __init__(self, mapping=Linear()):
         super().__init__(mapping)
-        self.g0, self.dg0, self.ddg0 = None, None, None
+        self.ddg0 = None
 
     def _update(self, x0, dg0, ddg0=None):
-        y0 = self.map.g(x0)
-        dy0 = self.map.dg(x0)
-        self.ddg0 = ddg0 / dy0 ** 2 - dg0 * self.map.ddg(x0) / dy0 ** 3
-        self.dg0 = dg0 / dy0
-        self.g0 = -self.dg0 * y0 + 0.5 * self.ddg0 * y0 ** 2
-        self.tmp = self.dg0 - y0 * self.ddg0
+        super()._update(x0, dg0)
+        self.g0 += 0.5 * ddg0 * x0 ** 2
+        self.dg0 -= ddg0 * x0
+        self.ddg0 = ddg0
 
-    def _g(self, x): return self.g0 + self.tmp * x + 0.5 * self.ddg0 * x ** 2
+    def _g(self, x): return self.g0 + self.dg0 * x + 0.5 * self.ddg0 * x ** 2
 
-    def _dg(self, x): return self.tmp + self.ddg0 * x
+    def _dg(self, x): return self.dg0 + self.ddg0 * x
 
     def _ddg(self, x): return self.ddg0
