@@ -78,14 +78,14 @@ def test_ta(dx=1, tol=1e-4):
     old.update(x, f, df)
 
     new = Ta()
-    new.update(x, f, df)
+    new.update(x, df)
 
-    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -102,14 +102,14 @@ def test_ta_lin(dx=1, tol=1e-4):
 
     # Newskool aka new
     new = Ta(Exp(p=1))
-    new.update(x, f, df)
+    new.update(x, df)
 
-    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -126,14 +126,14 @@ def test_ta_rec(dx=1, tol=1e-4):
 
     # Newskool aka new
     new = Ta(Exp(p=-1))
-    new.update(x, f, df)
+    new.update(x, df)
 
-    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -150,14 +150,14 @@ def test_ta_ta_rec(dx=1, tol=1e-4):
 
     # Newskool aka new
     new = Ta(Ta(Exp(p=2)))
-    new.update(x, f, df)
+    new.update(x, df)
 
-    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -173,14 +173,14 @@ def test_ta2(dx=1, tol=1e-4):
     old.update(x, f, df, ddf)
 
     new = Ta2()
-    new.update(x, f, df, ddf)
+    new.update(x, df, ddf)
 
-    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
@@ -196,14 +196,14 @@ def test_ta2_rec(dx=1, tol=1e-4):
     old.update(x, f, df, ddf)
 
     new = Ta2(Exp(p=-1))
-    new.update(x, f, df, ddf)
+    new.update(x, df, ddf)
 
-    assert new.c + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
+    assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
     assert new.dg(x) == pytest.approx(old.dg(x), tol)
     assert new.ddg(x) == pytest.approx(old.ddg(x), tol)
 
     y = x + dx
-    assert new.c + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
+    assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
