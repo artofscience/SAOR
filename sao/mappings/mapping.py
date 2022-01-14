@@ -12,9 +12,11 @@ class Mapping(ABC):
 
     def update(self, x0, dg0, ddg0=None):
         self.map.update(x0, dg0, ddg0)
+        dg = self.map.dg(x0)
+
         self._update(self.map.g(x0),
-                     dg0 / self.map.dg(x0),
-                     -ddg0 * self.map.ddg(x0) / self.map.dg(x0) ** 3
+                     dg0 / dg,
+                     ddg0 / dg ** 2 - dg0 * self.map.ddg(x0) / dg ** 3
                      if ddg0 is not None else None)
 
     def clip(self, x): return self._clip(self.map.clip(x))
