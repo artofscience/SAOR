@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 import pytest
+import time
 
 from problems.n_dim.square import Square
 from sao.solvers.pdip_svanberg import ipsolver
@@ -63,5 +64,12 @@ def test_square(n):
     assert np.linalg.norm(x_opt_scipy - x_opt_cvxopt) == pytest.approx(0, abs=1e-4)
 
 
+def test_numba():
+    problem = Square(100000)
+    start_time = time.time()
+    x = pdip(problem)[0]
+    print(time.time() - start_time)
+
+
 if __name__ == "__main__":
-    test_square(10)
+    test_numba()

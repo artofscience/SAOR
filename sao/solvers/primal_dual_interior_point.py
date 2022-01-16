@@ -1,7 +1,7 @@
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, fields
-
+from numba import njit
 import numpy as np
 from scipy.sparse import diags
 
@@ -86,10 +86,10 @@ class Pdip(ABC):
         ...
 
     def get_step_size(self, alphab=-1.01):
-        step_x = [max(alphab * dw / w) for w, dw in zip(tuple(self.w)[1:], tuple(self.dw)[1:])]
-        step_alpha = max(alphab * self.dw.x / (self.w.x - self.problem.x_min))
-        step_beta = max(-alphab * self.dw.x / (self.problem.x_max - self.w.x))
-        return 1.0 / max(1.0, max(step_x), step_alpha, step_beta)
+        step_x = [np.max(alphab * dw / w) for w, dw in zip(tuple(self.w)[1:], tuple(self.dw)[1:])]
+        step_alpha = np.max(alphab * self.dw.x / (self.w.x - self.problem.x_min))
+        step_beta = np.max(-alphab * self.dw.x / (self.problem.x_max - self.w.x))
+        return 1.0 / max(np.asarray([1.0, np.max(step_x), step_alpha, step_beta]))
 
 
 class Pdipx(Pdip):
