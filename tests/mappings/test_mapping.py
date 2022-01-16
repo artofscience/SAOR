@@ -207,19 +207,6 @@ def test_ta2_rec(dx=1, tol=1e-4):
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
 
 
-def test_ta2_ta_exp(dx=1, tol=1e-4, p=-1):
-    prob = Square(4)
-    x = prob.x0
-    df = prob.dg(x)
-    ddf = prob.ddg(x)
-
-    aoa = Ta2(Ta(Exp(p=p)))
-    aoa.update(x, df, ddf)
-
-    assert aoa.dg(x) == pytest.approx(df, tol)  # aoa eq 12
-    # assert aoa.ddg(x) == pytest.approx(df/aoa.map.dg(x)*aoa.map.ddg(x), tol)  # aoa eq 13 (should hold for any y(x))
-
-
 if __name__ == "__main__":
     test_lin()
     test_rec()
@@ -234,4 +221,3 @@ if __name__ == "__main__":
     test_ta_ta_rec()
     test_ta2()
     test_ta2_rec()
-    test_ta2_ta_exp()

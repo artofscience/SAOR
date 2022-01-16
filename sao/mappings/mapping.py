@@ -10,14 +10,10 @@ class Mapping(ABC):
     def __init__(self, mapping=None):
         self.map = mapping if mapping is not None else Linear()
 
-    def update(self, x0, dg0, ddg0=None):
+    def update(self, x0, dg0, ddg0=0):
         self.map.update(x0, dg0, ddg0)
         dg = self.map.dg(x0)
-
-        self._update(self.map.g(x0),
-                     dg0 / dg,
-                     ddg0 / dg ** 2 - dg0 * self.map.ddg(x0) / dg ** 3
-                     if ddg0 is not None else None)
+        self._update(self.map.g(x0), dg0 / dg, ddg0 / dg ** 2 - dg0 * self.map.ddg(x0) / dg ** 3)
 
     def clip(self, x): return self._clip(self.map.clip(x))
 
@@ -28,7 +24,7 @@ class Mapping(ABC):
     def ddg(self, x): return self._ddg(self.map.g(x)) * (self.map.dg(x)) ** 2 + \
                              self._dg(self.map.g(x)) * self.map.ddg(x)
 
-    def _update(self, x0, dg0, ddg0=None): pass
+    def _update(self, x0, dg0, ddg0=0): pass
 
     def _clip(self, x): return x
 
@@ -42,7 +38,7 @@ class Mapping(ABC):
 class Linear(Mapping):
     def __init__(self): pass
 
-    def update(self, x0, dg0, ddg0=None): pass
+    def update(self, x0, dg0, ddg0=0): pass
 
     def g(self, x): return x
 
@@ -71,7 +67,7 @@ class Taylor1(Mapping):
         super().__init__(mapping)
         self.g0, self.dg0 = None, None
 
-    def _update(self, x0, dg0, ddg0=None):
+    def _update(self, x0, dg0, ddg0=0):
         self.g0 = -dg0 * x0
         self.dg0 = dg0
 
@@ -87,7 +83,7 @@ class Taylor2(Taylor1):
         super().__init__(mapping)
         self.ddg0 = None
 
-    def _update(self, x0, dg0, ddg0=None):
+    def _update(self, x0, dg0, ddg0=0):
         super()._update(x0, dg0)
         self.g0 += 0.5 * ddg0 * x0 ** 2
         self.dg0 -= ddg0 * x0
