@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse import coo_matrix
 
-import util.to_utils as utils
+from problems.topology_optimization.util import to_utils as utils
 from sao.problems.problem import Problem
 
 

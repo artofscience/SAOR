@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from problems.n_dim.square import Square
-from sao.intervening_variables import Linear, Reciprocal, MixedIntervening, Exponential
+from sao.intervening_variables import Linear, Reciprocal, MixedIntervening, Exponential, ConLin
 from sao.intervening_variables.mixed_intervening import fill_set_when_emtpy
 from sao.intervening_variables.mma import MMA02 as MMA
 
@@ -29,6 +29,48 @@ logger.addHandler(stream_handler)
 ])
 def test_ensure_non_empty_set_with_size(n, s, out):
     assert fill_set_when_emtpy(s, n) == out
+
+
+@pytest.mark.parametrize('n', [10])
+def test_conlin(n):
+    logger.info("Testing ConLin intervening variables")
+    prob = Square(n)
+    f = prob.g(prob.x0)
+    df = prob.dg(prob.x0)
+    inter = ConLin()
+    inter.update(prob.x0, f, df)
+    lin = Linear()
+    rec = Reciprocal()
+
+    # Check y(x) for ConLin, Linear(), and Reciprocal()
+    assert inter.y(prob.x0)[0, :] == pytest.approx(lin.y(prob.x0), rel=1e-4)
+    assert inter.y(prob.x0)[1, :] == pytest.approx(rec.y(prob.x0), rel=1e-4)
+    assert lin.y(prob.x0) == pytest.approx(prob.x0, rel=1e-4)
+    assert rec.y(prob.x0) == pytest.approx(1 / prob.x0, rel=1e-4)
+
+    # Check dydx(x) for ConLin, Linear(), and Reciprocal()
+    assert inter.dydx(prob.x0)[0, :] == pytest.approx(lin.dydx(prob.x0), rel=1e-4)
+    assert inter.dydx(prob.x0)[1, :] == pytest.approx(rec.dydx(prob.x0), rel=1e-4)
+    assert lin.dydx(prob.x0) == pytest.approx(np.ones_like(prob.x0), rel=1e-4)
+    assert rec.dydx(prob.x0) == pytest.approx(-1 / prob.x0 ** 2, rel=1e-4)
+
+    # Check ddyddx(x) for ConLin, Linear(), and Reciprocal()
+    assert inter.ddyddx(prob.x0)[0, :] == pytest.approx(lin.ddyddx(prob.x0), rel=1e-4)
+    assert inter.ddyddx(prob.x0)[1, :] == pytest.approx(rec.ddyddx(prob.x0), rel=1e-4)
+    assert lin.ddyddx(prob.x0) == pytest.approx(np.zeros_like(prob.x0), abs=1e-4)
+    assert rec.ddyddx(prob.x0) == pytest.approx(2 / prob.x0 ** 3, rel=1e-4)
+
+    # Check dxdy(x) for ConLin, Linear(), and Reciprocal()
+    assert inter.dxdy(prob.x0)[0, :] == pytest.approx(lin.dxdy(prob.x0), rel=1e-4)
+    assert inter.dxdy(prob.x0)[1, :] == pytest.approx(rec.dxdy(prob.x0), rel=1e-4)
+    assert lin.dxdy(prob.x0) == pytest.approx(np.ones_like(prob.x0), rel=1e-4)
+    assert rec.dxdy(prob.x0) == pytest.approx(-1 / rec.y(prob.x0) ** 2, rel=1e-4)
+
+    # Check ddxddy(x) for ConLin, Linear(), and Reciprocal()
+    assert inter.ddxddy(prob.x0)[0, :] == pytest.approx(lin.ddxddy(prob.x0), rel=1e-4)
+    assert inter.ddxddy(prob.x0)[1, :] == pytest.approx(rec.ddxddy(prob.x0), rel=1e-4)
+    assert lin.ddxddy(prob.x0) == pytest.approx(np.zeros_like(prob.x0), abs=1e-4)
+    assert rec.ddxddy(prob.x0) == pytest.approx(2 / rec.y(prob.x0) ** 3, rel=1e-4)
 
 
 @pytest.mark.parametrize('n', [10])
@@ -238,6 +280,7 @@ def test_add_per_variable_and_response_multiple_overlap(n):
 
 
 if __name__ == "__main__":
+    test_conlin(4)
     test_uniform(4)
     test_different_per_response(4)
     test_add_per_response(4)

@@ -1,17 +1,17 @@
 import logging
-
 import numpy as np
 
+from examples.util.plotter_basic import Plot
 from examples.util.plotter import Plot2, Plot3
 from problems.n_dim.vdp_beam import VanderplaatsBeam
-from sao.approximations import Taylor1
-from sao.intervening_variables import MMAp, MixedIntervening
-from sao.intervening_variables.mma import MMA02 as MMA
-from sao.move_limits import Bounds, MoveLimit, AdaptiveMoveLimit
+
 from sao.problems import Subproblem
+from sao.approximations import Taylor1
+from sao.solvers.primal_dual_interior_point import pdip
+from sao.intervening_variables import MixedIntervening
+from sao.intervening_variables.mma import MMA02
+from sao.move_limits import Bounds, MoveLimitFraction, AdaptiveMoveLimit
 from sao.scaling_strategies import InitialObjectiveScaling, InitialResponseScaling
-from sao.solvers.pdip_svanberg import ipsolver
-from sao.util import Plot
 
 # Set options for logging data: https://www.youtube.com/watch?v=jxmzY9soFXg&ab_channel=CoreySchafer
 logger = logging.getLogger(__name__)
@@ -26,56 +26,52 @@ np.set_printoptions(precision=4)
 
 
 def example_vanderplaats(N):
-    logger.info("Solving VanderplaatsBeam using y=MMA and solver=Ipopt Svanberg")
+    logger.info("Solving VanderplaatsBeam using y=MMA and solver=pdip")
 
-    # Instantiate problem
-    prob = VanderplaatsBeam(N)
-    assert prob.n == 2 * N
-
-    # Instantiate a non-mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(MMA(prob.x_min, prob.x_max)))
-    subprob.set_limits([Bounds(prob.x_min, prob.x_max), MoveLimit(move_limit=5.0)])
+    # Instantiate problem, intervening variables, approximation, and subproblem
+    problem = VanderplaatsBeam(N)
+    assert problem.n == 2 * N
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    movelimit = MoveLimitFraction(fraction=2)
+    intvar = MMA02(x_min=problem.x_min, x_max=problem.x_max)
+    subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
 
     # Instantiate the scaling strategy
-    scaling = InitialResponseScaling(prob.m + 1)
+    scaling = InitialResponseScaling(problem.m + 1)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'stress_1', 'tip_disp', 'criterion', 'max_constr_violation'], path=".")
     plotter2_flag = False
     if plotter2_flag:
-        plotter2 = Plot2(prob)
+        plotter2 = Plot2(problem)
 
     # Initialize iteration counter and design
     itte = 0
-    x_k = prob.x0.copy()
+    x_k = problem.x0.copy()
     vis = None
 
     # Optimization loop
     while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
-        f = prob.g(x_k)
-        df = prob.dg(x_k)
-        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
+        f = problem.g(x_k)
+        df = problem.dg(x_k)
 
         # Apply scaling strategy
         f, df = scaling.scale(f, df)
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
+        subproblem.build(x_k, f, df)
 
         # Plot current approximation
         if plotter2_flag:
-            plotter2.plot_pair(x_k, f, prob, subprob, itte)
+            plotter2.plot_pair(x_k, f, problem, subproblem, itte)
 
         # Solve current subproblem
-        x_k = ipsolver(subprob)
-
-        # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        x_k = pdip(subproblem)[0]
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
-        vis = prob.visualize(x_k, itte, vis)
+        vis = problem.visualize(x_k, itte, vis)
         logger.info(
             'iter: {:^4d}  |  obj: {:^9.3f}  |  stress1: {:^6.3f}  |  tip_disp: {:^6.3f}  |  '
             'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(
@@ -90,57 +86,51 @@ def example_vanderplaats(N):
 def example_vanderplaats_mixed(N):
     logger.info("Solving VanderplaatsBeam using y=MixedMoveLimit and solver=Ipopt Svanberg")
 
-    # Instantiate problem
-    prob = VanderplaatsBeam(N)
-    assert prob.n == 2 * N
-
-    # Instantiate a mixed intervening variable
-    mix = MixedIntervening(prob.n, prob.m + 1, default=MMAp(-2, prob.x_min, prob.x_max))
-
-    # Instantiate a mixed approximation scheme
-    subprob = Subproblem(approximation=Taylor1(mix))
-    subprob.set_limits([Bounds(prob.x_min, prob.x_max), AdaptiveMoveLimit(move_limit=5.0)])
+    # Instantiate problem, intervening variables, approximation, and subproblem
+    problem = VanderplaatsBeam(N)
+    assert problem.n == 2 * N
+    bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
+    movelimit = MoveLimitFraction(fraction=2)
+    intvar = MixedIntervening(problem.n, problem.m + 1)
+    intvar.set_intervening(MMA02(x_min=problem.x_min, x_max=problem.x_max), resp=0)
+    subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
 
     # Instantiate the scaling strategy
-    scaling = InitialObjectiveScaling(prob.m + 1)
+    scaling = InitialObjectiveScaling(problem.m + 1)
 
     # Instantiate plotter           # TODO: Change the 'criterion' to f'{criterion.__class__.__name__}'
     plotter = Plot(['objective', 'stress_1', 'tip_disp', 'criterion', 'max_constr_violation'], path=".")
     plotter3_flag = False
     if plotter3_flag:
-        plotter3 = Plot3(prob)
+        plotter3 = Plot3(problem)
 
     # Initialize iteration counter and design
     itte = 0
-    x_k = prob.x0.copy()
+    x_k = problem.x0.copy()
     vis = None
 
     # Optimization loop
     while itte < 100:  # not criterion.converged:
 
         # Evaluate responses and sensitivities at current point, i.e. g(X^(k)), dg(X^(k))
-        f = prob.g(x_k)
-        df = prob.dg(x_k)
-        ddf = prob.ddg(x_k) if isinstance(subprob.approx, Taylor1) else None
+        f = problem.g(x_k)
+        df = problem.dg(x_k)
 
         # Apply scaling strategy
         f, df = scaling.scale(f, df)
 
         # Build approximate sub-problem at X^(k)
-        subprob.build(x_k, f, df)
+        subproblem.build(x_k, f, df)
 
         # Plot current approximation
         if plotter3_flag:
-            plotter3.plot_pair(x_k, f, prob, subprob, itte)
+            plotter3.plot_pair(x_k, f, problem, subproblem, itte)
 
         # Solve current subproblem
-        x_k = ipsolver(subprob)
-
-        # Assess convergence (give the correct keyword arguments for the criterion you choose)
-        # criterion.assess_convergence(x_k=x_k, f=f, iter=itte, lam=lam, df=df)
+        x_k = pdip(subproblem)[0]
 
         # Print & Plot              # TODO: Print and Plot the criterion as criterion.value (where 0 is now)
-        vis = prob.visualize(x_k, itte, vis)
+        vis = problem.visualize(x_k, itte, vis)
         logger.info(
             'iter: {:^4d}  |  obj: {:^9.3f}  |  stress1: {:^6.3f}  |  tip_disp: {:^6.3f}  |  '
             'criterion: {:^6.3f}  |  max_constr_viol: {:^6.3f}'.format(

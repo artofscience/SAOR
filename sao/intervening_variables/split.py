@@ -43,7 +43,7 @@ class ConLin(PositiveNegative):
     """
 
     def __init__(self):
-        super().__init__(Linear(), Reciprocal())
+        super().__init__(Reciprocal(), Linear())
 
     def clip(self, x):  # TODO Maybe add some tolerance like albefa to keep the value from 0
         return np.maximum(x, 0.0, out=x)
