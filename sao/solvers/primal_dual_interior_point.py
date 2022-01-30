@@ -1,7 +1,6 @@
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, fields
-from numba import njit
 import numpy as np
 from scipy.sparse import diags
 
