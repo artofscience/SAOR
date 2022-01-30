@@ -18,7 +18,7 @@ class Exponential(Mapping):
     def _ddg(self, x): return self.p * (self.p - 1) * x ** (self.p - 2)
 
 
-class PositiveNegative(ABC, Mapping):
+class PositiveNegative(Mapping):
     def __init__(self, left: Mapping, right: Mapping):
         self.left = left
         self.right = right
@@ -41,7 +41,7 @@ class PositiveNegative(ABC, Mapping):
         return x
 
 
-class MMAp(ABC, PositiveNegative):
+class MMAp(PositiveNegative):
     def __init__(self, p=-1, factor=1e-3, low=-10.0, upp=10.0):
         super().__init__(Exponential(p), Exponential(p))
         self.low, self.upp = low, upp
@@ -68,5 +68,5 @@ class ConLin(PositiveNegative):
     def __init__(self): super().__init__(Exponential(-1), Exponential(1))
 
 
-class MMA(ABC, MMAp):
+class MMA(MMAp):
     def __init__(self): super().__init__(-1)
