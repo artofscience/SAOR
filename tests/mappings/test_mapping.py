@@ -232,7 +232,7 @@ def test_aoa_rec(dx=1, tol=1e-4):
     t1_rec.update(x, df, ddf)
 
     aoa = DQA()
-    aoa.update(x, df, ddg0=df / t1_rec.map.dg(x) * t1_rec.map.ddg(x))
+    aoa.update(x, df, ddg0=t1_rec.ddg(x))
 
     assert aoa.g(x) == pytest.approx(t1_rec.g(x), tol)
     assert aoa.dg(x) == pytest.approx(t1_rec.dg(x), tol)
