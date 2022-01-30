@@ -65,7 +65,7 @@ def test_non_spherical(dx=1, tol=1e-4):
     assert aoa.dg(x0) == pytest.approx(df0, tol)
 
 
-def spherical(delta_g, delta_x, dg): return 2 * (delta_g - dg @ delta_x) / np.sum(delta_x) ** 2
+def spherical(delta_g, delta_x, dg): return 2 * (delta_g - dg @ delta_x) / np.sum(delta_x ** 2)
 
 
 def test_spherical(dx=1, tol=1e-4):
@@ -84,8 +84,8 @@ def test_spherical(dx=1, tol=1e-4):
 
     aoa.update(x1, df1, ddg0=spherical(f0 - f1, x0 - x1, df1))
 
-    assert aoa.ddg0 == pytest.approx(2 * (f0 - f1 - df1 @ (x0 - x1)) / np.sum(x0 - x1) ** 2, tol)
-    # assert (f1 + np.sum(aoa.g(x0))) == pytest.approx(f0, tol)
+    assert aoa.ddg0 == pytest.approx(2 * (f0 - f1 - df1 @ (x0 - x1)) / np.sum((x0 - x1) ** 2), tol)
+    assert (f1 + np.sum(aoa.g(x0))) == pytest.approx(f0, tol)
 
 
 if __name__ == "__main__":
