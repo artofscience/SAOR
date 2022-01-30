@@ -62,7 +62,7 @@ class Exponential(Mapping):
     def _ddg(self, x): return self.p * (self.p - 1) * x ** (self.p - 2)
 
 
-class Taylor1(Mapping):
+class LinearApproximation(Mapping):
     def __init__(self, mapping=Linear()):
         super().__init__(mapping)
         self.g0, self.dg0 = None, None
@@ -78,7 +78,7 @@ class Taylor1(Mapping):
     def _ddg(self, x): return np.zeros_like(x)
 
 
-class Taylor2(Taylor1):
+class DiagonalQuadraticApproximation(LinearApproximation):
     def __init__(self, mapping=Linear()):
         super().__init__(mapping)
         self.ddg0 = None

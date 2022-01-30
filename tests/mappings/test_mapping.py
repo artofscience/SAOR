@@ -1,10 +1,24 @@
 from problems.n_dim.square import Square
-from sao.mappings.mapping import Taylor1 as Ta
-from sao.mappings.mapping import Taylor2 as Ta2
+from sao.problems import Problem
+from sao.mappings.mapping import LinearApproximation as LA
+from sao.mappings.mapping import DiagonalQuadraticApproximation as DQA
 from sao.mappings.mapping import Exponential as Exp
 from sao import intervening_variables, approximations
 import numpy as np
 import pytest
+
+
+class Dummy(Problem):
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
+        self.x0 = np.linspace(1.0, 2.0, self.n, dtype=float)
+
+    def g(self, x): return x @ x
+
+    def dg(self, x): return 2 * x
+
+    def ddg(self, x): return 2
 
 
 def test_lin(tol=1e-4):
@@ -76,7 +90,7 @@ def test_ta(dx=1, tol=1e-4):
     old = approximations.Taylor1()
     old.update(x, f, df)
 
-    new = Ta()
+    new = LA()
     new.update(x, df)
 
     assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
@@ -100,7 +114,7 @@ def test_ta_lin(dx=1, tol=1e-4):
     old.update(x, f, df)
 
     # Newskool aka new
-    new = Ta(Exp(p=1))
+    new = LA(Exp(p=1))
     new.update(x, df)
 
     assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
@@ -124,7 +138,7 @@ def test_ta_rec(dx=1, tol=1e-4):
     old.update(x, f, df)
 
     # Newskool aka new
-    new = Ta(Exp(p=-1))
+    new = LA(Exp(p=-1))
     new.update(x, df)
 
     assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
@@ -148,7 +162,7 @@ def test_ta_ta_rec(dx=1, tol=1e-4):
     old.update(x, f, df)
 
     # Newskool aka new
-    new = Ta(Ta(Exp(p=2)))
+    new = LA(LA(Exp(p=2)))
     new.update(x, df)
 
     assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
@@ -171,7 +185,7 @@ def test_ta2(dx=1, tol=1e-4):
     old = approximations.Taylor2()
     old.update(x, f, df, ddf)
 
-    new = Ta2()
+    new = DQA()
     new.update(x, df, ddf)
 
     assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
@@ -194,7 +208,7 @@ def test_ta2_rec(dx=1, tol=1e-4):
     old = approximations.Taylor2(intervening_variables.Exponential(p=-1))
     old.update(x, f, df, ddf)
 
-    new = Ta2(Exp(p=-1))
+    new = DQA(Exp(p=-1))
     new.update(x, df, ddf)
 
     assert f + np.sum(new.g(x), 1) == pytest.approx(old.g(x), tol)
@@ -205,6 +219,30 @@ def test_ta2_rec(dx=1, tol=1e-4):
     assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
+
+
+def test_aoa_rec(dx=1, tol=1e-4):
+    prob = Dummy(4)
+    x = prob.x0
+    f = prob.g(x)
+    df = prob.dg(x)
+    ddf = prob.ddg(x)
+
+    t1_rec = LA(Exp(p=-1))
+    t1_rec.update(x, df, ddf)
+
+    aoa = DQA()
+    aoa.update(x, df, ddg0=df / t1_rec.map.dg(x) * t1_rec.map.ddg(x))
+
+    assert aoa.g(x) == pytest.approx(t1_rec.g(x), tol)
+    assert aoa.dg(x) == pytest.approx(t1_rec.dg(x), tol)
+    assert aoa.ddg(x) == pytest.approx(df / t1_rec.map.dg(x) * t1_rec.map.ddg(x), tol)
+
+    y = x + dx
+
+    assert aoa.ddg(y) == pytest.approx(aoa.ddg(x), tol)
+    assert aoa.dg(y) == pytest.approx(df + aoa.ddg(x) * (y - x), tol)
+    assert aoa.g(y) == pytest.approx(df * (y - x) + 0.5 * aoa.ddg(x) * (y - x) ** 2)
 
 
 if __name__ == "__main__":
@@ -221,3 +259,4 @@ if __name__ == "__main__":
     test_ta_ta_rec()
     test_ta2()
     test_ta2_rec()
+    test_aoa_rec()
