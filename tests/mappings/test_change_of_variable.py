@@ -25,7 +25,7 @@ def test_rec(tol=1e-4):
 
 def test_lin_rec(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(-1), 1)
+    mapping = Exp(1, Exp(-1))
 
     assert mapping.g(x) == pytest.approx(1 / x, tol)
     assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
@@ -42,7 +42,7 @@ def test_exp2(tol=1e-4):
 
 def test_rec_lin(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(1), -1)
+    mapping = Exp(-1, Exp(1))
 
     assert mapping.g(x) == pytest.approx(1 / x, tol)
     assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
@@ -51,7 +51,7 @@ def test_rec_lin(tol=1e-4):
 
 def test_rec_rec(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(-1), -1)
+    mapping = Exp(-1, Exp(-1))
     assert mapping.g(x) == pytest.approx(x, tol)
     assert mapping.dg(x) == pytest.approx(1, tol)
     assert mapping.ddg(x) == pytest.approx(0, tol)
@@ -59,7 +59,7 @@ def test_rec_rec(tol=1e-4):
 
 def test_rec_exp2_rec(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(Exp(-1), 2), -1)
+    mapping = Exp(-1, Exp(2, Exp(-1)))
     assert mapping.g(x) == pytest.approx(Exp(2).g(x), tol)
     assert mapping.dg(x) == pytest.approx(Exp(2).dg(x), tol)
     assert mapping.ddg(x) == pytest.approx(Exp(2).ddg(x), tol)
@@ -84,4 +84,7 @@ def test_conlin(dx=1, tol=1e-4):
 
 
 if __name__ == "__main__":
+    test_lin()
     test_conlin()
+    test_rec()
+    test_rec_rec()

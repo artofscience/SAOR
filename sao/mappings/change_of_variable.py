@@ -68,5 +68,5 @@ class ConLin(PositiveNegative):
     def __init__(self): super().__init__(Exponential(-1), Exponential(1))
 
 
-class MMA(MMAp):
+class MMA(MMAp, ABC):
     def __init__(self): super().__init__(-1)
