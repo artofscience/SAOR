@@ -1,5 +1,5 @@
 from problems.n_dim.square import Square
-from sao.mappings.intervening import Exponential as Exp
+from sao.mappings.change_of_variable import Exponential as Exp
 from sao.mappings.approximations import DiagonalQuadraticApproximation as DQA
 import pytest
 from sao.mappings.mapping import MixedMapping as MM

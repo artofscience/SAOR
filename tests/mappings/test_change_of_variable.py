@@ -1,6 +1,6 @@
 from problems.n_dim.square import Square
-from sao.mappings.intervening import Exponential as Exp
-from sao.mappings.intervening import ConLin
+from sao.mappings.change_of_variable import Exponential as Exp
+from sao.mappings.change_of_variable import ConLin
 import numpy as np
 import pytest
 
