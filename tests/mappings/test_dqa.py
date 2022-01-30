@@ -1,7 +1,7 @@
 from sao.problems import Problem
-from sao.mappings.mapping import LinearApproximation as LA
-from sao.mappings.mapping import DiagonalQuadraticApproximation as DQA
-from sao.mappings.mapping import Exponential as Exp
+from sao.mappings.approximations import LinearApproximation as LA
+from sao.mappings.approximations import DiagonalQuadraticApproximation as DQA
+from sao.mappings.intervening import Exponential as Exp
 import numpy as np
 import pytest
 
