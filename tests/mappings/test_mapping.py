@@ -235,14 +235,17 @@ def test_aoa_rec(dx=1, tol=1e-4):
     aoa.update(x, df, ddg0=t1_rec.ddg(x))
 
     assert aoa.g(x) == pytest.approx(t1_rec.g(x), tol)
+    assert (f + np.sum(aoa.g(x))) == pytest.approx(f, tol)
     assert aoa.dg(x) == pytest.approx(t1_rec.dg(x), tol)
+    assert aoa.dg(x) == pytest.approx(df, tol)
     assert aoa.ddg(x) == pytest.approx(df / t1_rec.map.dg(x) * t1_rec.map.ddg(x), tol)
 
     y = x + dx
 
     assert aoa.ddg(y) == pytest.approx(aoa.ddg(x), tol)
-    assert aoa.dg(y) == pytest.approx(df + aoa.ddg(x) * (y - x), tol)
-    assert aoa.g(y) == pytest.approx(df * (y - x) + 0.5 * aoa.ddg(x) * (y - x) ** 2)
+    assert aoa.dg(y) == pytest.approx(df + t1_rec.ddg(x) * (y - x), tol)
+    assert aoa.g(y) == pytest.approx(df * (y - x) + 0.5 * t1_rec.ddg(x) * (y - x) ** 2)
+    assert (f + np.sum(aoa.g(y))) == pytest.approx(f + np.sum(df * (y - x) + 0.5 * t1_rec.ddg(x) * (y - x) ** 2), tol)
 
 
 if __name__ == "__main__":
