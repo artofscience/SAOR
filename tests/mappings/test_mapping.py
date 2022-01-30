@@ -1,24 +1,10 @@
 from problems.n_dim.square import Square
-from sao.problems import Problem
 from sao.mappings.mapping import LinearApproximation as LA
 from sao.mappings.mapping import DiagonalQuadraticApproximation as DQA
 from sao.mappings.mapping import Exponential as Exp
 from sao import intervening_variables, approximations
 import numpy as np
 import pytest
-
-
-class Dummy(Problem):
-    def __init__(self, n):
-        super().__init__()
-        self.n = n
-        self.x0 = np.linspace(1.0, 2.0, self.n, dtype=float)
-
-    def g(self, x): return x @ x
-
-    def dg(self, x): return 2 * x
-
-    def ddg(self, x): return 2
 
 
 def test_lin(tol=1e-4):
@@ -219,46 +205,3 @@ def test_ta2_rec(dx=1, tol=1e-4):
     assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
-
-
-def test_aoa_rec(dx=1, tol=1e-4):
-    prob = Dummy(4)
-    x = prob.x0
-    f = prob.g(x)
-    df = prob.dg(x)
-
-    t1_rec = LA(Exp(p=-1))
-    t1_rec.update(x, df)
-
-    aoa = DQA()
-    aoa.update(x, df, ddg0=t1_rec.ddg(x))
-
-    assert aoa.g(x) == pytest.approx(t1_rec.g(x), tol)
-    assert (f + np.sum(aoa.g(x))) == pytest.approx(f, tol)
-    assert aoa.dg(x) == pytest.approx(t1_rec.dg(x), tol)
-    assert aoa.dg(x) == pytest.approx(df, tol)
-    assert aoa.ddg(x) == pytest.approx(df / t1_rec.map.dg(x) * t1_rec.map.ddg(x), tol)
-
-    y = x + dx
-
-    assert aoa.ddg(y) == pytest.approx(aoa.ddg(x), tol)
-    assert aoa.dg(y) == pytest.approx(df + t1_rec.ddg(x) * (y - x), tol)
-    assert aoa.g(y) == pytest.approx(df * (y - x) + 0.5 * t1_rec.ddg(x) * (y - x) ** 2)
-    assert (f + np.sum(aoa.g(y))) == pytest.approx(f + np.sum(df * (y - x) + 0.5 * t1_rec.ddg(x) * (y - x) ** 2), tol)
-
-
-if __name__ == "__main__":
-    test_lin()
-    test_rec()
-    test_exp2()
-    test_lin_rec()
-    test_rec_lin()
-    test_rec_rec()
-    test_rec_exp2_rec()
-    test_ta()
-    test_ta_lin()
-    test_ta_rec()
-    test_ta_ta_rec()
-    test_ta2()
-    test_ta2_rec()
-    test_aoa_rec()
