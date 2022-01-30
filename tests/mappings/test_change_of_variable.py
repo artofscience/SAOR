@@ -7,7 +7,7 @@ import pytest
 
 def test_lin(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(p=1)
+    mapping = Exp(1)
 
     assert mapping.g(x) == pytest.approx(x, tol)
     assert mapping.dg(x) == pytest.approx(1, tol)
@@ -16,7 +16,7 @@ def test_lin(tol=1e-4):
 
 def test_rec(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(p=-1)
+    mapping = Exp(-1)
 
     assert mapping.g(x) == pytest.approx(1 / x, tol)
     assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
@@ -25,7 +25,7 @@ def test_rec(tol=1e-4):
 
 def test_lin_rec(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(p=-1), p=1)
+    mapping = Exp(Exp(-1), 1)
 
     assert mapping.g(x) == pytest.approx(1 / x, tol)
     assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
@@ -34,7 +34,7 @@ def test_lin_rec(tol=1e-4):
 
 def test_exp2(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(p=2)
+    mapping = Exp(2)
     assert mapping.g(x) == pytest.approx(x ** 2, tol)
     assert mapping.dg(x) == pytest.approx(2 * x, tol)
     assert mapping.ddg(x) == pytest.approx(2, tol)
@@ -42,7 +42,7 @@ def test_exp2(tol=1e-4):
 
 def test_rec_lin(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(p=1), p=-1)
+    mapping = Exp(Exp(1), -1)
 
     assert mapping.g(x) == pytest.approx(1 / x, tol)
     assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
@@ -51,7 +51,7 @@ def test_rec_lin(tol=1e-4):
 
 def test_rec_rec(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(p=-1), p=-1)
+    mapping = Exp(Exp(-1), -1)
     assert mapping.g(x) == pytest.approx(x, tol)
     assert mapping.dg(x) == pytest.approx(1, tol)
     assert mapping.ddg(x) == pytest.approx(0, tol)
@@ -59,10 +59,10 @@ def test_rec_rec(tol=1e-4):
 
 def test_rec_exp2_rec(tol=1e-4):
     x = np.array([1.0, 2.0])
-    mapping = Exp(Exp(Exp(p=-1), p=2), p=-1)
-    assert mapping.g(x) == pytest.approx(Exp(p=2).g(x), tol)
-    assert mapping.dg(x) == pytest.approx(Exp(p=2).dg(x), tol)
-    assert mapping.ddg(x) == pytest.approx(Exp(p=2).ddg(x), tol)
+    mapping = Exp(Exp(Exp(-1), 2), -1)
+    assert mapping.g(x) == pytest.approx(Exp(2).g(x), tol)
+    assert mapping.dg(x) == pytest.approx(Exp(2).dg(x), tol)
+    assert mapping.ddg(x) == pytest.approx(Exp(2).ddg(x), tol)
 
 
 def test_conlin(dx=1, tol=1e-4):

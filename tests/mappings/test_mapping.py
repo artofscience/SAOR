@@ -13,8 +13,8 @@ def test_mm(dx=1, tol=1e-4):
     ddf = prob.ddg(x)
 
     mymap = MM(prob.n, prob.m + 1)
-    mymap.set_map(Exp(p=-1), 0, 1)
-    mymap.set_map(Exp(p=-2), 1, 1)
+    mymap.set_map(Exp(-1), 0, 1)
+    mymap.set_map(Exp(-2), 1, 1)
     mymap.update(prob.x0, df, ddf)
 
     aoa = DQA()
