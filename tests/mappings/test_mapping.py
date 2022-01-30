@@ -226,10 +226,9 @@ def test_aoa_rec(dx=1, tol=1e-4):
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
-    ddf = prob.ddg(x)
 
     t1_rec = LA(Exp(p=-1))
-    t1_rec.update(x, df, ddf)
+    t1_rec.update(x, df)
 
     aoa = DQA()
     aoa.update(x, df, ddg0=t1_rec.ddg(x))
