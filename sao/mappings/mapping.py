@@ -59,30 +59,11 @@ def fill_set_when_emtpy(s, n):
 
 
 class MixedMapping(Mapping):
-    """
-    For every response i, and variable j, a separate or combination of
-    intervening variables can be set. (intervening, response, variable).
-
-    The responses are tracked by sets of indices that indicate the response of
-    interest for the given intervening variable. These sets are
-    non-overlapping, i.e. there is only one intervening variable that points to
-    a response at all times.
-
-    The variables are tracked by a dictionary of response indices to variable
-    sets. So, ``{0: {0, 1, 3}, 1: {0, 2}}`` indicates that for response ``0``
-    the variables ``{0, 1, 3}`` are relevant and for response ``1`` only the
-    variable set ``{0, 2}``. The variable sets used in different responses can
-    overlap.
-    """
-
     def __init__(self, nvar: int, nresp: int, default: Mapping = Linear()):
-        super().__init__()
         self.default = default
         self.nvar = nvar
         self.nresp = nresp
-
-        # On initialisation the default intervening variable is added to all
-        # the responses pointing to all considered variables.
+        self.map = []
         responses = set(range(self.nresp))
         variables = set(range(self.nvar))
         self.add_map(self.default, responses, variables)
