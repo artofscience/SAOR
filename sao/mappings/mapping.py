@@ -49,12 +49,14 @@ class Linear(Mapping):
 
 def fill_set_when_emtpy(s, n):
     """Returns ``set(s)`` or a ``set(0..n)`` if ``set(s)`` is the empty set."""
-    if s is None or s is ...: return set(range(n))
+    if s is None or s is ...:
+        return set(range(n))
     try:
         s = set(s)
     except TypeError:
-        s = set([s])
-    if len(s) == 0: return set(range(n))
+        s = {s}
+    if len(s) == 0:
+        return set(range(n))
     return s
 
 
@@ -70,64 +72,28 @@ class MixedMapping(Mapping):
 
     @property
     def maps(self):
-        """Yields only the intervening variables."""
-        for mp, _, _ in self.map:
-            yield mp
+        for mp, _, _ in self.map: yield mp
 
     def set_map(self, inter: Mapping, resp=set(), var=set()):
-        """Assign a intervening variable to some variables/responses.
-
-        Other intervening variables that might be pointing to the same
-        responses are updated accordingly to avoid any overlap between the
-        different response sets.
-        """
         new_resp = fill_set_when_emtpy(resp, self.nresp)
         new_vars = fill_set_when_emtpy(var, self.nvar)
-
         for _, responses, variables in self.map:
-            # Only consider to remove entries when the new response shares
-            # the same indices as the existing responses (set intersection).
             for r in (new_resp & responses):
                 diff = variables[r] - new_vars
                 if len(diff) > 0:
-                    # If the resulting set of variables is non-empty, we need
-                    # to add the index `r` to the current set with the
-                    # remaining variables.
                     responses.add(r)
                     variables[r] = diff
                 else:
-                    # If the resulting set is empty, the index `r` can be
-                    # removed from the current set of responses and the
-                    # corresponding variables can be deleted from the mapping.
                     responses.remove(r)
                     del variables[r]
-
-        # After deleting the overlapping regions in any other response and/or
-        # variable sets, an additional intervening variable is added.
         return self.add_map(inter, new_resp, new_vars)
 
     def add_map(self, inter, resp=set(), var=set()):
-        """Adds an additional intervening variable to responses and variables.
-
-        The mapping only considers the unique set of elements in the response
-        and variable sets. When an empty is given, all responses/variables will
-        be considered.
-        """
         responses = fill_set_when_emtpy(resp, self.nresp)
         variables = fill_set_when_emtpy(var, self.nvar)
-
-        self.map.append(
-            (inter, responses, {i: variables for i in responses})
-        )
-        return self
+        self.map.append((inter, responses, {i: variables for i in responses}))
 
     def evaluate_for_each_response(self, x, fn: callable):
-        """Evaluates a function for each response and collects its output.
-
-        Allocates the output of size ``number of reponses`` by ``number of
-        design variables`` and populates the output by evaluating a callable
-        function for each intervening variable given the current ``x``.
-        """
         out = np.zeros((self.nresp, x.shape[0]))
         for intv, responses, variables in self.map:
             y_all = fn(intv, x)
@@ -139,36 +105,30 @@ class MixedMapping(Mapping):
                     out[r, var_indices] += y_all[var_indices]
         return out
 
-    def y(self, x):
-        """Evaluates the mapping y = f(x)."""
+    def g(self, x):
+        def g_of_x(cls, x):
+            return cls.g(x)
 
-        def y_of_x(cls, x):
-            return cls.y(x)
+        return self.evaluate_for_each_response(x, g_of_x)
 
-        return self.evaluate_for_each_response(x, y_of_x)
+    def dg(self, x):
+        def dg_of_x(cls, x):
+            return cls.dg(x)
 
-    def dydx(self, x):
-        """Evaluates the first derivative of the mapping at x."""
+        return self.evaluate_for_each_response(x, dg_of_x)
 
-        def dy_of_x(cls, x):
-            return cls.dydx(x)
+    def ddg(self, x):
+        def ddg_of_x(cls, x):
+            return cls.ddg(x)
 
-        return self.evaluate_for_each_response(x, dy_of_x)
-
-    def ddyddx(self, x):
-        """Evaluates the second derivatives of the mapping at x."""
-
-        def ddy_of_x(cls, x):
-            return cls.ddyddx(x)
-
-        return self.evaluate_for_each_response(x, ddy_of_x)
+        return self.evaluate_for_each_response(x, ddg_of_x)
 
     def update(self, x0, dg0, ddg0=0):
         for mp in self.map:
-            mp.update(x0, dg0, ddg0=0)
+            mp[0].update(x0, dg0, ddg0=0)
         return self
 
     def clip(self, x):
         for mp in self.map:
-            mp.clip(x)
+            mp[0].clip(x)
         return x
