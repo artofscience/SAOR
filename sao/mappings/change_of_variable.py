@@ -18,27 +18,7 @@ class Exponential(Mapping):
     def _ddg(self, x): return self.p * (self.p - 1) * x ** (self.p - 2)
 
 
-class PositiveNegative(Mapping):
-    def __init__(self, left: Mapping, right: Mapping):
-        self.left = left
-        self.right = right
-        self.positive = None
 
-    def update(self, x0, dg0, ddg0=0):
-        self.left.update(x0, dg0, ddg0)
-        self.right.update(x0, dg0, ddg0)
-        self.positive = dg0 >= 0
-
-    def g(self, x): return np.where(self.positive, self.right.g(x), self.left.g(x))
-
-    def dg(self, x): return np.where(self.positive, self.right.dg(x), self.left.dg(x))
-
-    def ddg(self, x): return np.where(self.positive, self.right.ddg(x), self.left.ddg(x))
-
-    def clip(self, x):
-        self.left.clip(x)
-        self.right.clip(x)
-        return x
 
 
 class MMAp(PositiveNegative):

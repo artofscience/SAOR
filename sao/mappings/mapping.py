@@ -68,7 +68,7 @@ class MixedMapping(Mapping):
         self.map = []
         responses = set(range(self.nresp))
         variables = set(range(self.nvar))
-        self.add_map(self.default, responses, variables)
+        self.__add_map(self.default, responses, variables)
 
     @property
     def maps(self):
@@ -86,9 +86,9 @@ class MixedMapping(Mapping):
                 else:
                     responses.remove(r)
                     del variables[r]
-        return self.add_map(inter, new_resp, new_vars)
+        return self.__add_map(inter, new_resp, new_vars)
 
-    def add_map(self, inter, resp=set(), var=set()):
+    def __add_map(self, inter, resp=set(), var=set()):
         responses = fill_set_when_emtpy(resp, self.nresp)
         variables = fill_set_when_emtpy(var, self.nvar)
         self.map.append((inter, responses, {i: variables for i in responses}))
@@ -131,4 +131,48 @@ class MixedMapping(Mapping):
     def clip(self, x):
         for mp in self.map:
             mp[0].clip(x)
+        return x
+
+
+class Sum(Mapping):
+    def __init__(self, left: Mapping, right: Mapping):
+        self.left = left
+        self.right = right
+
+    def update(self, x0, dg0, ddg0=0):
+        self.left.update(x0, dg0, ddg0)
+        self.right.update(x0, dg0, ddg0)
+
+    def g(self, x): return self.left.g(x) + self.right.g(x)
+
+    def dg(self, x): return self.left.dg(x) + self.right.dg(x)
+
+    def ddg(self, x): return self.left.ddg(x) + self.right.ddg(x)
+
+    def clip(self, x):
+        self.left.clip(x)
+        self.right.clip(x)
+        return x
+
+
+class PositiveNegative(Mapping):
+    def __init__(self, left: Mapping, right: Mapping):
+        self.left = left
+        self.right = right
+        self.positive = None
+
+    def update(self, x0, dg0, ddg0=0):
+        self.left.update(x0, dg0, ddg0)
+        self.right.update(x0, dg0, ddg0)
+        self.positive = dg0 >= 0
+
+    def g(self, x): return np.where(self.positive, self.right.g(x), self.left.g(x))
+
+    def dg(self, x): return np.where(self.positive, self.right.dg(x), self.left.dg(x))
+
+    def ddg(self, x): return np.where(self.positive, self.right.ddg(x), self.left.ddg(x))
+
+    def clip(self, x):
+        self.left.clip(x)
+        self.right.clip(x)
         return x
