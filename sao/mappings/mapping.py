@@ -35,7 +35,7 @@ class Mapping(ABC):
     def _ddg(self, x): return np.zeros_like(x)
 
 
-class Linear(Mapping):
+class Linear(Mapping, ABC):
     def __init__(self): pass
 
     def update(self, x0, dg0, ddg0=0): pass
@@ -134,7 +134,7 @@ class MixedMapping(Mapping):
         return x
 
 
-class Sum(Mapping):
+class TwoMap(Mapping, ABC):
     def __init__(self, left: Mapping, right: Mapping):
         self.left = left
         self.right = right
@@ -142,12 +142,6 @@ class Sum(Mapping):
     def update(self, x0, dg0, ddg0=0):
         self.left.update(x0, dg0, ddg0)
         self.right.update(x0, dg0, ddg0)
-
-    def g(self, x): return self.left.g(x) + self.right.g(x)
-
-    def dg(self, x): return self.left.dg(x) + self.right.dg(x)
-
-    def ddg(self, x): return self.left.ddg(x) + self.right.ddg(x)
 
     def clip(self, x):
         self.left.clip(x)
@@ -155,15 +149,21 @@ class Sum(Mapping):
         return x
 
 
-class PositiveNegative(Mapping):
+class Sum(TwoMap):
+    def g(self, x): return self.left.g(x) + self.right.g(x)
+
+    def dg(self, x): return self.left.dg(x) + self.right.dg(x)
+
+    def ddg(self, x): return self.left.ddg(x) + self.right.ddg(x)
+
+
+class PositiveNegative(TwoMap, ABC):
     def __init__(self, left: Mapping, right: Mapping):
-        self.left = left
-        self.right = right
+        super().__init__(left, right)
         self.positive = None
 
     def update(self, x0, dg0, ddg0=0):
-        self.left.update(x0, dg0, ddg0)
-        self.right.update(x0, dg0, ddg0)
+        super().update(x0, dg0, ddg0)
         self.positive = dg0 >= 0
 
     def g(self, x): return np.where(self.positive, self.right.g(x), self.left.g(x))
@@ -171,8 +171,3 @@ class PositiveNegative(Mapping):
     def dg(self, x): return np.where(self.positive, self.right.dg(x), self.left.dg(x))
 
     def ddg(self, x): return np.where(self.positive, self.right.ddg(x), self.left.ddg(x))
-
-    def clip(self, x):
-        self.left.clip(x)
-        self.right.clip(x)
-        return x

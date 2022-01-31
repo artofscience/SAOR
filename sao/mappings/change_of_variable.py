@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from .mapping import Mapping, Linear
+from .mapping import Mapping, Linear, PositiveNegative
 import numpy as np
 
 
@@ -18,10 +18,7 @@ class Exponential(Mapping):
     def _ddg(self, x): return self.p * (self.p - 1) * x ** (self.p - 2)
 
 
-
-
-
-class MMAp(PositiveNegative):
+class MMAp(PositiveNegative, ABC):
     def __init__(self, p=-1, factor=1e-3, low=-10.0, upp=10.0):
         super().__init__(Exponential(p), Exponential(p))
         self.low, self.upp = low, upp
@@ -34,14 +31,17 @@ class MMAp(PositiveNegative):
     @abstractmethod
     def get_asymptotes(self, x): pass
 
-    def _g(self, x): return super().g(np.where(self.positive, self.upp - x, x - self.low))
+    def _g(self, x):
+        return super().g(np.where(self.positive, self.upp - x, x - self.low))
 
-    def _dg(self, x): return super().dg(np.where(self.positive, self.upp - x, x - self.low)) * np.where(self.positive,
-                                                                                                        -1, +1)
+    def _dg(self, x):
+        return super().dg(np.where(self.positive, self.upp - x, x - self.low)) * np.where(self.positive, -1, +1)
 
-    def _ddg(self, x): return super().ddg(np.where(self.positive, self.upp - x, x - self.low))
+    def _ddg(self, x):
+        return super().ddg(np.where(self.positive, self.upp - x, x - self.low))
 
-    def clip(self, x): return np.clip(x, self.low + self.factor, self.upp - self.factor, out=x)
+    def clip(self, x):
+        return np.clip(x, self.low + self.factor, self.upp - self.factor, out=x)
 
 
 class ConLin(PositiveNegative):
