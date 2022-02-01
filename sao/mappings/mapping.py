@@ -62,113 +62,40 @@ def fill_set_when_emtpy(s, n):
 
 class MixedMappingNew(Mapping):
     def __init__(self, n: int, m: int, default: Mapping = Linear()):
-        self.m = m
-        self.n = n
         self.map = [(default, np.arange(0, m), np.arange(0, n))]
 
     def __setitem__(self, key, inter: Mapping):
         self.map.append((inter, key[0], key[1]))
 
-    def g(self, x):
-        out = np.ones((self.m, x.shape[0]), dtype=float)
-        for maps, responses, variables in self.map:
-            out[np.ix_(responses, variables)] = maps.g(x[variables])
-        return out
-
-    def dg(self, x):
-        out = np.zeros((self.m, x.shape[0]), dtype=float)
-        for maps, responses, variables in self.map:
-            out[np.ix_(responses, variables)] = maps.dg(x[variables])
-        return out
-
-    def ddg(self, x):
-        out = np.zeros((self.m, x.shape[0]), dtype=float)
-        for maps, responses, variables in self.map:
-            out[np.ix_(responses, variables)] = maps.ddg(x[variables])
-        return out
-
-    def update(self, x0, dg0, ddg0=0):
-        for mp, _, variables in self.map:
-            mp.update(x0[variables], dg0, ddg0=0)
-        return self
-
-    def clip(self, x):
-        for mp, _, variables in self.map:
-            mp.clip(x[variables])
-        return x
-
-
-class MixedMapping(Mapping):
-    def __init__(self, nvar: int, nresp: int, default: Mapping = Linear()):
-        self.default = default
-        self.nvar = nvar
-        self.nresp = nresp
-        self.map = []
-        responses = set(range(self.nresp))
-        variables = set(range(self.nvar))
-        self.__add_map(self.default, responses, variables)
-
-    @property
-    def maps(self):
-        for mp, _, _ in self.map: yield mp
-
-    def set_map(self, inter: Mapping, resp=set(), var=set()):
-        new_resp = fill_set_when_emtpy(resp, self.nresp)
-        new_vars = fill_set_when_emtpy(var, self.nvar)
-        for _, responses, variables in self.map:
-            for r in (new_resp & responses):
-                diff = variables[r] - new_vars
-                if len(diff) > 0:
-                    responses.add(r)
-                    variables[r] = diff
-                else:
-                    responses.remove(r)
-                    del variables[r]
-        return self.__add_map(inter, new_resp, new_vars)
-
-    def __add_map(self, inter, resp=set(), var=set()):
-        responses = fill_set_when_emtpy(resp, self.nresp)
-        variables = fill_set_when_emtpy(var, self.nvar)
-        self.map.append((inter, responses, {i: variables for i in responses}))
-
-    def evaluate_for_each_response(self, x, fn: callable):
-        out = np.zeros((self.nresp, x.shape[0]))
-        for intv, responses, variables in self.map:
-            y_all = fn(intv, x)
-            for r in responses:
-                var_indices = list(variables[r])
-                if y_all.ndim > 1:
-                    out[r, var_indices] += y_all[r, var_indices]
-                else:
-                    out[r, var_indices] += y_all[var_indices]
+    def eval(self, x, fn: callable):
+        out = np.ones((len(self.map[0][1]), x.shape[0]), dtype=float)
+        for mp, responses, variables in self.map:
+            out[np.ix_(responses, variables)] = fn(mp, x[variables])
         return out
 
     def g(self, x):
-        def g_of_x(cls, x):
-            return cls.g(x)
+        def g_of_x(cls, x): return cls.g(x)
 
-        return self.evaluate_for_each_response(x, g_of_x)
+        return self.eval(x, g_of_x)
 
     def dg(self, x):
-        def dg_of_x(cls, x):
-            return cls.dg(x)
+        def dg_of_x(cls, x): return cls.dg(x)
 
-        return self.evaluate_for_each_response(x, dg_of_x)
+        return self.eval(x, dg_of_x)
 
     def ddg(self, x):
-        def ddg_of_x(cls, x):
-            return cls.ddg(x)
+        def ddg_of_x(cls, x): return cls.ddg(x)
 
-        return self.evaluate_for_each_response(x, ddg_of_x)
+        return self.eval(x, ddg_of_x)
 
     def update(self, x0, dg0, ddg0=0):
-        for mp in self.map:
-            mp[0].update(x0, dg0, ddg0=0)
+        for mp, resp, var in self.map:
+            mp.update(x0[var], dg0[np.ix_(resp, var)], ddg0=0)
         return self
 
     def clip(self, x):
-        for mp in self.map:
-            mp[0].clip(x)
+        for mp, _, var in self.map:
+            mp.clip(x[var])
         return x
 
 
