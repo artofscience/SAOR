@@ -60,6 +60,44 @@ def fill_set_when_emtpy(s, n):
     return s
 
 
+class MixedMappingNew(Mapping):
+    def __init__(self, n: int, m: int, default: Mapping = Linear()):
+        self.m = m
+        self.n = n
+        self.map = [(default, np.arange(0, m), np.arange(0, n))]
+
+    def __setitem__(self, key, inter: Mapping):
+        self.map.append((inter, key[0], key[1]))
+
+    def g(self, x):
+        out = np.zeros((self.m, x.shape[0]), dtype=float)
+        for maps, responses, variables in self.map:
+            out[responses][variables] = maps.g(x)[variables]
+        return out
+
+    def dg(self, x):
+        out = np.zeros((self.m, x.shape[0]), dtype=float)
+        for maps, responses, variables in self.map:
+            out[responses][variables] = maps.dg(x[variables])
+        return out
+
+    def ddg(self, x):
+        out = np.zeros((self.m, x.shape[0]), dtype=float)
+        for maps, responses, variables in self.map:
+            out[responses][variables] = maps.ddg(x[variables])
+        return out
+
+    def update(self, x0, dg0, ddg0=0):
+        for mp in self.map:
+            mp[0].update(x0, dg0, ddg0=0)
+        return self
+
+    def clip(self, x):
+        for mp in self.map:
+            mp[0].clip(x)
+        return x
+
+
 class MixedMapping(Mapping):
     def __init__(self, nvar: int, nresp: int, default: Mapping = Linear()):
         self.default = default
