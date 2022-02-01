@@ -2,7 +2,7 @@ from problems.n_dim.square import Square
 from sao.mappings.change_of_variable import Exponential as Exp
 from sao.mappings.approximations import DiagonalQuadraticApproximation as DQA
 import pytest
-from sao.mappings.mapping import MixedMappingNew as MMN
+from sao.mappings.mapping import MixedMapping as MM
 import numpy as np
 
 
@@ -13,7 +13,7 @@ def test_mmn(dx=1, tol=1e-4):
     df = prob.dg(x)
     ddf = prob.ddg(x)
 
-    mm = MMN(prob.n, prob.m + 1)
+    mm = MM(prob.n, prob.m + 1)
     mm[np.array([0]), [0, 1, 2]] = Exp(-1)
     mm[[1], [2]] = Exp(-2)
 

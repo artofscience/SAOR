@@ -47,20 +47,7 @@ class Linear(Mapping, ABC):
     def ddg(self, x): return np.zeros_like(x)
 
 
-def fill_set_when_emtpy(s, n):
-    """Returns ``set(s)`` or a ``set(0..n)`` if ``set(s)`` is the empty set."""
-    if s is None or s is ...:
-        return set(range(n))
-    try:
-        s = set(s)
-    except TypeError:
-        s = {s}
-    if len(s) == 0:
-        return set(range(n))
-    return s
-
-
-class MixedMappingNew(Mapping):
+class MixedMapping(Mapping):
     def __init__(self, n: int, m: int, default: Mapping = Linear()):
         self.map = [(default, np.arange(0, m), np.arange(0, n))]
 
