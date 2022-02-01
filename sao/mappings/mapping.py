@@ -70,31 +70,31 @@ class MixedMappingNew(Mapping):
         self.map.append((inter, key[0], key[1]))
 
     def g(self, x):
-        out = np.zeros((self.m, x.shape[0]), dtype=float)
+        out = np.ones((self.m, x.shape[0]), dtype=float)
         for maps, responses, variables in self.map:
-            out[responses][variables] = maps.g(x)[variables]
+            out[np.ix_(responses, variables)] = maps.g(x[variables])
         return out
 
     def dg(self, x):
         out = np.zeros((self.m, x.shape[0]), dtype=float)
         for maps, responses, variables in self.map:
-            out[responses][variables] = maps.dg(x[variables])
+            out[np.ix_(responses, variables)] = maps.dg(x[variables])
         return out
 
     def ddg(self, x):
         out = np.zeros((self.m, x.shape[0]), dtype=float)
         for maps, responses, variables in self.map:
-            out[responses][variables] = maps.ddg(x[variables])
+            out[np.ix_(responses, variables)] = maps.ddg(x[variables])
         return out
 
     def update(self, x0, dg0, ddg0=0):
-        for mp in self.map:
-            mp[0].update(x0, dg0, ddg0=0)
+        for mp, _, variables in self.map:
+            mp.update(x0[variables], dg0, ddg0=0)
         return self
 
     def clip(self, x):
-        for mp in self.map:
-            mp[0].clip(x)
+        for mp, _, variables in self.map:
+            mp.clip(x[variables])
         return x
 
 

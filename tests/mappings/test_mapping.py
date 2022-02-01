@@ -31,25 +31,25 @@ def test_mm(dx=1, tol=1e-4):
 
 
 def test_mmn(dx=1, tol=1e-4):
-    prob = Square(2)
+    prob = Square(3)
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
     ddf = prob.ddg(x)
 
     mm = MMN(prob.n, prob.m + 1)
-    mm[0, 1] = Exp(-1)
-    mm[1, 1] = Exp(-2)
+    mm[[0], [1]] = Exp(-1)
+    mm[[1], [1]] = Exp(-2)
 
     mm.update(prob.x0, df, ddf)
 
     aoa = DQA()
     aoa.update(x, df, ddg0=mm.ddg(x))
 
-    # assert mm.g(x)[0, 0] == pytest.approx(x[0], tol)
-    # # assert mm.g(x)[1, 0] == pytest.approx(x[0], tol)
-    # assert mm.g(x)[0, 1] == pytest.approx(1 / x[1], tol)
-    # assert mm.g(x)[1, 1] == pytest.approx(1 / (x[1]) ** 2, tol)
+    assert mm.g(x)[0, 0] == pytest.approx(x[0], tol)
+    assert mm.g(x)[1, 0] == pytest.approx(x[0], tol)
+    assert mm.g(x)[0, 1] == pytest.approx(1 / x[1], tol)
+    assert mm.g(x)[1, 1] == pytest.approx(1 / (x[1]) ** 2, tol)
 
     assert aoa.ddg0 == pytest.approx(mm.ddg(x), tol)
 
