@@ -1,5 +1,6 @@
 import numpy as np
 
+from .intervening import Intervening
 from .exponential import Exponential
 from .split import PositiveNegative
 
@@ -195,3 +196,75 @@ class MMA02(MMAp):
             low = x - self.dist * self.dx
             upp = x + self.dist * self.dx
         return low, upp
+
+
+class MMA07(Intervening):
+    """
+    MMA implementation as proposed in the note "MMA and GCMMA - two methods for nonlinear optimization"
+    Krister Svanberg (KTH Stockholm), 2007
+
+    Some practical considerations:
+    1. Scale the constraint such that 1 < fj(x) = gj(x) - gjmax < 100 and 1 < f0(x) < 100
+    2. Scale variables such that 0.1 < ximax - ximin < 100
+    3. When working with artificial variables, start with cj = 100, and increase by factors of 10 until all yj are zero
+    """
+
+    def __init__(self, x_min=0.0, x_max=1.0, sinit=0.5, sincr=1.2, sdecr=0.7, asybound=10.0, oscillation_tol=1e-10,
+                 p=-1, factor=0.01):
+        super().__init__(p=p, factor=factor)
+        self.x, self.xold1, self.xold2 = None, None, None
+        self.dx = x_max - x_min
+
+        self.asybound = asybound
+        self.sinit = sinit
+        self.sincr = sincr
+        self.sdecr = sdecr
+        self.oscillation_tol = oscillation_tol
+
+        self.dist = None
+        self.dist_min, self.dist_max = 1 / (self.asybound ** 2), self.asybound
+
+    def y(self, x):
+        return
+
+    def dydx(self, x):
+        return np.where(self.positive, self.right.dydx(x), self.left.dydx(x))
+
+    def ddyddx(self, x):
+        return np.where(self.positive, self.right.ddyddx(x), self.left.ddyddx(x))
+
+    def clip(self, x):
+        self.left.clip(x)
+        self.right.clip(x)
+        return x
+
+
+def get_asymptotes(self, x):
+    self.xold2, self.xold1, self.x = self.xold1, self.x, x.copy()
+    """Increases or decreases the asymptotes interval based on oscillations in the design vector"""
+    if self.dist is None:
+        self.dist = np.full_like(self.x, self.sinit)
+
+    if self.xold2 is None:
+        # Initial values of asymptotes
+        low = x - self.dist * self.dx
+        upp = x + self.dist * self.dx
+    else:
+        # Update scheme for asymptotes
+        # depending on if the signs of (x_k-xold) and (xold-xold2) are opposite, indicating an oscillation in xi
+        # if the signs are equal the asymptotes are slowing down the convergence and should be relaxed
+
+        # check for oscillations in variables (if > 0: no oscillations, if < 0: oscillations)
+        oscillation = ((x - self.xold1) * (self.xold1 - self.xold2)) / self.dx
+
+        # oscillating variables x_i are increase or decrease the factor
+        self.dist[oscillation > +self.oscillation_tol] *= self.sincr
+        self.dist[oscillation < -self.oscillation_tol] *= self.sdecr
+
+        # Clip the asymptote factor
+        np.clip(self.dist, self.dist_min, self.dist_max)
+
+        # update lower and upper asymptotes
+        low = x - self.dist * self.dx
+        upp = x + self.dist * self.dx
+    return low, upp

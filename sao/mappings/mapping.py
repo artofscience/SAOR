@@ -3,12 +3,12 @@ import numpy as np
 
 
 class Mapping(ABC):
+    def __init__(self, mapping=None):
+        self.map = mapping if mapping is not None else Linear()
+
     @property
     def name(self):
         return self.__class__.name
-
-    def __init__(self, mapping=None):
-        self.map = mapping if mapping is not None else Linear()
 
     def update(self, x0, dg0, ddg0=0):
         self.map.update(x0, dg0, ddg0)
@@ -61,19 +61,13 @@ class MixedMapping(Mapping):
         return out
 
     def g(self, x):
-        def g_of_x(cls, x): return cls.g(x)
-
-        return self.eval(x, g_of_x)
+        return self.eval(x, lambda cls, y: cls.g(y))
 
     def dg(self, x):
-        def dg_of_x(cls, x): return cls.dg(x)
-
-        return self.eval(x, dg_of_x)
+        return self.eval(x, lambda cls, y: cls.dg(y))
 
     def ddg(self, x):
-        def ddg_of_x(cls, x): return cls.ddg(x)
-
-        return self.eval(x, ddg_of_x)
+        return self.eval(x, lambda cls, y: cls.ddg(y))
 
     def update(self, x0, dg0, ddg0=0):
         for mp, resp, var in self.map:
@@ -109,17 +103,17 @@ class Sum(TwoMap):
     def ddg(self, x): return self.left.ddg(x) + self.right.ddg(x)
 
 
-class PositiveNegative(TwoMap, ABC):
+class Conditional(TwoMap, ABC):
     def __init__(self, left: Mapping, right: Mapping):
         super().__init__(left, right)
-        self.positive = None
+        self.condition = None
 
     def update(self, x0, dg0, ddg0=0):
         super().update(x0, dg0, ddg0)
-        self.positive = dg0 >= 0
+        self.condition = dg0 >= 0
 
-    def g(self, x): return np.where(self.positive, self.right.g(x), self.left.g(x))
+    def g(self, x): return np.where(self.condition, self.right.g(x), self.left.g(x))
 
-    def dg(self, x): return np.where(self.positive, self.right.dg(x), self.left.dg(x))
+    def dg(self, x): return np.where(self.condition, self.right.dg(x), self.left.dg(x))
 
-    def ddg(self, x): return np.where(self.positive, self.right.ddg(x), self.left.ddg(x))
+    def ddg(self, x): return np.where(self.condition, self.right.ddg(x), self.left.ddg(x))

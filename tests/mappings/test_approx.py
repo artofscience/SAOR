@@ -5,10 +5,24 @@ from sao.mappings.change_of_variable import Exponential as Exp
 from sao import intervening_variables, approximations
 import numpy as np
 import pytest
+from sao.problems import Problem
+
+
+class Dummy(Problem):
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
+        self.x0 = np.linspace(1.0, 2.0, self.n, dtype=float)
+
+    def g(self, x): return x ** 3
+
+    def dg(self, x): return 3 * x ** 2
+
+    def ddg(self, x): return 6 * x
 
 
 def test_ta(dx=1, tol=1e-4):
-    prob = Square(4)
+    prob = Dummy(4)
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
@@ -30,7 +44,7 @@ def test_ta(dx=1, tol=1e-4):
 
 
 def test_ta_lin(dx=1, tol=1e-4):
-    prob = Square(4)
+    prob = Dummy(4)
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
@@ -54,7 +68,7 @@ def test_ta_lin(dx=1, tol=1e-4):
 
 
 def test_ta_rec(dx=1, tol=1e-4):
-    prob = Square(10)
+    prob = Dummy(10)
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
@@ -78,7 +92,7 @@ def test_ta_rec(dx=1, tol=1e-4):
 
 
 def test_ta_ta_rec(dx=1, tol=1e-4):
-    prob = Square(10)
+    prob = Dummy(10)
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
@@ -102,7 +116,7 @@ def test_ta_ta_rec(dx=1, tol=1e-4):
 
 
 def test_ta2(dx=1, tol=1e-4):
-    prob = Square(4)
+    prob = Dummy(4)
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
@@ -125,7 +139,7 @@ def test_ta2(dx=1, tol=1e-4):
 
 
 def test_ta2_rec(dx=1, tol=1e-4):
-    prob = Square(4)
+    prob = Dummy(4)
     x = prob.x0
     f = prob.g(x)
     df = prob.dg(x)
@@ -145,3 +159,12 @@ def test_ta2_rec(dx=1, tol=1e-4):
     assert f + np.sum(new.g(y), 1) == pytest.approx(old.g(y), tol)
     assert new.dg(y) == pytest.approx(old.dg(y), tol)
     assert new.ddg(y) == pytest.approx(old.ddg(y), tol)
+
+
+if __name__ == "__main__":
+    test_ta()
+    test_ta2()
+    test_ta_rec()
+    test_ta_lin()
+    test_ta2_rec()
+    test_ta_ta_rec()
