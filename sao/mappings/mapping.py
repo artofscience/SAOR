@@ -4,35 +4,52 @@ import numpy as np
 
 class Mapping(ABC):
     def __init__(self, mapping=None):
-        self.map = mapping if mapping is not None else Linear()
+        self.child = mapping if mapping is not None else Linear()
+        self.parent = None
+        self.child.parent = self
+        self.updated = False
+
+    def update(self, x0, dg0, ddg0=0):
+        if self.child is not None and self.child.updated is False:  # climb down to youngest child
+            self.child.update(x0, dg0, ddg0)
+        else:  # climb up to oldest broer while updating the mappings
+            self._update(x0, dg0, ddg0)
+            self.updated = True
+            self.parent.update(self.g(x0), self.dg(x0), self.ddg(x0))
+
+        # somehow reset all updated to False?
 
     @property
     def name(self):
         return self.__class__.name
 
-    def update(self, x0, dg0, ddg0=0):
-        self.map.update(x0, dg0, ddg0)
-        dg = self.map.dg(x0)
-        self._update(self.map.g(x0), dg0 / dg, ddg0 / dg ** 2 - dg0 * self.map.ddg(x0) / dg ** 3)
+    def clip(self, x):
+        return self._clip(self.child.clip(x))
 
-    def clip(self, x): return self._clip(self.map.clip(x))
+    def g(self, x):
+        return self._g(self.child.g(x))
 
-    def g(self, x): return self._g(self.map.g(x))
+    def dg(self, x):
+        return self._dg(self.child.g(x)) * self.child.dg(x)
 
-    def dg(self, x): return self._dg(self.map.g(x)) * self.map.dg(x)
+    def ddg(self, x):
+        return self._ddg(self.child.g(x)) * (self.child.dg(x)) ** 2 + \
+               self._dg(self.child.g(x)) * self.child.ddg(x)
 
-    def ddg(self, x): return self._ddg(self.map.g(x)) * (self.map.dg(x)) ** 2 + \
-                             self._dg(self.map.g(x)) * self.map.ddg(x)
+    def _update(self, x0, dg0, ddg0=0):
+        pass
 
-    def _update(self, x0, dg0, ddg0=0): pass
+    def _clip(self, x):
+        return x
 
-    def _clip(self, x): return x
+    def _g(self, x):
+        return x
 
-    def _g(self, x): return x
+    def _dg(self, x):
+        return np.ones_like(x)
 
-    def _dg(self, x): return np.ones_like(x)
-
-    def _ddg(self, x): return np.zeros_like(x)
+    def _ddg(self, x):
+        return np.zeros_like(x)
 
 
 class Linear(Mapping, ABC):
