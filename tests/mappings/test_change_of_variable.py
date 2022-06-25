@@ -27,9 +27,9 @@ class TestExp:
 
     def test_rec(self): mapping_test(Exp(-1), self.x, 1 / self.x, -1 / self.x ** 2, 2 / self.x ** 3)
 
-    def test_exp(self):
-        for i in [-3, -2, -1, 1, 2, 3]:
-            mapping_test(Exp(i), self.x, self.x ** i, i * self.x ** (i - 1), i * (i - 1) * self.x ** (i - 2))
+    @pytest.mark.parametrize('i', [-3, -2, -1, 1, 2, 3])
+    def test_exp(self, i): mapping_test(Exp(i), self.x, self.x ** i, i * self.x ** (i - 1),
+                                        i * (i - 1) * self.x ** (i - 2))
 
 
 class TestStackedExp:

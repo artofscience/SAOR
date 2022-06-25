@@ -19,12 +19,38 @@ class Mapping(ABC):
         return self._clip(self.child.clip(x))
 
     def g(self, x):
+        """
+        Chain rule.
+
+        f[x] = f[g[x]]
+
+        :param x:
+        :return:
+        """
+
         return self._g(self.child.g(x))
 
     def dg(self, x):
+        """
+        Chain rule of first derivative.
+
+        f'[x] = f'[g[x]]*g'[x]
+
+        :param x:
+        :return:
+        """
+
         return self._dg(self.child.g(x)) * self.child.dg(x)
 
     def ddg(self, x):
+        """
+        Chain rule of second derivative.
+
+        f''[x] = f''[g[x]]*(g'[x])^2 + f'[g[x]]*g''[x]
+
+        :param x:
+        :return:
+        """
         return self._ddg(self.child.g(x)) * (self.child.dg(x)) ** 2 + \
                self._dg(self.child.g(x)) * self.child.ddg(x)
 
