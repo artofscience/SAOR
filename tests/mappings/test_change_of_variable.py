@@ -5,86 +5,67 @@ import numpy as np
 import pytest
 
 
-def test_lin(tol=1e-4):
-    x = np.array([1.0, 2.0])
-    mapping = Exp(1)
-
-    assert mapping.g(x) == pytest.approx(x, tol)
-    assert mapping.dg(x) == pytest.approx(1, tol)
-    assert mapping.ddg(x) == pytest.approx(0, tol)
+def mapping_test(mapping, x, g, dg, ddg, tol=1e-4):
+    assert mapping.g(x) == pytest.approx(g, tol)
+    assert mapping.dg(x) == pytest.approx(dg, tol)
+    assert mapping.ddg(x) == pytest.approx(ddg, tol)
 
 
-def test_rec(tol=1e-4):
-    x = np.array([1.0, 2.0])
-    mapping = Exp(-1)
+class TestExp:
+    """
+    Test simple exponential function give correct function values and derivatives.
+    """
 
-    assert mapping.g(x) == pytest.approx(1 / x, tol)
-    assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
-    assert mapping.ddg(x) == pytest.approx(2 / x ** 3, tol)
+    x = np.array([1.0, 2.0, 3.0])  # Note this only tests for simple x; try some more
 
+    # Tests fails for a variable that takes zero value!
+    # Exp(0) should raise error.
 
-def test_lin_rec(tol=1e-4):
-    x = np.array([1.0, 2.0])
-    mapping = Exp(1, Exp(-1))
+    def test_lin(self): mapping_test(Exp(1), self.x, self.x, 1, 0)
 
-    assert mapping.g(x) == pytest.approx(1 / x, tol)
-    assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
-    assert mapping.ddg(x) == pytest.approx(2 / x ** 3, tol)
+    def test_exp2(self): mapping_test(Exp(2), self.x, self.x ** 2, 2 * self.x, 2)
 
+    def test_rec(self): mapping_test(Exp(-1), self.x, 1 / self.x, -1 / self.x ** 2, 2 / self.x ** 3)
 
-def test_exp2(tol=1e-4):
-    x = np.array([1.0, 2.0])
-    mapping = Exp(2)
-    assert mapping.g(x) == pytest.approx(x ** 2, tol)
-    assert mapping.dg(x) == pytest.approx(2 * x, tol)
-    assert mapping.ddg(x) == pytest.approx(2, tol)
+    def test_exp(self):
+        for i in [-3, -2, -1, 1, 2, 3]:
+            mapping_test(Exp(i), self.x, self.x ** i, i * self.x ** (i - 1), i * (i - 1) * self.x ** (i - 2))
 
 
-def test_rec_lin(tol=1e-4):
-    x = np.array([1.0, 2.0])
-    mapping = Exp(-1, Exp(1))
+class TestStackedExp:
+    """
+    Test stacked exponential functions give correct function values and derivatives.
+    """
 
-    assert mapping.g(x) == pytest.approx(1 / x, tol)
-    assert mapping.dg(x) == pytest.approx(-1 / x ** 2, tol)
-    assert mapping.ddg(x) == pytest.approx(2 / x ** 3, tol)
+    x = np.array([1.0, 2.0, 3.0])  # Note this only tests for simple x; try some more
 
+    def test_lin_rec(self): mapping_test(Exp(1, Exp(-1)), self.x, 1 / self.x, -1 / self.x ** 2, 2 / self.x ** 3)
 
-def test_rec_rec(tol=1e-4):
-    x = np.array([1.0, 2.0])
-    mapping = Exp(-1, Exp(-1))
-    assert mapping.g(x) == pytest.approx(x, tol)
-    assert mapping.dg(x) == pytest.approx(1, tol)
-    assert mapping.ddg(x) == pytest.approx(0, tol)
+    def test_rec_lin(self): mapping_test(Exp(-1, Exp(1)), self.x, 1 / self.x, -1 / self.x ** 2, 2 / self.x ** 3)
 
+    def test_rec_rec(self): mapping_test(Exp(-1, Exp(-1)), self.x, self.x, 1, 0)
 
-def test_rec_exp2_rec(tol=1e-4):
-    x = np.array([1.0, 2.0])
-    mapping = Exp(-1, Exp(2, Exp(-1)))
-    assert mapping.g(x) == pytest.approx(Exp(2).g(x), tol)
-    assert mapping.dg(x) == pytest.approx(Exp(2).dg(x), tol)
-    assert mapping.ddg(x) == pytest.approx(Exp(2).ddg(x), tol)
+    def test_rec_exp2_rec(self):
+        map = Exp(-1, Exp(2, Exp(-1)))
+        map2 = Exp(2)
+        mapping_test(map, self.x, map2.g(self.x), map2.dg(self.x), map2.ddg(self.x))  # Requires some comments
 
 
-def test_conlin(dx=1, tol=1e-4):
-    prob = Square(10)
-    df = prob.dg(prob.x0)
-    conlin = ConLin()
-    conlin.update(prob.x0, df)
+class TestTwoMap:
+    def test_conlin(self, tol=1e-4):
+        problem = Square(10)  # Also test different initial values
+        df = problem.dg(problem.x0)
+        conlin = ConLin()
+        conlin.update(problem.x0, df)
 
-    y = prob.x0 + dx
+        dx = 1
+        y = problem.x0 + dx
 
-    assert conlin.g(y)[0, :] == pytest.approx(y, tol)
-    assert conlin.g(y)[1, :] == pytest.approx(1 / y, tol)
+        assert conlin.g(y)[0, :] == pytest.approx(y, tol)
+        assert conlin.g(y)[1, :] == pytest.approx(1 / y, tol)
 
-    assert conlin.dg(y)[0, :] == pytest.approx(1, tol)
-    assert conlin.dg(y)[1, :] == pytest.approx(-1 / y ** 2, tol)
+        assert conlin.dg(y)[0, :] == pytest.approx(1, tol)
+        assert conlin.dg(y)[1, :] == pytest.approx(-1 / y ** 2, tol)
 
-    assert conlin.ddg(y)[0, :] == pytest.approx(0, tol)
-    assert conlin.ddg(y)[1, :] == pytest.approx(2 / y ** 3, tol)
-
-
-if __name__ == "__main__":
-    test_lin()
-    test_conlin()
-    test_rec()
-    test_rec_rec()
+        assert conlin.ddg(y)[0, :] == pytest.approx(0, tol)
+        assert conlin.ddg(y)[1, :] == pytest.approx(2 / y ** 3, tol)
