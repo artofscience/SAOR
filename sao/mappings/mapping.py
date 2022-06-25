@@ -5,19 +5,11 @@ import numpy as np
 class Mapping(ABC):
     def __init__(self, mapping=None):
         self.child = mapping if mapping is not None else Linear()
-        self.parent = None
-        self.child.parent = self
-        self.updated = False
 
     def update(self, x0, dg0, ddg0=0):
-        if self.child is not None and self.child.updated is False:  # climb down to youngest child
-            self.child.update(x0, dg0, ddg0)
-        else:  # climb up to oldest broer while updating the mappings
-            self._update(x0, dg0, ddg0)
-            self.updated = True
-            self.parent.update(self.g(x0), self.dg(x0), self.ddg(x0))
-
-        # somehow reset all updated to False?
+        if self.child is not None:
+            x0, dg0, ddg0 = self.child.update(x0, dg0, ddg0)
+        return self._update(x0, dg0, ddg0)
 
     @property
     def name(self):
@@ -37,7 +29,7 @@ class Mapping(ABC):
                self._dg(self.child.g(x)) * self.child.ddg(x)
 
     def _update(self, x0, dg0, ddg0=0):
-        pass
+        return self._g(x0), self._dg(dg0), self._ddg(ddg0)
 
     def _clip(self, x):
         return x
@@ -46,22 +38,21 @@ class Mapping(ABC):
         return x
 
     def _dg(self, x):
-        return np.ones_like(x)
+        return np.ones_like(x, dtype=float)
 
     def _ddg(self, x):
-        return np.zeros_like(x)
+        return np.zeros_like(x, dtype=float)
 
 
 class Linear(Mapping, ABC):
-    def __init__(self): pass
-
-    def update(self, x0, dg0, ddg0=0): pass
+    def __init__(self):
+        self.child = None
 
     def g(self, x): return x
 
-    def dg(self, x): return np.ones_like(x)
+    def dg(self, x): return np.ones_like(x, dtype=float)
 
-    def ddg(self, x): return np.zeros_like(x)
+    def ddg(self, x): return np.zeros_like(x, dtype=float)
 
 
 class MixedMapping(Mapping):
