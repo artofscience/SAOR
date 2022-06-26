@@ -28,6 +28,8 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
+        'matplotlib',
+        'numba',
     ],
     extras_require={
         'all': _all,

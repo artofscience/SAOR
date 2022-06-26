@@ -51,7 +51,7 @@ Many alternative variations are illustrated in
 To install the package for development, first clone the repository.
 Then, from the project's root run `make`. This will setup a virtual
 environment inside the project at `./venv`. After activating this
-environment, `source ./venv/bin/active`, the `sao` package and its
+environment, `source ./venv/bin/activate`, the `sao` package and its
 dependencies are available.
 
 The tests for `sao` are evaluated with `pytest`:
