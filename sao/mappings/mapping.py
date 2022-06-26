@@ -9,7 +9,8 @@ class Mapping(ABC):
     def update(self, x0, dg0, ddg0=0):
         if self.child is not None:
             x0, dg0, ddg0 = self.child.update(x0, dg0, ddg0)
-        return self._update(x0, dg0, ddg0)
+        self._update(x0, dg0, ddg0)
+        return self._g(x0), self._dg(dg0), self._ddg(ddg0)
 
     @property
     def name(self):
@@ -60,7 +61,7 @@ class Mapping(ABC):
                self._dg(self.child.g(x)) * self.child.ddg(x)
 
     def _update(self, x0, dg0, ddg0=0):
-        return self._g(x0), self._dg(dg0), self._ddg(ddg0)
+        pass
 
     def _clip(self, x):
         return x
