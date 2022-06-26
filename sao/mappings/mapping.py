@@ -13,6 +13,11 @@ class Mapping(ABC):
 
     @property
     def name(self):
+        """
+        Set Mapping name.
+
+        :return: Mapping name
+        """
         return self.__class__.name
 
     def clip(self, x):
@@ -71,7 +76,17 @@ class Mapping(ABC):
 
 
 class Linear(Mapping, ABC):
+    """
+    Linear Mapping; end of chain.
+    """
+
     def __init__(self):
+        """
+        Initialization of the Linear Mapping.
+
+        Sets child to None.
+        No initialization of child.
+        """
         self.child = None
 
     def g(self, x): return x
