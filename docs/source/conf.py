@@ -14,10 +14,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-
+#import os
+#import sys
+#sys.path.insert(0, os.path.abspath('../..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -33,10 +32,14 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
+# to avoid numba package not found error
+autodoc_mock_imports = ["numba"]
+
 autodoc_default_options = {
-    'members': True,
+    'members': None,
+    'inherited-members': None,
     'member-order': 'bysource',
-    'undoc-members': True,
+    'undoc-members': None,
     'exclude-members': '__weakref__',
 }
 
