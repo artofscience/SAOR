@@ -84,7 +84,7 @@ Requirements to building the docs can be setup in the local environment by
 running
 
 ```
-pip install -e .[docs]
+pip install -e .[doc]
 ```
 
 The extra `docs` dependencies are pulled from the `setup.py`, which installs

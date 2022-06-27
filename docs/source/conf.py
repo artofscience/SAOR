@@ -33,13 +33,13 @@ extensions = [
 ]
 
 # to avoid numba package not found error
-autodoc_mock_imports = ["numba"]
+#autodoc_mock_imports = ["numba"]
 
 autodoc_default_options = {
-    'members': None,
-    'inherited-members': None,
+    'members': True,
+    'inherited-members': True,
     'member-order': 'bysource',
-    'undoc-members': None,
+    'undoc-members': True,
     'exclude-members': '__weakref__',
 }
 
