@@ -25,20 +25,6 @@ We start with the scheme as presented in the paper.
 #
 class myFunction(Function):
 #
-#   def __init__(self, name, n):
-#       self.name = name
-#       self.n = n
-#       self.x_k = np.zeros((n,1),dtype=float)
-#       self.g_k = 0e0
-#       self.dg_k = np.zeros((1,n),dtype=float)
-#       self.y_k = np.zeros((n,1),dtype=float)
-#       self.dy_k = np.zeros((n,1),dtype=float)
-#       self.k = -1
-#       self.hst_x_k  = []
-#
-#   def __str__(self):
-#       return f"Function {self.name} of dimension {self.n}"
-#
     def getbounds(self): #domain
 #
         m_l = np.zeros(self.n,dtype=float)
@@ -131,11 +117,6 @@ def two_bar_truss():
     con1 = myFunction('Stress 1',problem.n)
     con2 = myFunction('Stress 2',problem.n)
 #
-    #intervening variables
-#   intvar = MixedIntervening(problem.n, problem.m + 1, default=MMA87A(t=0.2))
-#   mma_var_1 = MMA87C(sdecr=0.75, sincr=0.5, x_min=problem.x_min, x_max=problem.x_max)
-#   intvar.set_intervening(mma_var_1, var=1)
-#
     #instantiate subproblem
     funcs = [obj, con1, con2]
     subproblem = Subproblem(funcs, limits=[bounds, movelimit])
@@ -154,11 +135,15 @@ def two_bar_truss():
             print("The optimum solution found")
             break
 #
+        #update the approximations
         obj.at_k(x, f[0], df[0], 3)
         con1.at_k(x, f[1], df[1], 3)
         con2.at_k(x, f[2], df[2], 3)
 #
+        #update the subproblem
         subproblem.build(x,f,df)
+#
+        #solve the subproblem
         x[:] = pdip(subproblem, variables=Pdipx)[0]
     print("\n")
 #

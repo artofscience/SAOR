@@ -1,6 +1,7 @@
 import numpy as np
+import abc
 #
-class Function:
+class Function(abc.ABC):
 #
     def __init__(self, name='function', n=0):
         if n == 0: print('Error')
@@ -54,14 +55,19 @@ class Function:
 #
         return g, dg, ddg
 #
+#   To be overwritten in concrete implementation
+#
+    @abc.abstractmethod
     def ap_k(self):
         pass
 #
+    @abc.abstractmethod
     def getbounds(self):
         m_l = -1e8*np.ones(self.n,dtype=float)
         m_u = 1e8*np.ones(self.n,dtype=float)
         return m_l, m_u
 #
+    @abc.abstractmethod
     def mapping(self,x):
         y = np.ones_like(x)
         dy = np.ones_like(x)
