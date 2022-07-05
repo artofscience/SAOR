@@ -43,7 +43,7 @@ class Subproblem(Problem):
         # that causes the intervening variable to reach unreachable values,
         # e.g. cross the lower/upper bounds in the MMA asymptotes.
         for j in range(self.m+1):
-            tmp=self.functions[j].getbounds()
+            tmp=self.functions[j].domain()
             for i in range(self.n):
                 self.x_min[i]=max(tmp[0][i],self.x_min[i])
                 self.x_max[i]=min(tmp[1][i],self.x_max[i])

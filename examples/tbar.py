@@ -25,16 +25,16 @@ We start with the scheme as presented in the paper.
 #
 class myFunction(Function):
 #
-    def getbounds(self): #domain
+    def domain(self): #domain
 #
-        m_l = np.zeros(self.n,dtype=float)
-        m_u = np.zeros(self.n,dtype=float)
+        d_l = np.zeros(self.n,dtype=float)
+        d_u = np.zeros(self.n,dtype=float)
         for i in range(self.n):
-            m_l[i] = 1.01*self.L_k[i]
-            m_u[i] = 0.99*self.U_k[i]
-        return m_l, m_u
+            d_l[i] = 1.01*self.L_k[i]
+            d_u[i] = 0.99*self.U_k[i]
+        return d_l, d_u
 #
-    def ap_k(self):
+    def paramk(self):
 #
         x_k = self.x_k
         hst_x_k = self.hst_x_k
@@ -78,7 +78,7 @@ class myFunction(Function):
         self.L_k = L_k
         self.U_k = U_k
 #
-    def mapping(self, x):
+    def intervene(self, x):
 #
         L_k = self.L_k
         U_k = self.U_k
@@ -136,9 +136,9 @@ def two_bar_truss():
             break
 #
         #update the approximations
-        obj.at_k(x, f[0], df[0], 3)
-        con1.at_k(x, f[1], df[1], 3)
-        con2.at_k(x, f[2], df[2], 3)
+        obj.setatk(x, f[0], df[0], 3)
+        con1.setatk(x, f[1], df[1], 3)
+        con2.setatk(x, f[2], df[2], 3)
 #
         #update the subproblem
         subproblem.build(x,f,df)

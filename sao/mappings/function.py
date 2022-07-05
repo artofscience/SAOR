@@ -18,7 +18,7 @@ class Function(abc.ABC):
     def __str__(self):
         return f"Function {self.name} of dimension {self.n}"
 #
-    def at_k(self, x, f, df, k_s=3):
+    def setatk(self, x, f, df, k_s=3):
 #
         self.k = self.k + 1
 #
@@ -34,8 +34,8 @@ class Function(abc.ABC):
         if len(self.hst_x_k) > k_s:
             self.hst_x_k.pop(0)
 #
-        self.ap_k()
-        self.y_k, self.dy_k, _ = self.mapping(x)
+        self.paramk()
+        self.y_k, self.dy_k, _ = self.intervene(x)
 #
     def eval(self, x):
 #
@@ -46,7 +46,7 @@ class Function(abc.ABC):
         y_k = self.y_k
         dy_k = self.dy_k
 #
-        y, dy, ddy = self.mapping(x)
+        y, dy, ddy = self.intervene(x)
 #
         for i in range(self.n):
             g = g + dg_k[0][i]/dy_k[i]*(y[i] - y_k[i])
@@ -58,17 +58,17 @@ class Function(abc.ABC):
 #   To be overwritten in concrete implementation
 #
     @abc.abstractmethod
-    def ap_k(self):
+    def paramk(self):
         pass
 #
     @abc.abstractmethod
-    def getbounds(self):
-        m_l = -1e8*np.ones(self.n,dtype=float)
-        m_u = 1e8*np.ones(self.n,dtype=float)
-        return m_l, m_u
+    def domain(self):
+        d_l = -1e8*np.ones(self.n,dtype=float)
+        d_u = 1e8*np.ones(self.n,dtype=float)
+        return d_l, d_u
 #
     @abc.abstractmethod
-    def mapping(self,x):
+    def intervene(self,x):
         y = np.ones_like(x)
         dy = np.ones_like(x)
         ddy = np.zeros_like(x)
