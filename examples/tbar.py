@@ -36,7 +36,6 @@ def two_bar_truss():
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
 #
     history = Records(['f0','f1','f2'])
-    h=[] # make a history object
 #
     x = problem.x0
     converged = IterationCount(10)
@@ -45,7 +44,6 @@ def two_bar_truss():
         history.popcol('f0',f[0])
         history.popcol('f1',f[1])
         history.popcol('f2',f[2])
-        h.append(f[0])
         df = problem.dg(x)
         infeasibility = max(0.0, f[1], f[2])
         print("{}: {:.3f} {:.3f}".format(converged.iteration - 1, f[0], infeasibility))

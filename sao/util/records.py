@@ -11,7 +11,6 @@ class Records():
         index=0
         for h in self.heads:
             if head == h:
-                print(index)
                 if self.data[-1][index] == None:
                     self.data[-1][index]=data
                 else:
