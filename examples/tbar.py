@@ -24,17 +24,20 @@ def two_bar_truss():
 #
     #instantiate the problem instance
     problem = TwoBarTruss()
-    #from move_limits; should this not automatically come from problem definition?
+#
+    #bounds and move limit stuff
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
-    #from move_limits: 
     movelimit = MoveLimitFraction(fraction=2)
-    #intervening
+#
+    #intervening variables
     intvar = MixedIntervening(problem.n, problem.m + 1, default=MMA87A(t=0.2))
     mma_var_1 = MMA87C(sdecr=0.75, sincr=0.5, x_min=problem.x_min, x_max=problem.x_max)
     intvar.set_intervening(mma_var_1, var=1)
-    #subproblem
+#
+    #instantiate subproblem
     subproblem = Subproblem(Taylor1(intvar), limits=[bounds, movelimit])
 #
+    #instantiate history
     history = Records(['f0','f1','f2'])
 #
     x = problem.x0
