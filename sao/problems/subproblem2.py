@@ -7,11 +7,12 @@ from sao.util.tools import parse_to_list
 
 
 class Subproblem(Problem):
-    def __init__(self, approximation=Taylor1(), limits=Bounds(xmin=0, xmax=1)):
+    def __init__(self, functions, limits=Bounds(xmin=0, xmax=1)):
         super().__init__()
-        self.approx = approximation
+        self.functions = functions
         self.set_limits(limits)
         self.lims = parse_to_list(limits)
+        self.n, self.m = functions[0].n, len(functions) - 1
 
     def set_limits(self, *limits):
         self.lims = parse_to_list(*limits)
@@ -19,11 +20,10 @@ class Subproblem(Problem):
     def add_limits(self, *limits):
         self.lims.extend(parse_to_list(*limits))
 
-    def build(self, x, f, df, ddf=None):
-        self.n, self.m = len(x), len(f) - 1
+    def build(self, x, f, df, ddf=0e0):
 
         # Update the approximation
-        self.approx.update(x, f, df, ddf)
+#       self.approx.update(x, f, df, ddf)
 
         # Update the local problem bounds
         self.x_min = np.full_like(x, -np.inf)
@@ -42,25 +42,38 @@ class Subproblem(Problem):
         # intervening variables. This prevents the subsolver to make an update
         # that causes the intervening variable to reach unreachable values,
         # e.g. cross the lower/upper bounds in the MMA asymptotes.
-        self.approx.clip(self.x_min)
-        self.approx.clip(self.x_max)
+        for j in range(self.m+1):
+            tmp=self.functions[j].getbounds()
+            for i in range(self.n):
+                self.x_min[i]=max(tmp[0][i],self.x_min[i])
+                self.x_max[i]=min(tmp[1][i],self.x_max[i])
 
         assert np.isfinite(self.x_min).all() and np.isfinite(self.x_max).all(), \
             "The bounds must be finite. Use at least one move-limit or bound."
-        # TODO: Possibly a check for finiteness of the bounds
 
-    # TODO These might also be removed if the solver uses prob.approx.g instead of prob.g
     def g(self, x):
-#       print('g',self.approx.g(x))
-        return self.approx.g(x)
+        gg = np.zeros(self.m + 1,dtype=float)
+        for j in range(self.m+1):
+            f, _, _ = self.functions[j].eval(x)
+            gg[j] = f
+#       print('g',gg)
+        return gg
 
     def dg(self, x):
-#       print('dg',self.approx.dg(x))
-        return self.approx.dg(x)
+        dgg = np.zeros((self.m + 1,self.n),dtype=float)
+        for j in range(self.m+1):
+            _, df, _ = self.functions[j].eval(x)
+            dgg[j][:] = df
+#       print('dg',dgg)
+        return dgg
 
     def ddg(self, x):
-#       print('ddg',self.approx.ddg(x))
-        return self.approx.ddg(x)
+        ddgg = np.zeros((self.m +1, self.n)) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        for j in range(self.m+1):
+            _, _, ddf = self.functions[j].eval(x)
+            ddgg[j][:] = ddf
+#       print('ddg',ddgg)
+        return ddgg
 
     '''
     P = dg_j/dy_ji = dg_j/dx_i * dx_i/dy_ji [(m+1) x n]
