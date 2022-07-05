@@ -10,6 +10,8 @@ from sao.intervening_variables.mma import MMA87A, MMA87C, MMA02
 from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLimit
 from sao.problems.subproblem2 import Subproblem
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx
+from sao.solvers.dual2 import dual2
+from sao.solvers.osqp import qp_osqp
 #
 from sao.util.records import Records
 from sao.mappings.function import Function
@@ -22,8 +24,7 @@ For a "fair" comparison, we use the convergence criteria as used in the paper.
 """
 We start with the scheme as presented in the paper.
 """
-#
-class myFunction(Function):
+class MMA(Function):
 #
     def domain(self): #domain
 #
@@ -34,7 +35,7 @@ class myFunction(Function):
             d_u[i] = 0.99*self.U_k[i]
         return d_l, d_u
 #
-    def paramk(self):
+    def parameters(self,problem):
 #
         x_k = self.x_k
         hst_x_k = self.hst_x_k
@@ -42,13 +43,8 @@ class myFunction(Function):
 #
         asy_fac = 1/5e0
         s_l = 0.5; s_u = 0.75
-        x_l = np.array([0.2, 0.1]) 
-        x_u = np.array([4.0, 1.6]) 
-#
-        asy_fac = 1/5e0
-        s_l = 0.5; s_u = 0.75
-        x_l = np.array([0.2, 0.1]) 
-        x_u = np.array([4.0, 1.6]) 
+        x_l = problem.x_min
+        x_u = problem.x_max
 #
         if k == 0:
             L_k = np.zeros_like(x_k) 
@@ -78,7 +74,7 @@ class myFunction(Function):
         self.L_k = L_k
         self.U_k = U_k
 #
-    def intervene(self, x):
+    def intercurve(self, x):
 #
         L_k = self.L_k
         U_k = self.U_k
@@ -86,7 +82,11 @@ class myFunction(Function):
         y = np.zeros_like(x)
         dy = np.zeros_like(x)
         ddy = np.zeros_like(x)
+        c_x = np.zeros_like(x)
+#
+        x_k = self.x_k
         dg_k = self.dg_k
+#
         for i in range(self.n):
             if dg_k[0][i] < 0e0:
                 y[i] = 1e0 / (x[i] - L_k[i])
@@ -97,7 +97,36 @@ class myFunction(Function):
                 dy[i] = 1e0 / (U_k[i] - x[i])**2e0
                 ddy[i] = 2e0 / (U_k[i] - x[i])**3e0
 #
-        return y, dy, ddy
+        return y, dy, ddy, c_x
+#
+class T2MMA(MMA):
+#
+    def intercurve(self, x):
+#
+        L_k = self.L_k
+        U_k = self.U_k
+#
+        y = np.zeros_like(x)
+        dy = np.zeros_like(x)
+        ddy = np.zeros_like(x)
+        c_x = np.zeros_like(x)
+#
+        x_k = self.x_k
+        dg_k = self.dg_k
+#
+        for i in range(self.n):
+            if dg_k[0][i] < 0e0:
+                c_x[i]=-2e0/(x_k[i] - L_k[i])*dg_k[0][i]
+                y[i] = x[i]
+                dy[i] = 1e0
+                ddy[i] = 0e0
+            else:
+                c_x[i]=2e0/(U_k[i] - x_k[i])*dg_k[0][i]
+                y[i] = x[i]
+                dy[i] = 1e0
+                ddy[i] = 0e0
+#
+        return y, dy, ddy, c_x
 #
 def two_bar_truss():
 #
@@ -113,9 +142,9 @@ def two_bar_truss():
     f = problem.g(x)
     df = problem.dg(x)
 #
-    obj = myFunction('Weight',problem.n)
-    con1 = myFunction('Stress 1',problem.n)
-    con2 = myFunction('Stress 2',problem.n)
+    obj = T2MMA('Weight',problem.n)
+    con1 = T2MMA('Stress 1',problem.n)
+    con2 = T2MMA('Stress 2',problem.n)
 #
     #instantiate subproblem
     funcs = [obj, con1, con2]
@@ -136,15 +165,16 @@ def two_bar_truss():
             break
 #
         #update the approximations
-        obj.setatk(x, f[0], df[0], 3)
-        con1.setatk(x, f[1], df[1], 3)
-        con2.setatk(x, f[2], df[2], 3)
+        obj.setpoint(x, f[0], df[0], problem, 3)
+        con1.setpoint(x, f[1], df[1], problem, 3)
+        con2.setpoint(x, f[2], df[2], problem, 3)
 #
         #update the subproblem
         subproblem.build(x,f,df)
 #
         #solve the subproblem
         x[:] = pdip(subproblem, variables=Pdipx)[0]
+#       x[:] = dual2(subproblem)[0]
     print("\n")
 #
     return history

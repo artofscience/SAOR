@@ -13,6 +13,9 @@ class Subproblem(Problem):
         self.set_limits(limits)
         self.lims = parse_to_list(limits)
         self.n, self.m = functions[0].n, len(functions) - 1
+        for f in functions:
+            if f.n != self.n: print('ERROR')
+        self.x_d_k = np.ones(self.m,dtype=float)*0e0 # !!!!!!!!
 
     def set_limits(self, *limits):
         self.lims = parse_to_list(*limits)
@@ -42,6 +45,7 @@ class Subproblem(Problem):
         # intervening variables. This prevents the subsolver to make an update
         # that causes the intervening variable to reach unreachable values,
         # e.g. cross the lower/upper bounds in the MMA asymptotes.
+
         for j in range(self.m+1):
             tmp=self.functions[j].domain()
             for i in range(self.n):
@@ -54,7 +58,7 @@ class Subproblem(Problem):
     def g(self, x):
         gg = np.zeros(self.m + 1,dtype=float)
         for j in range(self.m+1):
-            f, _, _ = self.functions[j].eval(x)
+            f, _, _ = self.functions[j].evaluate(x)
             gg[j] = f
 #       print('g',gg)
         return gg
@@ -62,7 +66,7 @@ class Subproblem(Problem):
     def dg(self, x):
         dgg = np.zeros((self.m + 1,self.n),dtype=float)
         for j in range(self.m+1):
-            _, df, _ = self.functions[j].eval(x)
+            _, df, _ = self.functions[j].evaluate(x)
             dgg[j][:] = df
 #       print('dg',dgg)
         return dgg
@@ -70,9 +74,8 @@ class Subproblem(Problem):
     def ddg(self, x):
         ddgg = np.zeros((self.m +1, self.n)) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         for j in range(self.m+1):
-            _, _, ddf = self.functions[j].eval(x)
+            _, _, ddf = self.functions[j].evaluate(x)
             ddgg[j][:] = ddf
-#       print('ddg',ddgg)
         return ddgg
 
     '''

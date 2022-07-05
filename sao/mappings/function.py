@@ -18,7 +18,7 @@ class Function(abc.ABC):
     def __str__(self):
         return f"Function {self.name} of dimension {self.n}"
 #
-    def setatk(self, x, f, df, k_s=3):
+    def setpoint(self, x, f, df, prob=None, k_s=3, store=True):
 #
         self.k = self.k + 1
 #
@@ -30,47 +30,47 @@ class Function(abc.ABC):
             if isinstance(df[i],float): self.dg_k[0][i] = df[i]
             else: print('Error 3')
 #
-        self.hst_x_k.append(self.x_k.copy())
-        if len(self.hst_x_k) > k_s:
-            self.hst_x_k.pop(0)
+        if store:
+            self.hst_x_k.append(self.x_k.copy())
+            if len(self.hst_x_k) > k_s:
+                self.hst_x_k.pop(0)
 #
-        self.paramk()
-        self.y_k, self.dy_k, _ = self.intervene(x)
+        self.parameters(prob)
+        self.y_k, self.dy_k, _, _ = self.intercurve(x)
 #
-    def eval(self, x):
-#
-        g = self.g_k
-        dg = np.zeros_like(self.dg_k)
-        ddg = np.zeros_like(self.dg_k)
-        dg_k = self.dg_k
-        y_k = self.y_k
-        dy_k = self.dy_k
-#
-        y, dy, ddy = self.intervene(x)
-#
-        for i in range(self.n):
-            g = g + dg_k[0][i]/dy_k[i]*(y[i] - y_k[i])
-            dg[0][i] = dg_k[0][i]/dy_k[i]*dy[i]
-            ddg[0][i] = dg_k[0][i]/dy_k[i]*ddy[i]
-#
-        return g, dg, ddg
-#
-#   To be overwritten in concrete implementation
-#
-    @abc.abstractmethod
-    def paramk(self):
-        pass
-#
-    @abc.abstractmethod
     def domain(self):
         d_l = -1e8*np.ones(self.n,dtype=float)
         d_u = 1e8*np.ones(self.n,dtype=float)
         return d_l, d_u
 #
+    def evaluate(self, x):
+#
+        g = self.g_k
+        dg = np.zeros_like(self.dg_k)
+        ddg = np.zeros_like(self.dg_k)
+#
+        x_k = self.x_k
+        dg_k = self.dg_k
+        y_k = self.y_k
+        dy_k = self.dy_k
+#
+        y, dy, ddy, c_x = self.intercurve(x)
+#
+        for i in range(self.n):
+            g = g + dg_k[0][i]/dy_k[i]*(y[i] - y_k[i]) + c_x[i]/2e0*(x[i]-x_k[i])**2e0
+            dg[0][i] = dg_k[0][i]/dy_k[i]*dy[i] + c_x[i]*(x[i]-x_k[i])
+            ddg[0][i] = dg_k[0][i]/dy_k[i]*ddy[i] + c_x[i]
+#
+        return g, dg, ddg
+#
+    def parameters(self,prob):
+        pass
+#
     @abc.abstractmethod
-    def intervene(self,x):
+    def intercurve(self,x):
         y = np.ones_like(x)
         dy = np.ones_like(x)
         ddy = np.zeros_like(x)
-        return y, dy, ddy
+        c_x = np.zeros_like(x)
+        return y, dy, ddy, c_x
 #
