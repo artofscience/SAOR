@@ -12,6 +12,7 @@ from sao.problems.subproblem2 import Subproblem
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 #
 from sao.util.records import Records
+from sao.mappings.function import Function
 #
 """
 This example compares different SAO schemes for solving the Svanberg 1987 Two Bar Truss problem.
@@ -22,43 +23,23 @@ For a "fair" comparison, we use the convergence criteria as used in the paper.
 We start with the scheme as presented in the paper.
 """
 #
-class Function:
+class myFunction(Function):
 #
-    def __init__(self, name, n):
-        self.name = name
-        self.n = n
-        self.x_k = np.zeros((n,1),dtype=float)
-        self.g_k = 0e0
-        self.dg_k = np.zeros((1,n),dtype=float)
-        self.y_k = np.zeros((n,1),dtype=float)
-        self.dy_k = np.zeros((n,1),dtype=float)
+#   def __init__(self, name, n):
+#       self.name = name
+#       self.n = n
+#       self.x_k = np.zeros((n,1),dtype=float)
+#       self.g_k = 0e0
+#       self.dg_k = np.zeros((1,n),dtype=float)
+#       self.y_k = np.zeros((n,1),dtype=float)
+#       self.dy_k = np.zeros((n,1),dtype=float)
+#       self.k = -1
+#       self.hst_x_k  = []
 #
-        self.k = -1
-        self.lst_x_k  = []
+#   def __str__(self):
+#       return f"Function {self.name} of dimension {self.n}"
 #
-    def __str__(self):
-        return f"Function {self.name} of dimension {self.n}"
-#
-    def at_k(self, x, f, df, k_s=3):
-#
-        self.k = self.k + 1
-#
-        if isinstance(f,float): self.g_k = f
-        else: print('Error 1')
-        for i in range(self.n):
-            if isinstance(x[i],float): self.x_k[i] = x[i]
-            else: print('Error 2')
-            if isinstance(df[i],float): self.dg_k[0][i] = df[i]
-            else: print('Error 3')
-#
-        self.lst_x_k.append(self.x_k.copy())
-        if len(self.lst_x_k) > k_s:
-            self.lst_x_k.pop(0)
-#
-        self.ap_k()
-        self.y_k, self.dy_k, _ = self.mapping(x)
-#
-    def getbounds(self):
+    def getbounds(self): #domain
 #
         m_l = np.zeros(self.n,dtype=float)
         m_u = np.zeros(self.n,dtype=float)
@@ -70,7 +51,7 @@ class Function:
     def ap_k(self):
 #
         x_k = self.x_k
-        lst_x_k = self.lst_x_k
+        hst_x_k = self.hst_x_k
         k = self.k
 #
         asy_fac = 1/5e0
@@ -99,8 +80,8 @@ class Function:
             L_k[i]=x_k[i] - (x_u[i] - x_l[i])
             U_k[i]=x_k[i] + (x_u[i] - x_l[i])
         else:
-            x_1 = lst_x_k[-2]
-            x_2 = lst_x_k[-3]
+            x_1 = hst_x_k[-2]
+            x_2 = hst_x_k[-3]
             if (x_k[i]-x_1[i])*(x_1[i]-x_2[i]) < 0e0:
                 L_k[i] = x_k[i] - s_l*(x_1[i] - L_k[i])
                 U_k[i] = x_k[i] + s_l*(U_k[i] - x_1[i])
@@ -132,24 +113,6 @@ class Function:
 #
         return y, dy, ddy
 #
-    def eval(self, x):
-#
-        g = self.g_k
-        dg = np.zeros_like(self.dg_k)
-        ddg = np.zeros_like(self.dg_k)
-        dg_k = self.dg_k
-        y_k = self.y_k
-        dy_k = self.dy_k
-#
-        y, dy, ddy = self.mapping(x)
-#
-        for i in range(self.n):
-            g = g + dg_k[0][i]/dy_k[i]*(y[i] - y_k[i])
-            dg[0][i] = dg_k[0][i]/dy_k[i]*dy[i]
-            ddg[0][i] = dg_k[0][i]/dy_k[i]*ddy[i]
-#
-        return g, dg, ddg
-#
 def two_bar_truss():
 #
     #instantiate the problem instance
@@ -164,9 +127,9 @@ def two_bar_truss():
     f = problem.g(x)
     df = problem.dg(x)
 #
-    obj = Function('Weight',problem.n)
-    con1 = Function('Stress 1',problem.n)
-    con2 = Function('Stress 2',problem.n)
+    obj = myFunction('Weight',problem.n)
+    con1 = myFunction('Stress 1',problem.n)
+    con2 = myFunction('Stress 2',problem.n)
 #
     #intervening variables
 #   intvar = MixedIntervening(problem.n, problem.m + 1, default=MMA87A(t=0.2))
