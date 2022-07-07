@@ -7,6 +7,7 @@ from sao.move_limits import Bounds, MoveLimit, MoveLimitFraction, AdaptiveMoveLi
 from sao.problems.subproblem_func import Subproblem
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 from sao.solvers.t2dual import t2dual
+from sao.solvers.allcondual import allcondual
 #
 from sao.util.records import Records
 from sao.function import Function
@@ -41,7 +42,7 @@ class T2R(Function):
 #
         return y, dy, ddy, c_x
 #
-class R(Function):
+class C(Function):
 #
     def intercurve(self, x):
 #
@@ -108,9 +109,9 @@ def cantilever_t2r(sub):
 #
     aux=[]
 #
-    funcs=[L('Weight',problem.n) ]
+    funcs=[C('Weight',problem.n) ]
     for j in range(problem.m):
-        funcs.append(L('Stress %d'%j,problem.n))
+        funcs.append(C('Stress %d'%j,problem.n))
 #
     #instantiate subproblem
     subproblem = Subproblem(funcs, limits=[bounds, movelimit])
@@ -139,11 +140,13 @@ def cantilever_t2r(sub):
             x[:] = pdip(subproblem, variables=Pdipx)[0]
         elif sub =='t2dual':
             x[:] = t2dual(subproblem)[0]
+        elif sub =='allcondual':
+            x[:] = allcondual(subproblem)[0]
 
     print("\n")
 #
     return history
 #
 if __name__ == "__main__":
-    sub='t2dual'
+    sub='allcondual'
     cantilever_t2r(sub)
