@@ -4,6 +4,9 @@ from sao.problems.problem import Problem
 #
 class TenBarTruss(Problem):
 #
+#   haftkas 10-bar-truss (used by Haftka and Groen)
+#   formulated in line with van Keulen truss element examples in Continuum reader
+#
     def __init__(self):
         super().__init__()
         self.n = 10
@@ -19,9 +22,7 @@ class TenBarTruss(Problem):
 #
         g = np.zeros((self.m + 1), dtype=float)
 #
-        x_p=x
-#
-        P=-100; L=360
+        L=360
 #
         n_elm=10; n_nds=6; n_dim=2
 #
@@ -47,90 +48,84 @@ class TenBarTruss(Problem):
         e_con[8]=[2,1]
         e_con[9]=[0,3]
 #
-#       area and younds modulis
-        A = x_p; E = np.ones_like(A)
+#       area and younds modulis (element props)
+        A = x; E = np.ones_like(A)
 #
-#       load vector
+#       global load vector
         F = np.zeros((2*n_nds,1))
         F[3]=-100
         F[7]=-100
 #
-#       boundary conditions
+#       fixed displacement boundary conditions
         B = np.zeros(4,dtype=int)
         B[0]=8
         B[1]=9
         B[2]=10
         B[3]=11
 #
-        S=np.zeros(n_elm,dtype=np.float64)
-        L=np.zeros(n_elm,dtype=np.float64)
+        S={}; L={}; D={}; T={}
         K=np.zeros((2*n_nds,2*n_nds),dtype=np.float64)
+        sig=np.zeros(n_elm,dtype=np.float64)
+        eps=np.zeros(n_elm,dtype=np.float64)
 #
+#       assembly
         for e in range(n_elm):
 #
+#           length
             L[e] = np.linalg.norm(n_cor[e_con[e][1]]- n_cor[e_con[e][0]])
-            lox = (n_cor[e_con[e][1]][0]- n_cor[e_con[e][0]][0])/L[e]
-            mox = (n_cor[e_con[e][1]][1]- n_cor[e_con[e][0]][1])/L[e]
-            Lam = np.array([[lox, mox, 0, 0],[0, 0, lox, mox]])
-            k = np.array([[1, -1],[-1, 1]])
-            k = k*A[e]*E[e]/L[e]
-            klocal = np.dot(np.dot(Lam.transpose(), k), Lam)
 #
-            id1=2*e_con[e][0]
-            id2=id1+1
-            id3=2*e_con[e][1]
-            id4 =id3+1
+#           d_loc=[u_2_x, u_2_y, u_1_x, u_1_y]^T
 #
-            K[id1,id1]+=klocal[0,0]
-            K[id1,id2]+=klocal[0,1]
-            K[id2,id1]+=klocal[1,0]
-            K[id2,id2]+=klocal[1,1]
-
-            K[id1,id3]+=klocal[0,2]
-            K[id1,id4]+=klocal[0,3]
-            K[id2,id3]+=klocal[1,2]
-            K[id2,id4]+=klocal[1,3]
-
-            K[id3,id1]+=klocal[2,0]
-            K[id3,id2]+=klocal[2,1]
-            K[id4,id1]+=klocal[3,0]
-            K[id4,id2]+=klocal[3,1]
-
-            K[id3,id3]+=klocal[2,2]
-            K[id3,id4]+=klocal[2,3]
-            K[id4,id3]+=klocal[3,2]
-            K[id4,id4]+=klocal[3,3]
+#           D matrix (gen def given disp. in local system)
+            D[e] = np.array([[1., 0., -1., 0.]])#/L[e]
 #
+#           transformation matrix (global to local)
+            cos = (n_cor[e_con[e][1]][0]- n_cor[e_con[e][0]][0])/L[e]
+            sin = (n_cor[e_con[e][1]][1]- n_cor[e_con[e][0]][1])/L[e]
+            T[e] = np.array([[cos, sin, 0, 0],[-sin, cos, 0, 0],[0,0,cos,sin],[0.,0.,-sin,cos]])
+#
+#           material law (spring stiffness, given definition of gen def)
+            S[e] = A[e]*E[e]/L[e]
+#
+#           element stiffness matrix, transformed to global
+            tmp=np.dot(D[e],T[e])
+            k = S[e]*np.dot(tmp.transpose(), tmp)
+#
+#           assemble
+            ids = np.array([2*e_con[e][1],2*e_con[e][1]+1,2*e_con[e][0],2*e_con[e][0]+1])
+            K[ids[:,np.newaxis],ids]+=k
+#
+#       remove fixed (at zero) dofs
         tmp = np.delete(K,list(B),0)
         K0 = np.delete(tmp,list(B),1)
         F0 = np.delete(F,list(B))
 #
+#       solve at free dofs for loads
         U0 = np.dot(np.linalg.inv(K0),F0)
 #
-        U = np.zeros((2*n_nds,1))
-        j=0
-        for i in range(2*n_nds):
-            if i not in list(B):
-                U[i]=U0[j]
-            j=j+1
+#       pack into complete dof array
+        U = np.zeros(2*n_nds)
+        free=list(set(range(2*n_nds))-set(B))
+        U[free]=U0
 #
+#       post process
         for e in range(n_elm):
-            lox = (n_cor[e_con[e][1]][0]- n_cor[e_con[e][0]][0])/L[e]
-            mox = (n_cor[e_con[e][1]][1]- n_cor[e_con[e][0]][1])/L[e]
-            id1=2*e_con[e][0]
-            id2=id1+1
-            id3=2*e_con[e][1]
-            id4 =id3+1
-            ulocal= np.array([U[id1],U[id2],U[id3],U[id4]])
-            S[e]=E[e]/L[e]*np.dot(  np.array([-lox,-mox,lox,mox]), ulocal )
+            ids = np.array([2*e_con[e][1],2*e_con[e][1]+1,2*e_con[e][0],2*e_con[e][0]+1])
+            dglo=U[ids]
+            dloc= np.dot(T[e],dglo)
+#           gen def
+            eps[e]= np.dot(D[e],dloc)
+#           gen stress (WHICH IS A LOAD!!!)
+            sig[e]=  S[e]*eps[e]
 #
+#       make response functions
         for e in range(n_elm):
-            g[0]=g[0]+x_p[e]*L[e]*0.1
-            g[e+1] = S[e] - 25e0
-            g[e+1+n_elm] = -S[e] - 25e0
+            g[0]=g[0]+A[e]*L[e]*0.1
+            g[e+1] = sig[e]/A[e] - 25e0
+            g[e+1+n_elm] = -sig[e]/A[e] - 25e0
             if e == 8:
-                g[e+1] = S[e] - 75e0
-                g[e+1+n_elm] = -S[e] - 75e0
+                g[e+1] = sig[e]/A[e] - 75e0
+                g[e+1+n_elm] = -sig[e]/A[e] - 75e0
 #
         return g
 

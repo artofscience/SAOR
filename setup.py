@@ -30,6 +30,7 @@ setup(
         'scipy',
         'matplotlib',
         'numba',
+        'osqp',
         'cvxopt',
     ],
     extras_require={
