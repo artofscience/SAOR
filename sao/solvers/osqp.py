@@ -38,7 +38,7 @@ def osqp(problem):
     u=np.append(u,x_u)
 #
     prob = qp.OSQP()
-    prob.setup(Q, J, A, l, u,verbose=False)
+    prob.setup(Q, J, A, l, u,verbose=True)
     res=prob.solve()
     if res.info.status_val != 1:  #https://github.com/osqp/osqp/blob/master/include/constants.h
 #
@@ -63,7 +63,6 @@ def osqp(problem):
 #
     else:
         x_d=res.y[:m]
-#
         x=x_k.transpose()+np.maximum(np.minimum(res.x,x_u),x_l)
 #
     problem.x_d_k = x_d

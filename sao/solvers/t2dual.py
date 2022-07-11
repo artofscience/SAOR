@@ -36,23 +36,10 @@ def t2dual(problem):
 #
 def x_dual(x_d, n, m, x_k, g, dg, dx_l, dx_u, c0, cj):
 #
-    x = np.zeros(n,dtype=np.float64)
+    ddL=(c0 + np.dot(x_d,cj))
+    tmp=(dg[0]+np.dot(x_d,dg[1:]))
 #
-    ddL=np.zeros(n,dtype=np.float64)
-    for i in range(n):
-        ddL[i]=ddL[i]+c0[i]
-        for j in range(m):
-            ddL[i]=ddL[i]+cj[j][i]*x_d[j]
-#
-    tmp=np.zeros(n,dtype=np.float64)
-    for i in range(n):
-        tmp[i]=tmp[i]+dg[0][i]
-        for j in range(m):
-            tmp[i]=tmp[i]+x_d[j]*dg[j+1][i]
-    for i in range(n):
-        x[i] = max(min(x_k[i] - tmp[i]/ddL[i],dx_u[i]),dx_l[i])
-#
-    return x
+    return np.maximum(np.minimum(x_k - tmp/ddL, dx_u),dx_l)
 #
 # QPQC: Dual function value
 #
@@ -60,19 +47,9 @@ def qpq_dual(x_d, n, m, x_k, g, dg, dx_l, dx_u, c0, cj):
 #
     x=x_dual(x_d, n, m, x_k, g, dg, dx_l, dx_u, c0, cj)
 #
-    ddL=np.zeros(n,dtype=np.float64)
-    for i in range(n):
-        ddL[i]=ddL[i]+c0[i]
-        for j in range(m):
-            ddL[i]=ddL[i]+cj[j][i]*x_d[j]
+    ddL=(c0 + np.dot(x_d,cj))
 #
-    W = g[0]
-    for i in range(n):
-        W = W + dg[0][i]*(x[i]-x_k[i]) + ddL[i]/2e0*(x[i]-x_k[i])**2e0
-    for j in range(m):
-        W = W + x_d[j]*g[j+1]
-        for i in range(n): 
-            W = W + x_d[j]*dg[j+1][i]*(x[i]-x_k[i])
+    W = g[0]+np.dot(dg[0],(x-x_k))+np.dot(ddL/2e0,(x-x_k)**2e0)+np.dot(x_d,(g[1:]+np.dot(dg[1:],(x-x_k))))
 #
     return -W
 #
@@ -82,12 +59,7 @@ def dqpq_dual(x_d, n, m, x_k, g, dg, dx_l, dx_u, c0, cj):
 #
     x=x_dual(x_d, n, m, x_k, g, dg, dx_l, dx_u, c0, cj)
 #
-    dW = np.zeros(m,dtype=np.float64)
-#
-    for j in range(m):
-        dW[j] = dW[j] + g[j+1]
-        for i in range(n):
-            dW[j] = dW[j] + dg[j+1][i]*(x[i]-x_k[i]) + cj[j][i]/2e0*(x[i]-x_k[i])**2e0
+    dW=g[1:]+np.dot(dg[1:],(x-x_k)) + np.dot(cj/2e0,(x-x_k)**2e0)
 #
     return -dW
 #

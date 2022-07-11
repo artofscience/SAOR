@@ -6,6 +6,14 @@ __pycache__/
 # C extensions
 *.so
 
+# numpy data files
+*.npy
+
+# TopOptPetsc data files
+*.vtr
+*.dat
+*.dat.info
+
 # line profiler output
 *.lprof
 

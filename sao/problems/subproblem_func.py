@@ -44,9 +44,8 @@ class Subproblem(sub):
 
         for j in range(self.m+1):
             tmp=self.functions[j].domain()
-            for i in range(self.n):
-                self.x_min[i]=max(tmp[0][i],self.x_min[i])
-                self.x_max[i]=min(tmp[1][i],self.x_max[i])
+            self.x_min=np.maximum(tmp[0],self.x_min)
+            self.x_max=np.minimum(tmp[1],self.x_max)
 
         assert np.isfinite(self.x_min).all() and np.isfinite(self.x_max).all(), \
             "The bounds must be finite. Use at least one move-limit or bound."
@@ -54,21 +53,18 @@ class Subproblem(sub):
     def g(self, x):
         _g = np.zeros(self.m + 1,dtype=float)
         for j in range(self.m+1):
-            f, _, _ = self.functions[j].evaluate(x)
-            _g[j] = f
+            _g[j] = self.functions[j].g(x)
         return _g
 
     def dg(self, x):
         _dg = np.zeros((self.m + 1,self.n),dtype=float)
         for j in range(self.m+1):
-            _, df, _ = self.functions[j].evaluate(x)
-            _dg[j][:] = df
+            _dg[j][:] = self.functions[j].dg(x)
         return _dg
 
     def ddg(self, x):
         _dgg = np.zeros((self.m +1, self.n)) 
         for j in range(self.m+1):
-            _, _, ddf = self.functions[j].evaluate(x)
-            _dgg[j][:] = ddf
+            _dgg[j][:] = self.functions[j].ddg(x)
         return _dgg
 

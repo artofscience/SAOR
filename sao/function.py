@@ -7,11 +7,11 @@ class Function(abc.ABC):
         if n == 0: print('Error')
         self.name = name
         self.n = n
-        self.x_k = np.zeros((n,1),dtype=float)
+        self.x_k = np.zeros(n,dtype=float)
         self.g_k = 0e0
-        self.dg_k = np.zeros((1,n),dtype=float)
-        self.y_k = np.zeros((n,1),dtype=float)
-        self.dy_k = np.zeros((n,1),dtype=float)
+        self.dg_k = np.zeros(n,dtype=float)
+        self.y_k = np.zeros(n,dtype=float)
+        self.dy_k = np.zeros(n,dtype=float)
         self.k = -1
         self.hst_x_k  = []
 #
@@ -27,7 +27,7 @@ class Function(abc.ABC):
         for i in range(self.n):
             if isinstance(x[i],float): self.x_k[i] = x[i]
             else: print('Error 2')
-            if isinstance(df[i],float): self.dg_k[0][i] = df[i]
+            if isinstance(df[i],float): self.dg_k[i] = df[i]
             else: print('Error 3')
 #
         if store:
@@ -43,25 +43,55 @@ class Function(abc.ABC):
         d_u = 1e8*np.ones(self.n,dtype=float)
         return d_l, d_u
 #
-    def evaluate(self, x):
-#
+    def g(self, x):
         g = self.g_k
-        dg = np.zeros_like(self.dg_k)
-        ddg = np.zeros_like(self.dg_k)
-#
         x_k = self.x_k
         dg_k = self.dg_k
         y_k = self.y_k
         dy_k = self.dy_k
+        y, _, _, c_x = self.intercurve(x)
+        g = g + np.dot(dg_k/dy_k,(y - y_k)) + np.dot(c_x/2e0,(x-x_k)**2e0)
+        return g
+    def dg(self, x):
+        g = self.g_k
+        x_k = self.x_k
+        dg_k = self.dg_k
+        y_k = self.y_k
+        dy_k = self.dy_k
+        y, dy, _, c_x = self.intercurve(x)
+        dg = np.zeros_like(self.dg_k)
+        dg[:] = dg_k/dy_k*dy + c_x*(x-x_k)
+        return dg
+    def ddg(self, x):
+        g = self.g_k
+        x_k = self.x_k
+        dg_k = self.dg_k
+        y_k = self.y_k
+        dy_k = self.dy_k
+        _, _, ddy, c_x = self.intercurve(x)
+        ddg = np.zeros_like(self.dg_k)
+        ddg[:] = dg_k/dy_k*ddy + c_x
+        return ddg
 #
-        y, dy, ddy, c_x = self.intercurve(x)
+#   def evaluate(self, x):
 #
-        for i in range(self.n):
-            g = g + dg_k[0][i]/dy_k[i]*(y[i] - y_k[i]) + c_x[i]/2e0*(x[i]-x_k[i])**2e0
-            dg[0][i] = dg_k[0][i]/dy_k[i]*dy[i] + c_x[i]*(x[i]-x_k[i])
-            ddg[0][i] = dg_k[0][i]/dy_k[i]*ddy[i] + c_x[i]
+#       g = self.g_k
+#       dg = np.zeros_like(self.dg_k)
+#       ddg = np.zeros_like(self.dg_k)
 #
-        return g, dg, ddg
+#       x_k = self.x_k
+#       dg_k = self.dg_k
+#       y_k = self.y_k
+#       dy_k = self.dy_k
+#
+#       y, dy, ddy, c_x = self.intercurve(x)
+#
+#       for i in range(self.n):
+#           g = g + dg_k[0][i]/dy_k[i]*(y[i] - y_k[i]) + c_x[i]/2e0*(x[i]-x_k[i])**2e0
+#           dg[0][i] = dg_k[0][i]/dy_k[i]*dy[i] + c_x[i]*(x[i]-x_k[i])
+#           ddg[0][i] = dg_k[0][i]/dy_k[i]*ddy[i] + c_x[i]
+#
+#       return g, dg, ddg
 #
     def parameters(self,prob):
         pass

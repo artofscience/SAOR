@@ -34,8 +34,8 @@ class T2R(Function):
 #
         dg_k = self.dg_k
         for i in range(self.n):
-            c_x[i] = 2e0*abs(dg_k[0][i])/x_k[i]
-            if dg_k[0][i] < 0e0:
+            c_x[i] = 2e0*abs(dg_k[i])/x_k[i]
+            if dg_k[i] < 0e0:
                 y[i] = x[i]
                 dy[i] = 1e0
                 ddy[i] = 0e0
@@ -60,7 +60,7 @@ class R(Function):
 #
         dg_k = self.dg_k
         for i in range(self.n):
-            if dg_k[0][i] < 0e0:
+            if dg_k[i] < 0e0:
                 y[i] = 1./x[i]
                 dy[i] = -1e0/x[i]**2e0
                 ddy[i] = 2e0/x[i]**3e0

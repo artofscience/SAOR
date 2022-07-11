@@ -62,7 +62,7 @@ class MMA(Function):
         dg_k = self.dg_k
 #
         for i in range(self.n):
-            if dg_k[0][i] < 0e0:
+            if dg_k[i] < 0e0:
                 y[i] = 1e0 / (x[i] - L_k[i])
                 dy[i] = -1e0 / (x[i] - L_k[i])**2e0
                 ddy[i] = 2e0 / (x[i] - L_k[i])**3e0
