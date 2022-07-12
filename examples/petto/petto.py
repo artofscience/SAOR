@@ -1,4 +1,5 @@
 #
+import os
 import time
 #
 import numpy as np
@@ -81,10 +82,16 @@ def petsctopopt_t2r(sub):
     bounds = Bounds(xmin=problem.x_min, xmax=problem.x_max)
     movelimit = MoveLimit(move_limit=0.2,dx=problem.x_max-problem.x_min)
 #
+    cnt=0
+
     n = problem.n
     x = problem.x0
-    f = problem.g(x)
-    df = problem.dg(x)
+#   problem.setx(x)
+#   problem.solve(cnt)
+#   f = problem.g(x)
+#   df = problem.dg(x)
+
+#   cnt=cnt+1
 #
     aux=[]
 #
@@ -98,13 +105,15 @@ def petsctopopt_t2r(sub):
     #instantiate history
     history = Records(['f0','inf'])
 #
-    converged=IterationCount(3)
+    converged=IterationCount(100)
 #
     x_old=np.zeros_like(x)
 #
-    cnt=0
     while not converged:
+#
         start = time.time()
+        problem.setx(x)
+        problem.solve(cnt)
         f = problem.g(x); df = problem.dg(x)
         end = time.time()
         print('physic', end - start)
@@ -138,6 +147,13 @@ def petsctopopt_t2r(sub):
             x[:] = osqp(subproblem)[0]
         end = time.time()
         print('subsolve',end - start)
+
+        cnt=cnt+1
+#
+        if os.path.exists("exit.flg"):
+            break
+#
+    open("exit.flg", 'w').close()
 
     print("\n")
 #

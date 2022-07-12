@@ -22,8 +22,6 @@ def read(vec):
     tmp2=np.zeros((ranges[rank+1]-ranges[rank]),dtype=float)
     tmp=np.load("xxx.npy")
     tmp2[:]=tmp[ranges[rank]:ranges[rank+1]]
-#   print(len(tmp2), len(tmp[ranges[rank]:ranges[rank+1]]))
     return tmp2
-#   return np.load("xxx.npy")
 
     

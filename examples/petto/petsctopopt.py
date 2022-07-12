@@ -8,7 +8,7 @@ class PETScTopOpt(Problem):
 #
     def __init__(self):
         super().__init__()
-        self.n = 136*72*72
+        self.n = (136+16)*(72+16)*(72+16)
         self.m = 1
         self.cores = 6
         self.x0 = 0.12 * np.ones(self.n, dtype=float)
@@ -18,14 +18,25 @@ class PETScTopOpt(Problem):
         self.x_opt = None
         self.f_opt = None
 #
-        os.system("rm RestartSol00.dat")
-        os.system("rm RestartSol00.dat.info")
+        os.system("rm *.npy > log.log")
+        os.system("rm *.flg > log.log")
+        os.system("rm RestartSol00.dat > log.log")
+        os.system("rm RestartSol00.dat.info > log.log")
+#
+#       tmp="/media/dirkmunro/Terra/Code/topopt_in_petsc_solve_to_numpy/topopt -restartFileVecSol RestartSol00.dat &"
+        tmp="mpirun -n %d /media/dirkmunro/Terra/Code/topopt_in_petsc_solve_to_numpy/topopt -restartFileVecSol RestartSol00.dat &"\
+            %self.cores
+        os.system(tmp)
+#
+        while not os.path.exists("ready.flg"):
+            time.sleep(1)
+        print("TopOpt Petsc is ready")
 #
     def g(self, x):
 #
         g = np.zeros((self.m + 1), dtype=float)
-        self.setx(x)
-        self.solve()
+#       self.setx(x)
+#       self.solve()
         g[:]=self.read_g()
 #
         return g
@@ -36,7 +47,6 @@ class PETScTopOpt(Problem):
         dg = np.zeros((self.m + 1, self.n), dtype=float)
         dg[:]=self.read_dg()
         end = time.time()
-        print('read dg', end - start)
         return dg
 #
     def read_g(self):
@@ -67,14 +77,19 @@ class PETScTopOpt(Problem):
 #
         return dgdx
 #
-    def solve(self):
+    def solve(self,k):
 #
-        tmp="mpirun -n %d /media/dirkmunro/Terra/Code/topopt_in_petsc_solve_to_numpy/topopt -restartFileVecSol RestartSol00.dat"\
-            %self.cores
-        os.system(tmp)
+        open("gowith_%d.flg"%k, 'w').close()
+#
+        if not os.path.exists("exit.flg"):
+            while not os.path.exists("done.flg"):
+                time.sleep(1)
+                time.sleep(1)
+            print("Topopt petsc is done done....")
 #
     def setx(self,x):
 #
+        os.system("rm done.flg > log.log")
         np.save("xxx.npy",x)
 #
 if __name__ == "__main__":
