@@ -96,8 +96,3 @@ if __name__ == "__main__":
 #
     from problems.util.fd import finite_difference
 #
-    dx = 1e-7
-    problem = TenBarTruss()
-    x_opt = np.array([7.9, 0.1, 8.1, 3.9, 0.1, 0.1, 5.8, 5.51, 3.68, 0.14], dtype=float)
-    print(problem.g(x_opt))
-#
