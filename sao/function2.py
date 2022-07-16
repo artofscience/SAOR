@@ -36,7 +36,9 @@ class Function(abc.ABC):
                 self.hst_x_k.pop(0)
 #
         self.parameters(aux)
-        self.y_k, self.dy_k, _, _ = self.intercurve(x)
+        self.y_k = self.intervene(x)
+        self.dy_k = self.dintervene(x)
+#       self.y_k, self.dy_k, _, _ = self.intercurve(x)
 #
     def domain(self):
         d_l = -1e8*np.ones(self.n,dtype=float)
@@ -49,7 +51,8 @@ class Function(abc.ABC):
         dg_k = self.dg_k
         y_k = self.y_k
         dy_k = self.dy_k
-        y, _, _, c_x = self.intercurve(x)
+        y = self.intervene(x)
+        c_x = self.curvature(x)
         g = g + np.dot(dg_k/dy_k,(y - y_k)) + np.dot(c_x/2e0,(x-x_k)**2e0)
         return g
     def dg(self, x):
@@ -58,7 +61,8 @@ class Function(abc.ABC):
         dg_k = self.dg_k
 #       y_k = self.y_k
         dy_k = self.dy_k
-        _, dy, _, c_x = self.intercurve(x)
+        dy = self.dintervene(x)
+        c_x = self.curvature(x)
 #       dg = np.zeros_like(self.dg_k)
         dg = dg_k/dy_k*dy + c_x*(x-x_k)
         return dg
@@ -68,7 +72,8 @@ class Function(abc.ABC):
         dg_k = self.dg_k
 #       y_k = self.y_k
         dy_k = self.dy_k
-        _, _, ddy, c_x = self.intercurve(x)
+        ddy = self.ddintervene(x)
+        c_x = self.curvature(x)
 #       ddg = np.zeros_like(self.dg_k)
         ddg = dg_k/dy_k*ddy + c_x
         return ddg
@@ -97,10 +102,22 @@ class Function(abc.ABC):
         pass
 #
     @abc.abstractmethod
-    def intercurve(self,x):
+    def intervene(self,x):
         y = x
+        return y
+#
+    @abc.abstractmethod
+    def dintervene(self,x):
         dy = np.ones_like(x)
+        return dy
+#
+    @abc.abstractmethod
+    def ddintervene(self,x):
         ddy = np.zeros_like(x)
+        return ddy
+#
+    @abc.abstractmethod
+    def curvature(self,x):
         c_x = np.zeros_like(x)
-        return y, dy, ddy, c_x
+        return c_x
 #

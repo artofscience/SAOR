@@ -51,15 +51,12 @@ class Subproblem(Problem):
 
     # TODO These might also be removed if the solver uses prob.approx.g instead of prob.g
     def g(self, x):
-        print('g')
         return self.approx.g(x)
 
     def dg(self, x):
-        print('dg')
         return self.approx.dg(x)
 
     def ddg(self, x):
-        print('ddg')
         return self.approx.ddg(x)
 
     '''
