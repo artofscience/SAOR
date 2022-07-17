@@ -9,7 +9,7 @@ from sao.solvers.allmmadual import allmmadual
 from sao.solvers.allcondual import allcondual
 #
 from sao.util.records import Records
-from sao.function import Function
+#from sao.function import Function
 from examples.svan.twobartruss_pdip import MMA
 #
 """

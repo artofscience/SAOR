@@ -8,7 +8,7 @@ from sao.problems.subproblem_func import Subproblem
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 #
 from sao.util.records import Records
-from sao.function import Function
+from sao.function2 import Function
 #
 """
 This example compares different SAO schemes for solving the Svanberg 1987 Two Bar Truss problem.
@@ -23,11 +23,9 @@ class MMA(Function):
 #
     def domain(self): #domain
 #
-        d_l = np.zeros(self.n,dtype=float)
-        d_u = np.zeros(self.n,dtype=float)
-        for i in range(self.n):
-            d_l[i] = 1.01*self.L_k[i]
-            d_u[i] = 0.99*self.U_k[i]
+        d_l = 1.01*self.L_k
+        d_u = 0.99*self.U_k
+#
         return d_l, d_u
 #
     def parameters(self,aux):
@@ -38,40 +36,27 @@ class MMA(Function):
 #
         asy_fac = aux[0]
 #
-        L_k = np.zeros_like(x_k) 
-        U_k = np.zeros_like(x_k) 
-#
-        for i in range(self.n):
-            L_k[i]=asy_fac*x_k[i]
-            U_k[i]=x_k[i]/asy_fac
+        L_k=asy_fac*x_k
+        U_k=x_k/asy_fac
 #
         self.L_k = L_k
         self.U_k = U_k
 #
-    def intercurve(self, x):
+    def intervene(self, x):
+        y = np.where(self.dg_k < 0e0, 1e0 / (x - self.L_k), 1e0 / (self.U_k - x))
+        return y
 #
-        L_k = self.L_k
-        U_k = self.U_k
+    def dintervene(self, x):
+        dy = np.where(self.dg_k < 0e0, -1e0 / (x - self.L_k)**2e0, 1e0 / (self.U_k - x)**2e0)
+        return dy
 #
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
+    def ddintervene(self, x):
+        ddy = np.where(self.dg_k < 0e0, 2e0 / (x - self.L_k)**3e0, 2e0 / (self.U_k - x)**3e0)
+        return ddy
 #
-        x_k = self.x_k
-        dg_k = self.dg_k
-#
-        for i in range(self.n):
-            if dg_k[i] < 0e0:
-                y[i] = 1e0 / (x[i] - L_k[i])
-                dy[i] = -1e0 / (x[i] - L_k[i])**2e0
-                ddy[i] = 2e0 / (x[i] - L_k[i])**3e0
-            else:
-                y[i] = 1e0 / (U_k[i] - x[i])
-                dy[i] = 1e0 / (U_k[i] - x[i])**2e0
-                ddy[i] = 2e0 / (U_k[i] - x[i])**3e0
-#
-        return y, dy, ddy, c_x
+    def curvature(self, x):
+        c_x=np.zeros_like(x)
+        return c_x
 #
 def cantilever_mma(t):
 #

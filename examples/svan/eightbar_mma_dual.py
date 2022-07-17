@@ -8,7 +8,7 @@ from sao.problems.subproblem_func import Subproblem
 from sao.solvers.allmmadual import allmmadual
 #
 from sao.util.records import Records
-from sao.function import Function
+from sao.function2 import Function
 #
 """
 This example compares different SAO schemes for solving the Svanberg 1987 Two Bar Truss problem.
@@ -23,11 +23,9 @@ class MMA(Function):
 #
     def domain(self): #domain
 #
-        d_l = np.zeros(self.n,dtype=float)
-        d_u = np.zeros(self.n,dtype=float)
-        for i in range(self.n):
-            d_l[i] = 1.01*self.L_k[i]
-            d_u[i] = 0.99*self.U_k[i]
+        d_l = 1.01*self.L_k
+        d_u = 0.99*self.U_k
+#
         return d_l, d_u
 #
     def parameters(self,aux):
@@ -46,51 +44,33 @@ class MMA(Function):
             U_k = self.U_k
 #
         if k <= 1:
-            for i in range(self.n):
-                L_k[i]=0e0#asy_fac*x_k[i]
-                U_k[i]=5e0*x_k[i]#/asy_fac
+            L_k=0e0*x_k#asy_fac*x_k[i]
+            U_k=5e0*x_k#/asy_fac
         else:
             x_1 = hst_x_k[-2]
             x_2 = hst_x_k[-3]
-            for i in range(self.n):
-                if (x_k[i]-x_1[i])*(x_1[i]-x_2[i]) < 0e0:
-                    L_k[i] = x_k[i] - s*(x_1[i] - L_k[i])
-                    U_k[i] = x_k[i] + s*(U_k[i] - x_1[i])
-                else:
-                    L_k[i] = x_k[i] - (x_1[i] - L_k[i])/s
-                    U_k[i] = x_k[i] + (U_k[i] - x_1[i])/s
 #
-        for i in range(self.n):
-            L_k[i]= min(max(-50.*x_k[i],L_k[i]),0.4*x_k[i])
-            U_k[i]= min(max(2.5*x_k[i],U_k[i]),50*x_k[i])
+            L_k=np.where((x_k-x_1)*(x_1-x_2) < 0e0, x_k - s*(x_1 - L_k) , x_k - (x_1 - L_k)/s )
+            U_k=np.where((x_k-x_1)*(x_1-x_2) < 0e0, x_k + s*(U_k - x_1) , x_k + (U_k - x_1)/s )
+#
+        L_k= np.minimum(np.maximum(-50.*x_k,L_k),0.4*x_k)
+        U_k= np.minimum(np.maximum(2.5*x_k,U_k),50*x_k)
 #
         self.L_k = L_k
         self.U_k = U_k
 #
-    def intercurve(self, x):
-#
-        L_k = self.L_k
-        U_k = self.U_k
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        x_k = self.x_k
-        dg_k = self.dg_k
-#
-        for i in range(self.n):
-            if dg_k[i] < 0e0:
-                y[i] = 1e0 / (x[i] - L_k[i])
-                dy[i] = -1e0 / (x[i] - L_k[i])**2e0
-                ddy[i] = 2e0 / (x[i] - L_k[i])**3e0
-            else:
-                y[i] = 1e0 / (U_k[i] - x[i])
-                dy[i] = 1e0 / (U_k[i] - x[i])**2e0
-                ddy[i] = 2e0 / (U_k[i] - x[i])**3e0
-#
-        return y, dy, ddy, c_x
+    def intervene(self,x):
+        y=np.where(self.dg_k < 0e0, 1e0 / (x - self.L_k), 1e0 / (self.U_k - x) )
+        return y
+    def dintervene(self,x):
+        dy=np.where(self.dg_k < 0e0, -1e0 / (x - self.L_k)**2e0, 1e0 / (self.U_k - x)**2e0 )
+        return dy
+    def ddintervene(self,x):
+        ddy=np.where(self.dg_k < 0e0, 2e0 / (x - self.L_k)**3e0, 2e0 / (self.U_k - x)**3e0 )
+        return ddy
+    def curvature(self,x):
+        c_x=np.zeros_like(x)
+        return c_x
 #
 def eightbar_mma_dual(s):
 #

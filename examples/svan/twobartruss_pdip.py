@@ -8,7 +8,7 @@ from sao.problems.subproblem_func import Subproblem
 from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 #
 from sao.util.records import Records
-from sao.function import Function
+from sao.function2 import Function
 #
 """
 This example compares different SAO schemes for solving the Svanberg 1987 Two Bar Truss problem.
@@ -48,11 +48,11 @@ class MMA(Function):
             L_k = self.L_k
             U_k = self.U_k
 #
-        i=0
+        i=0 #custum def as per example
         L_k[i]=asy_fac*x_k[i]
         U_k[i]=x_k[i]/asy_fac
 #
-        i=1
+        i=1 #custom def as per example
         if k <= 1:
             L_k[i]=x_k[i] - (x_u[i] - x_l[i])
             U_k[i]=x_k[i] + (x_u[i] - x_l[i])
@@ -69,73 +69,48 @@ class MMA(Function):
         self.L_k = L_k
         self.U_k = U_k
 #
-    def intercurve(self, x):
-#
-        L_k = self.L_k
-        U_k = self.U_k
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        x_k = self.x_k
-        dg_k = self.dg_k
-#
-        for i in range(self.n):
-            if dg_k[i] < 0e0:
-                y[i] = 1e0 / (x[i] - L_k[i])
-                dy[i] = -1e0 / (x[i] - L_k[i])**2e0
-                ddy[i] = 2e0 / (x[i] - L_k[i])**3e0
-            else:
-                y[i] = 1e0 / (U_k[i] - x[i])
-                dy[i] = 1e0 / (U_k[i] - x[i])**2e0
-                ddy[i] = 2e0 / (U_k[i] - x[i])**3e0
-#
-        return y, dy, ddy, c_x
+    def intervene(self,x):
+        y=np.where(self.dg_k < 0e0, 1e0 / (x - self.L_k), 1e0 / (self.U_k - x) )
+        return y
+    def dintervene(self,x):
+        dy=np.where(self.dg_k < 0e0, -1e0 / (x - self.L_k)**2e0, 1e0 / (self.U_k - x)**2e0 )
+        return dy
+    def ddintervene(self,x):
+        ddy=np.where(self.dg_k < 0e0, 2e0 / (x - self.L_k)**3e0, 2e0 / (self.U_k - x)**3e0 )
+        return ddy
+    def curvature(self,x):
+        c_x=np.zeros_like(x)
+        return c_x
 #
 class CON(Function):
 #
-    def intercurve(self, x):
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        x_k = self.x_k
-        dg_k = self.dg_k
-#
-        for i in range(self.n):
-            if dg_k[i] < 0e0:
-                y[i] = 1e0 / x[i] 
-                dy[i] = -1e0 / x[i]**2e0
-                ddy[i] = 2e0 / x[i]**3e0
-            else:
-                y[i] = x[i]
-                dy[i] = 1e0 
-                ddy[i] = 0e0
-#
-        return y, dy, ddy, c_x
+    def intervene(self,x):
+        y=np.where(self.dg_k < 0e0, 1e0 / x, x)
+        return y
+    def dintervene(self,x):
+        dy=np.where(self.dg_k < 0e0, -1e0 / x**2e0, np.ones_like(x))
+        return dy
+    def ddintervene(self,x):
+        ddy=np.where(self.dg_k < 0e0, 2e0 / x**3e0, np.zeros_like(x))
+        return ddy
+    def curvature(self,x):
+        c_x=np.zeros_like(x)
+        return c_x
 #
 class LIN(Function):
 #
-    def intercurve(self, x):
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        x_k = self.x_k
-        dg_k = self.dg_k
-#
-        for i in range(self.n):
-            y[i] = x[i]
-            dy[i] = 1e0 
-            ddy[i] = 0e0
-#
-        return y, dy, ddy, c_x
+        def intervene(self,x):
+            y=x
+            return y
+        def dintervene(self,x):
+            dy=np.ones_like(x)
+            return dy
+        def ddintervene(self,x):
+            ddy=np.zeros_like(x)
+            return ddy
+        def curvature(self,x):
+            c_x=np.zeros_like(x)
+            return c_x
 #
 def twobartruss_pdip(obj,con1,con2):
 #

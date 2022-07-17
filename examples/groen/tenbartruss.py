@@ -9,7 +9,7 @@ from sao.solvers.primal_dual_interior_point import pdip, Pdipx
 from sao.solvers.t2dual import t2dual
 #
 from sao.util.records import Records
-from sao.function import Function
+from sao.function2 import Function
 #
 """
 This example compares different SAO schemes for solving the Svanberg 1987 Two Bar Truss problem.
@@ -20,102 +20,57 @@ For a "fair" comparison, we use the convergence criteria as used in the paper.
 We start with the scheme as presented in the paper.
 """
 #
+#
 class T2R(Function):
 #
-    def intercurve(self, x):
+    def intervene(self,x):
+        return x
+    def dintervene(self,x):
+        return np.ones_like(x)
+    def ddintervene(self,x):
+        return np.zeros_like(x)
 #
-        x_k = self.x_k
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        dg_k = self.dg_k
-        for i in range(self.n):
-            c_x[i] = 2e0*abs(dg_k[i])/x_k[i]
-            y[i] = x[i]
-            dy[i] = 1e0
-            ddy[i] = 0e0
-#
-        return y, dy, ddy, c_x
-#
+    def curvature(self,x):
+        c_x=2e0*np.absolute(self.dg_k)/self.x_k
+        return c_x
 #
 class T2C(Function):
 #
-    def intercurve(self, x):
+    def intervene(self,x):
+        return x
+    def dintervene(self,x):
+        return np.ones_like(x)
+    def ddintervene(self,x):
+        return np.zeros_like(x)
 #
-        x_k = self.x_k
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        dg_k = self.dg_k
-        for i in range(self.n):
-            if dg_k[0][i] < 0e0:
-                c_x[i] = -2e0*dg_k[0][i]/x_k[i]
-            else:
-                c_x[i] = 0e0
-            c_x[i]=max(c_x[i],1e-6)
-#
-            y[i] = x[i]
-            dy[i] = 1e0
-            ddy[i] = 0e0
-#
-        return y, dy, ddy, c_x
+    def curvature(self,x):
+        c_x=np.where(self.dg_k>0e0, -2e0*self.dg_k/self.x_k, 0e0)
+        return c_x
 #
 class R(Function):
 #
-    def intercurve(self, x):
-#
-        x_k = self.x_k
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        dg_k = self.dg_k
-        for i in range(self.n):
-            if dg_k[0][i] < 0e0:
-                y[i] = 1./x[i]
-                dy[i] = -1e0/x[i]**2e0
-                ddy[i] = 2e0/x[i]**3e0
-            else: 
-                y[i] = x[i]
-                dy[i] = 1e0#/x[i]**2e0
-                ddy[i] = 0e0#/x[i]**3e0
-            c_x[i] = 0e0
-#
-        return y, dy, ddy, c_x
+    def intervene(self,x):
+        return 1./x
+    def dintervene(self,x):
+        return -1./x**2e0
+    def ddintervene(self,x):
+        return 2./x**3e0
+    def curvature(self,x):
+        c_x=np.zeros_like(x)
+        return c_x
 #
 class L(Function):
 #
-    def intercurve(self, x):
+    def intervene(self,x):
+        return x
+    def dintervene(self,x):
+        return np.ones_like(x)
+    def ddintervene(self,x):
+        return np.zeros_like(x)
+    def curvature(self,x):
+        return np.ones_like(x)*1e-6
 #
-        x_k = self.x_k
-#
-        y = np.zeros_like(x)
-        dy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        ddy = np.zeros_like(x)
-        c_x = np.zeros_like(x)
-#
-        dg_k = self.dg_k
-        for i in range(self.n):
-            y[i] = x[i]
-            dy[i] = 1e0
-            ddy[i] = 0e0
-            c_x[i] = 1e-6
-#
-        return y, dy, ddy, c_x
-#
-def cantilever_t2r(sub):
+def tenbartruss_t2r(sub):
 #
     #instantiate the problem instance
     problem = TenBarTruss()
@@ -158,9 +113,9 @@ def cantilever_t2r(sub):
         subproblem.build(x,f,df)
 #
         #solve the subproblem
-        if sub =='pdip':
+        if sub =='pdip': #seems to struggle with infeasibility
             x[:] = pdip(subproblem, variables=Pdipx)[0]
-        elif sub =='t2dual':
+        elif sub =='t2dual': #see infeasibility in first subproblem; solution corresponds to Groen
             x[:] = t2dual(subproblem)[0]
 
     print("\n")
@@ -169,4 +124,4 @@ def cantilever_t2r(sub):
 #
 if __name__ == "__main__":
     sub='t2dual'
-    cantilever_t2r(sub)
+    tenbartruss_t2r(sub)

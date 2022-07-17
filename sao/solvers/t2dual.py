@@ -18,6 +18,11 @@ def t2dual(problem):
     dx_l=np.ones(n,dtype=np.float64)
     dx_u=np.ones(n,dtype=np.float64)
 #
+    if np.any(ddg[0]<1e-6):
+        print("WARNING; strictly convex Lagrangian required for definition of Falk dual")
+        print("Setting objective curvatures to small, positive number")
+        ddg[0]=ddg[0]+1e-6
+#
     bds=[[0e0,1e8] for i in range(m)]; tup_bds=tuple(bds)
     sol=minimize(qpq_dual,x_d,args=(n,m,x_k,g,dg,x_l,x_u, ddg[0], ddg[1:]), \
         jac=dqpq_dual,method='L-BFGS-B',bounds=tup_bds, options={'disp':False})
