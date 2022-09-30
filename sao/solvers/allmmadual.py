@@ -91,7 +91,7 @@ def mma_dual(x_d, n, m, r, p, q, dx_l, dx_u, L, U):
 #       for i in range(m):
 #           tmp11=tmp11+p[i+1][j]*x_d[i]/(U[j]-x[j]); tmp22=tmp22+q[i+1][j]*x_d[i]/(x[j]-L[j])
 #
-    W = r[0] + np.sum(p[0]/(U - x) + np.dot(x_d,p[1:]) / (U - x)) + np.sum(q[0]/(U - x) + np.dot(x_d,q[1:]) / (x - L)) - np.dot(x_d,-r[1:])
+    W = r[0] + np.sum(p[0]/(U - x) + np.dot(x_d,p[1:]) / (U - x)) + np.sum(q[0]/(x-L) + np.dot(x_d,q[1:]) / (x - L)) - np.dot(x_d,-r[1:])
 #   for i in range(m):
 #       W = W - x_d[i]*(0e0-r[i+1])
 #
